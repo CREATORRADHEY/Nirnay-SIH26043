@@ -81,7 +81,7 @@ Also available:
 
 ```bash
 npm run lint
-npx tsc --noEmit
+npm run typecheck
 npm run build
 ```
 
@@ -128,7 +128,7 @@ Frontend checks:
 ```bash
 cd apps/web
 npm run lint
-npx tsc --noEmit
+npm run typecheck
 npm run build
 ```
 
