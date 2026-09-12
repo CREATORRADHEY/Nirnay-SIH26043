@@ -1,0 +1,41 @@
+{
+  "QualificationRoute": [
+    "SERVICE",
+    "CLARIFY",
+    "RESEARCH_REVIEW",
+    "INNOVATION_CHALLENGE"
+  ],
+  "CommitmentStatus": [
+    "PROPOSED",
+    "OFFERED",
+    "ACCEPTED",
+    "DECLINED",
+    "WITHDRAWN",
+    "EXPIRED"
+  ],
+  "ConditionStatus": [
+    "SATISFIED",
+    "UNSATISFIED",
+    "UNKNOWN",
+    "DISPUTED",
+    "EXPIRED"
+  ],
+  "ReadinessStatus": [
+    "BLOCKED",
+    "REVIEW_READY",
+    "PILOT_READY",
+    "REVIEW_REQUIRED"
+  ],
+  "OperationalStatus": [
+    "PLANNED",
+    "ACTIVE",
+    "COMPLETED",
+    "STOPPED"
+  ],
+  "EvidenceConclusion": [
+    "NOT_REVIEWED",
+    "VALIDATED",
+    "ITERATE",
+    "INCONCLUSIVE"
+  ]
+}

@@ -1,0 +1,46 @@
+from enum import Enum
+
+
+class QualificationRoute(str, Enum):
+    SERVICE = "SERVICE"
+    CLARIFY = "CLARIFY"
+    RESEARCH_REVIEW = "RESEARCH_REVIEW"
+    INNOVATION_CHALLENGE = "INNOVATION_CHALLENGE"
+
+
+class CommitmentStatus(str, Enum):
+    PROPOSED = "PROPOSED"
+    OFFERED = "OFFERED"
+    ACCEPTED = "ACCEPTED"
+    DECLINED = "DECLINED"
+    WITHDRAWN = "WITHDRAWN"
+    EXPIRED = "EXPIRED"
+
+
+class ConditionStatus(str, Enum):
+    SATISFIED = "SATISFIED"
+    UNSATISFIED = "UNSATISFIED"
+    UNKNOWN = "UNKNOWN"
+    DISPUTED = "DISPUTED"
+    EXPIRED = "EXPIRED"
+
+
+class ReadinessStatus(str, Enum):
+    BLOCKED = "BLOCKED"
+    REVIEW_READY = "REVIEW_READY"
+    PILOT_READY = "PILOT_READY"
+    REVIEW_REQUIRED = "REVIEW_REQUIRED"
+
+
+class OperationalStatus(str, Enum):
+    PLANNED = "PLANNED"
+    ACTIVE = "ACTIVE"
+    COMPLETED = "COMPLETED"
+    STOPPED = "STOPPED"
+
+
+class EvidenceConclusion(str, Enum):
+    NOT_REVIEWED = "NOT_REVIEWED"
+    VALIDATED = "VALIDATED"
+    ITERATE = "ITERATE"
+    INCONCLUSIVE = "INCONCLUSIVE"
