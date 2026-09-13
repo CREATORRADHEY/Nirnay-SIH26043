@@ -1,5 +1,16 @@
-from app.schemas.challenge import ChallengeCreate, ChallengeResponse, ChallengeListItem, ChallengeListResponse
-from app.schemas.evidence import EvidenceCreate, EvidenceResponse, EvidenceListResponse
+from app.schemas.challenge import ChallengeCreate, ChallengeListItem, ChallengeListResponse, ChallengeResponse
+from app.schemas.evidence import EvidenceCreate, EvidenceListResponse, EvidenceResponse
+from app.schemas.hei_matching import (
+    HEICapabilityResponse,
+    HEICandidateCreate,
+    HEICandidateListResponse,
+    HEICandidateResponse,
+)
+from app.schemas.qualification import (
+    QualificationDecisionCreate,
+    QualificationDecisionResponse,
+    QualificationHistoryResponse,
+)
 
 __all__ = [
     "ChallengeCreate",
@@ -9,4 +20,11 @@ __all__ = [
     "EvidenceCreate",
     "EvidenceResponse",
     "EvidenceListResponse",
+    "QualificationDecisionCreate",
+    "QualificationDecisionResponse",
+    "QualificationHistoryResponse",
+    "HEICapabilityResponse",
+    "HEICandidateCreate",
+    "HEICandidateResponse",
+    "HEICandidateListResponse",
 ]
