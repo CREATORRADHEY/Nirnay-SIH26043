@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.core.database import get_db
+from app.core.dependencies import get_current_actor
 from app.main import app
 from app.models.actor import Actor
 from app.models.base import Base
@@ -34,12 +35,13 @@ class TestPilotOutcomeAPI(unittest.TestCase):
                 db.close()
 
         app.dependency_overrides[get_db] = override_get_db
+        app.dependency_overrides[get_current_actor] = lambda: self.session.query(Actor).get(self.actor.id) if hasattr(self, "actor") and self.actor else None
         self.client = TestClient(app)
 
         # Seed data
         self.gov_org = Organization(name="Gov Dept", organization_type="GOVERNMENT")
         self.hei_org = Organization(name="IIT Ranchi", organization_type="HEI")
-        self.actor = Actor(display_name="Lead Coordinator")
+        self.actor = Actor(display_name="Lead Coordinator", platform_role="PLATFORM_ADMIN")
 
         self.session.add_all([self.gov_org, self.hei_org, self.actor])
         self.session.commit()

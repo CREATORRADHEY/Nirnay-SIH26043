@@ -18,6 +18,8 @@ from app.models.pilot_operational_state import PilotOperationalState
 from app.models.pilot_evidence_plan import PilotEvidencePlan
 from app.models.outcome_assessment import OutcomeAssessment
 from app.models.security_audit_log import SecurityAuditLog
+from app.models.clarification import ClarificationRequest, ClarificationResponse
+from app.models.notification import Notification
 
 __all__ = [
     "Base",
@@ -42,4 +44,7 @@ __all__ = [
     "PilotEvidencePlan",
     "OutcomeAssessment",
     "SecurityAuditLog",
+    "ClarificationRequest",
+    "ClarificationResponse",
+    "Notification",
 ]

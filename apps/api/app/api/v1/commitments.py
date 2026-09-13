@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_optional_actor
+from app.core.dependencies import get_current_actor
 from app.models.actor import Actor
 from app.schemas.commitment import CommitmentCreate, CommitmentHistoryResponse, CommitmentResponse
 from app.services.commitment_service import (
@@ -27,19 +27,23 @@ router = APIRouter(tags=["commitments"])
 def post_commitment_version(
     challenge_id: uuid.UUID,
     payload: CommitmentCreate,
-    actor: Optional[Actor] = Depends(get_optional_actor),
+    actor: Actor = Depends(get_current_actor),
     db: Session = Depends(get_db),
 ) -> CommitmentResponse:
-    if actor:
-        # Check institutional boundary
-        if actor.platform_role != PlatformRole.PLATFORM_ADMIN.value:
-            mem_org_ids = [m.organization_id for m in actor.memberships]
-            if payload.organization_id not in mem_org_ids:
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Institutional boundary violation: You cannot record commitments on behalf of another organization.",
-                )
-        payload.recorded_by_actor_id = actor.id
+    role_str = getattr(actor.platform_role, "value", str(actor.platform_role))
+    if role_str in [PlatformRole.COMMUNITY_REPORTER.value, PlatformRole.GOVERNMENT_REVIEWER.value]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Government Reviewers and Citizens cannot record institutional commitments on behalf of HEI/Industry.",
+        )
+    if role_str != PlatformRole.PLATFORM_ADMIN.value:
+        mem_org_ids = [m.organization_id for m in actor.memberships]
+        if payload.organization_id not in mem_org_ids:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Institutional boundary violation: You cannot record commitments on behalf of another organization.",
+            )
+    payload.recorded_by_actor_id = actor.id
 
     try:
         commitment = create_commitment_version(db, challenge_id, payload)

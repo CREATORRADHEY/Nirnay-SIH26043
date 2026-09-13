@@ -43,3 +43,4 @@ build/
 *.db
 *.sqlite
 *.sqlite3
+storage/uploads/

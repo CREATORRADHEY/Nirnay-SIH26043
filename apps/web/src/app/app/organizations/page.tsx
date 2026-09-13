@@ -81,8 +81,9 @@ export default function OrganizationsPage() {
       await fetchOrgs();
       await refreshUser();
       setMsg("Organization created successfully!");
-    } catch (err: any) {
-      setMsg(`Error: ${err.message}`);
+    } catch (err: unknown) {
+      setMsg(`Error: ${err instanceof Error ? err.message : String(err)}`);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } finally {
       setCreating(false);
     }
@@ -113,8 +114,9 @@ export default function OrganizationsPage() {
       setInviteEmail("");
       setSelectedOrgId(null);
       setMsg("Invitation sent successfully!");
-    } catch (err: any) {
-      setMsg(`Error: ${err.message}`);
+    } catch (err: unknown) {
+      setMsg(`Error: ${err instanceof Error ? err.message : String(err)}`);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } finally {
       setInviting(false);
     }

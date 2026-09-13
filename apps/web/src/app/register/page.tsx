@@ -22,8 +22,9 @@ export default function RegisterPage() {
     try {
       await register(displayName, email, password);
       router.push("/app");
-    } catch (err: any) {
-      setError(err.message || "Registration failed");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An error occurred";
+      setError(errorMessage || "Registration failed");
     } finally {
       setSubmitting(false);
     }

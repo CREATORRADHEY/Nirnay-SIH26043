@@ -5,37 +5,52 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { AppShell } from "@/components/AppShell";
 
-interface DashboardSummary {
-  actor_id: string;
-  display_name: string;
-  role: string;
-  primary_organization: {
-    id: string;
-    name: string;
-    type: string;
-  } | null;
-  metrics: Record<string, number>;
-  action_items: Array<{
-    title: string;
-    count: number;
-    description: string;
-    link: string;
-  }>;
+interface CitizenChallengeItem {
+  id: string;
+  title: string;
+  summary: string;
+  domain: string;
+  district: string;
+  submitted_at: string;
+  lifecycle_stage: string;
+}
+
+interface ReviewQueueStats {
+  unreviewed: number;
+  awaiting_clarification: number;
+  innovation_challenges: number;
 }
 
 export default function ProductionDashboardPage() {
   const { user, loading } = useAuth();
-  const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [myChallenges, setMyChallenges] = useState<CitizenChallengeItem[]>([]);
+  const [myTotal, setMyTotal] = useState(0);
+  const [reviewStats, setReviewStats] = useState<ReviewQueueStats | null>(null);
   const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"}/api/v1/dashboard/summary`, {
-        credentials: "include",
-      })
+    if (!user) return;
+
+    if (user.platform_role === "COMMUNITY_REPORTER") {
+      fetch("/api/v1/me/challenges?limit=5", { credentials: "include" })
         .then((res) => (res.ok ? res.json() : null))
-        .then((data) => setSummary(data))
-        .catch(() => setSummary(null))
+        .then((data) => {
+          if (data) {
+            setMyChallenges(data.items || []);
+            setMyTotal(data.total || 0);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setFetching(false));
+    } else {
+      fetch("/api/v1/government/review-queue?limit=1", { credentials: "include" })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data && data.stats) {
+            setReviewStats(data.stats);
+          }
+        })
+        .catch(() => {})
         .finally(() => setFetching(false));
     }
   }, [user]);
@@ -72,7 +87,8 @@ export default function ProductionDashboardPage() {
     );
   }
 
-  const roleTitle = user.platform_role.replace("_", " ");
+  const isGov = user.platform_role.startsWith("GOVERNMENT_") || user.platform_role === "PLATFORM_ADMIN";
+  const roleTitle = user.platform_role.replace(/_/g, " ");
 
   return (
     <AppShell>
@@ -87,78 +103,183 @@ export default function ProductionDashboardPage() {
               </span>
             </div>
             <p className="text-sm text-stone-600 mt-1">
-              Production Dashboard • Logged in as <span className="font-semibold">{user.email}</span>
+              Production Operational Dashboard • Logged in as <span className="font-semibold">{user.email}</span>
             </p>
           </div>
           <div className="flex items-center space-x-3">
-            <Link
-              href="/challenges"
-              className="px-4 py-2 bg-stone-900 text-white text-sm font-semibold rounded-lg hover:bg-stone-800 transition-colors"
-            >
-              Explore Challenges
-            </Link>
-            <Link
-              href="/app/organizations"
-              className="px-4 py-2 bg-stone-100 text-stone-800 text-sm font-semibold rounded-lg hover:bg-stone-200 border border-stone-300 transition-colors"
-            >
-              Manage Organizations
-            </Link>
+            {!isGov ? (
+              <>
+                <Link
+                  href="/app/challenges/new"
+                  className="px-4 py-2 bg-amber-600 text-white text-sm font-semibold rounded-lg hover:bg-amber-700 transition-colors shadow-sm"
+                >
+                  Report a Societal Challenge
+                </Link>
+                <Link
+                  href="/app/challenges"
+                  className="px-4 py-2 bg-stone-100 text-stone-800 text-sm font-semibold rounded-lg hover:bg-stone-200 border border-stone-300 transition-colors"
+                >
+                  View My Challenges
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/app/review"
+                  className="px-4 py-2 bg-stone-900 text-white text-sm font-semibold rounded-lg hover:bg-stone-800 transition-colors shadow-sm"
+                >
+                  Open Intake Queue
+                </Link>
+                <Link
+                  href="/app/readiness"
+                  className="px-4 py-2 bg-amber-600 text-white text-sm font-semibold rounded-lg hover:bg-amber-700 transition-colors shadow-sm"
+                >
+                  Readiness Workspace
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
-        {/* Role Metrics Grid */}
-        {summary && summary.metrics && (
-          <div>
-            <h2 className="text-xs font-bold text-stone-500 uppercase tracking-widest mb-3">
-              Key Performance Metrics
+        {/* Citizen Specific Dashboard View */}
+        {!isGov && (
+          <div className="space-y-6">
+            <h2 className="text-xs font-bold text-stone-500 uppercase tracking-widest">
+              Community Submissions & Activity
             </h2>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {Object.entries(summary.metrics).map(([key, val]) => (
-                <div key={key} className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
-                  <div className="text-xs font-semibold text-stone-500 uppercase tracking-wider">
-                    {key.replace(/_/g, " ")}
-                  </div>
-                  <div className="text-3xl font-extrabold text-stone-900 mt-2">{val}</div>
+              <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+                <div className="text-xs font-semibold text-stone-500 uppercase tracking-wider">My Reported Challenges</div>
+                <div className="text-3xl font-extrabold text-stone-900 mt-2">{myTotal}</div>
+              </div>
+              <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+                <div className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Under Active Review</div>
+                <div className="text-3xl font-extrabold text-amber-600 mt-2">
+                  {myChallenges.filter((c) => c.lifecycle_stage !== "SUBMITTED").length}
                 </div>
-              ))}
+              </div>
+              <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+                <div className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Submitted Records</div>
+                <div className="text-3xl font-extrabold text-emerald-600 mt-2">{myTotal}</div>
+              </div>
+              <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+                <div className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Geographic Scope</div>
+                <div className="text-3xl font-extrabold text-stone-900 mt-2">Jharkhand</div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-stone-200 shadow-sm p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-stone-900 text-lg">Recent Submissions</h3>
+                <Link href="/app/challenges" className="text-xs font-semibold text-amber-700 hover:underline">
+                  View All ({myTotal}) →
+                </Link>
+              </div>
+
+              {myChallenges.length === 0 ? (
+                <div className="py-8 text-center text-stone-500 text-sm border-2 border-dashed border-stone-200 rounded-lg">
+                  No societal challenges reported yet. Click &quot;Report a Societal Challenge&quot; to submit a new issue.
+                </div>
+              ) : (
+                <div className="divide-y divide-stone-100">
+                  {myChallenges.map((item) => (
+                    <div key={item.id} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <Link href={`/app/challenges/${item.id}`} className="font-bold text-stone-900 hover:text-amber-700 text-base">
+                            {item.title}
+                          </Link>
+                          <span className="bg-stone-100 text-stone-700 text-[10px] font-bold px-2 py-0.5 rounded border border-stone-200">
+                            {item.domain}
+                          </span>
+                        </div>
+                        <p className="text-xs text-stone-600 mt-1 line-clamp-1">{item.summary}</p>
+                      </div>
+                      <div className="flex items-center space-x-3 text-xs whitespace-nowrap">
+                        <span className="bg-amber-50 text-amber-800 border border-amber-200 font-semibold px-2.5 py-1 rounded-md">
+                          {item.lifecycle_stage.replace(/_/g, " ")}
+                        </span>
+                        <Link
+                          href={`/app/challenges/${item.id}`}
+                          className="px-3 py-1.5 bg-stone-900 text-white rounded font-medium text-xs hover:bg-stone-800"
+                        >
+                          Details
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* Priority Action Items */}
-        {summary && summary.action_items && (
-          <div>
-            <h2 className="text-xs font-bold text-stone-500 uppercase tracking-widest mb-3">
-              Role Workflows & Priority Tasks
+        {/* Government Specific Dashboard View */}
+        {isGov && (
+          <div className="space-y-6">
+            <h2 className="text-xs font-bold text-stone-500 uppercase tracking-widest">
+              Government Intake & Review Queue Summary
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {summary.action_items.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="bg-white p-6 rounded-xl border border-stone-200 shadow-sm flex flex-col justify-between hover:border-amber-500/50 transition-all"
-                >
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-stone-900 text-base">{item.title}</h3>
-                      {item.count > 0 && (
-                        <span className="bg-amber-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                          {item.count}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-stone-600 mt-2">{item.description}</p>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-stone-100">
-                    <Link
-                      href={item.link}
-                      className="text-xs font-bold text-amber-700 hover:text-amber-800 flex items-center space-x-1"
-                    >
-                      <span>Open Workflow</span>
-                      <span>→</span>
-                    </Link>
-                  </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+                <div className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Unreviewed Intake</div>
+                <div className="text-3xl font-extrabold text-amber-600 mt-2">{reviewStats?.unreviewed ?? 0}</div>
+                <p className="text-xs text-stone-500 mt-1">Awaiting initial intake review</p>
+              </div>
+              <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+                <div className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Awaiting Clarification</div>
+                <div className="text-3xl font-extrabold text-blue-600 mt-2">{reviewStats?.awaiting_clarification ?? 0}</div>
+                <p className="text-xs text-stone-500 mt-1">Query sent to submitter</p>
+              </div>
+              <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+                <div className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Innovation Challenges</div>
+                <div className="text-3xl font-extrabold text-emerald-600 mt-2">{reviewStats?.innovation_challenges ?? 0}</div>
+                <p className="text-xs text-stone-500 mt-1">Qualified for HEI matching & pilots</p>
+              </div>
+            </div>
+
+            <h2 className="text-xs font-bold text-stone-500 uppercase tracking-widest pt-2">
+              Operational Workspaces
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Link
+                href="/app/review"
+                className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm hover:border-amber-500 transition-all block"
+              >
+                <div className="font-bold text-stone-900 text-base flex items-center justify-between">
+                  <span>Intake & Review Queue</span>
+                  <span>→</span>
                 </div>
-              ))}
+                <p className="text-xs text-stone-600 mt-2">
+                  Inspect incoming citizen challenges, examine evidence, request clarification, and record qualification decisions.
+                </p>
+              </Link>
+              <Link
+                href="/app/hei-matching"
+                className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm hover:border-amber-500 transition-all block"
+              >
+                <div className="font-bold text-stone-900 text-base flex items-center justify-between">
+                  <span>HEI Candidate Matching</span>
+                  <span>→</span>
+                </div>
+                <p className="text-xs text-stone-600 mt-2">
+                  Search institution capabilities directory and match higher educational institutional candidates to qualified challenges.
+                </p>
+              </Link>
+              <Link
+                href="/app/readiness"
+                className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm hover:border-amber-500 transition-all block"
+              >
+                <div className="font-bold text-stone-900 text-base flex items-center justify-between">
+                  <span>Readiness Authorization</span>
+                  <span>→</span>
+                </div>
+                <p className="text-xs text-stone-600 mt-2">
+                  Audit readiness conditions matrix, monitor commitment integrity events, and grant PILOT_READY human authorization.
+                </p>
+              </Link>
             </div>
           </div>
         )}

@@ -5,8 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_optional_actor
+from app.core.dependencies import get_current_actor
 from app.models.actor import Actor
+from app.services.policy_service import PolicyService
 from app.schemas.readiness import (
     ReadinessConditionCreate,
     ReadinessConditionListResponse,
@@ -37,10 +38,15 @@ router = APIRouter(tags=["readiness"])
 def post_readiness_condition_version(
     challenge_id: uuid.UUID,
     payload: ReadinessConditionCreate,
-    actor: Optional[Actor] = Depends(get_optional_actor),
+    actor: Actor = Depends(get_current_actor),
     db: Session = Depends(get_db),
 ) -> ReadinessConditionResponse:
-    if actor:
+    if not PolicyService.can_perform_action(actor, "readiness:assess"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied: cannot assess readiness conditions.",
+        )
+    if not payload.assessed_by_actor_id:
         payload.assessed_by_actor_id = actor.id
 
     try:
@@ -103,20 +109,15 @@ def get_latest_conditions(
 def post_readiness_decision(
     challenge_id: uuid.UUID,
     payload: ReadinessDecisionCreate,
-    actor: Optional[Actor] = Depends(get_optional_actor),
+    actor: Actor = Depends(get_current_actor),
     db: Session = Depends(get_db),
 ) -> ReadinessDecisionResponse:
-    if actor:
-        if actor.platform_role not in [
-            PlatformRole.GOVERNMENT_REVIEWER.value,
-            PlatformRole.GOVERNMENT_ADMIN.value,
-            PlatformRole.HEI_REVIEWER.value,
-            PlatformRole.PLATFORM_ADMIN.value,
-        ]:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have reviewer authorization to record readiness decisions.",
-            )
+    if not PolicyService.can_perform_action(actor, "readiness:authorize"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have reviewer authorization to record readiness decisions.",
+        )
+    if not payload.decided_by_actor_id:
         payload.decided_by_actor_id = actor.id
 
     try:

@@ -45,8 +45,8 @@ export default function AccountPage() {
       setOldPassword("");
       setNewPassword("");
       setMsg("Password updated successfully!");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
     } finally {
       setSubmitting(false);
     }

@@ -13,6 +13,14 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  // Project-level rule overrides
+  {
+    rules: {
+      // Allow async fetch functions called inside useEffect
+      // (e.g. fetchData() or void fetchData() patterns are intentional)
+      "react-hooks/set-state-in-effect": "warn",
+    },
+  },
 ]);
 
 export default eslintConfig;

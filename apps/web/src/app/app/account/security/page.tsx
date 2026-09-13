@@ -38,7 +38,7 @@ export default function SecuritySessionsPage() {
 
   useEffect(() => {
     if (user) {
-      fetchSessions();
+      void fetchSessions();
     }
   }, [user]);
 

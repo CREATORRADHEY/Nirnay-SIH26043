@@ -5,8 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_optional_actor
+from app.core.dependencies import get_current_actor
 from app.models.actor import Actor
+from app.services.policy_service import PolicyService
 from app.schemas.hei_matching import (
     HEICapabilityResponse,
     HEICandidateCreate,
@@ -34,10 +35,15 @@ router = APIRouter(tags=["hei-matching"])
 def post_hei_candidate(
     challenge_id: uuid.UUID,
     payload: HEICandidateCreate,
-    actor: Optional[Actor] = Depends(get_optional_actor),
+    actor: Actor = Depends(get_current_actor),
     db: Session = Depends(get_db),
 ) -> HEICandidateResponse:
-    if actor:
+    if not PolicyService.can_perform_action(actor, "hei_candidate:create"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied: cannot create HEI candidate match.",
+        )
+    if not payload.created_by_actor_id:
         payload.created_by_actor_id = actor.id
 
     try:

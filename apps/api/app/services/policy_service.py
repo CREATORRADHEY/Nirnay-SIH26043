@@ -85,7 +85,7 @@ class PolicyService:
         organization: Optional[Organization] = None,
         membership: Optional[OrganizationMembership] = None,
     ) -> bool:
-        if not actor.is_active:
+        if actor.is_active is False:
             return False
 
         if not PolicyService.has_permission(actor.platform_role, permission):

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
@@ -9,6 +9,19 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const { user, loading, logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (!user) return;
+    fetch("/api/v1/notifications?limit=1", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && typeof data.unread_count === "number") {
+          setUnreadCount(data.unread_count);
+        }
+      })
+      .catch(() => {});
+  }, [user, pathname]);
 
   if (loading) {
     return (
@@ -25,6 +38,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     return <>{children}</>;
   }
 
+  const role = user.platform_role;
   const primaryOrg = user.memberships.find((m) => m.is_primary) || user.memberships[0];
 
   const handleLogout = async () => {
@@ -32,19 +46,35 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     router.push("/login");
   };
 
-  const navItems = [
+  let navItems = [
     { label: "Dashboard", href: "/app" },
-    { label: "Challenges", href: "/challenges" },
-    { label: "Organizations", href: "/app/organizations" },
-    { label: "Account", href: "/app/account" },
+    { label: "My Challenges", href: "/app/challenges" },
+    { label: "Report Challenge", href: "/app/challenges/new" },
+    { label: "Notifications", href: "/app/notifications", badge: unreadCount },
     { label: "Security", href: "/app/account/security" },
   ];
+
+  if (role.startsWith("GOVERNMENT_") || role === "PLATFORM_ADMIN") {
+    navItems = [
+      { label: "Dashboard", href: "/app" },
+      { label: "Review Queue", href: "/app/review" },
+      { label: "Qualification", href: "/app/qualification" },
+      { label: "HEI Matching", href: "/app/hei-matching" },
+      { label: "Readiness", href: "/app/readiness" },
+      { label: "Pilots", href: "/app/pilots" },
+      { label: "Outcomes", href: "/app/outcomes" },
+      { label: "Notifications", href: "/app/notifications", badge: unreadCount },
+    ];
+    if (role === "GOVERNMENT_ADMIN" || role === "PLATFORM_ADMIN") {
+      navItems.push({ label: "Organizations", href: "/app/organizations", badge: 0 });
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-stone-900 flex flex-col font-sans">
       <header className="bg-stone-900 text-stone-100 border-b border-stone-800 px-6 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center space-x-6">
-          <Link href="/" className="font-bold text-lg tracking-tight flex items-center space-x-2 text-stone-100">
+          <Link href="/app" className="font-bold text-lg tracking-tight flex items-center space-x-2 text-stone-100">
             <span className="bg-amber-600 text-white text-xs font-black px-2 py-0.5 rounded tracking-widest">NIRNAY</span>
             <span className="text-stone-300 font-medium text-sm hidden sm:inline">Platform</span>
           </Link>
@@ -55,11 +85,18 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                    active ? "bg-stone-800 text-amber-400" : "text-stone-300 hover:text-white hover:bg-stone-800/60"
-                  }`}
+                  className={
+                    active
+                      ? "px-3 py-1.5 text-sm font-medium rounded-md transition-colors relative flex items-center space-x-1.5 bg-stone-800 text-amber-400"
+                      : "px-3 py-1.5 text-sm font-medium rounded-md transition-colors relative flex items-center space-x-1.5 text-stone-300 hover:text-white hover:bg-stone-800/60"
+                  }
                 >
-                  {item.label}
+                  <span>{item.label}</span>
+                  {item.badge && item.badge > 0 ? (
+                    <span className="bg-amber-500 text-stone-950 font-bold text-[10px] px-1.5 py-0.5 rounded-full">
+                      {item.badge}
+                    </span>
+                  ) : null}
                 </Link>
               );
             })}
@@ -70,7 +107,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           <div className="text-right hidden sm:block">
             <div className="text-xs font-semibold text-stone-200">{user.display_name}</div>
             <div className="text-[11px] text-amber-500 font-mono tracking-tight flex items-center justify-end space-x-1">
-              <span>{user.platform_role.replace("_", " ")}</span>
+              <span>{user.platform_role.replace(/_/g, " ")}</span>
               {primaryOrg && <span className="text-stone-400">({primaryOrg.organization_name})</span>}
             </div>
           </div>
@@ -90,11 +127,18 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             <Link
               key={item.href}
               href={item.href}
-              className={`px-3 py-1 text-xs font-medium rounded-md whitespace-nowrap ${
-                active ? "bg-stone-900 text-amber-400" : "text-stone-300 hover:text-white"
-              }`}
+              className={
+                active
+                  ? "px-3 py-1 text-xs font-medium rounded-md whitespace-nowrap flex items-center space-x-1 bg-stone-900 text-amber-400"
+                  : "px-3 py-1 text-xs font-medium rounded-md whitespace-nowrap flex items-center space-x-1 text-stone-300 hover:text-white"
+              }
             >
-              {item.label}
+              <span>{item.label}</span>
+              {item.badge && item.badge > 0 ? (
+                <span className="bg-amber-500 text-stone-950 font-bold text-[10px] px-1.5 rounded-full">
+                  {item.badge}
+                </span>
+              ) : null}
             </Link>
           );
         })}

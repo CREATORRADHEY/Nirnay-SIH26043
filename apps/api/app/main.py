@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_v1_router
-from app.routers import auth, organizations, dashboard
+from app.routers import auth, organizations, dashboard, notifications_router
 
 app = FastAPI(
     title="NIRNAY API",
@@ -78,6 +78,7 @@ app.include_router(api_v1_router)
 app.include_router(auth.router)
 app.include_router(organizations.router)
 app.include_router(dashboard.router)
+app.include_router(notifications_router.router)
 
 
 @app.get("/health")
