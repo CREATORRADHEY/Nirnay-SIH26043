@@ -1,9 +1,11 @@
 import uuid
-
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.dependencies import get_optional_actor
+from app.models.actor import Actor
 from app.schemas.qualification import (
     QualificationDecisionCreate,
     QualificationDecisionResponse,
@@ -27,8 +29,17 @@ router = APIRouter(tags=["qualification"])
 def post_qualification_decision(
     challenge_id: uuid.UUID,
     payload: QualificationDecisionCreate,
+    actor: Optional[Actor] = Depends(get_optional_actor),
     db: Session = Depends(get_db),
 ) -> QualificationDecisionResponse:
+    if actor:
+        if actor.platform_role not in ["GOVERNMENT_REVIEWER", "GOVERNMENT_ADMIN", "PLATFORM_ADMIN"]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only Government Reviewers or Platform Administrators can record qualification decisions.",
+            )
+        payload.decided_by_actor_id = actor.id
+
     try:
         decision = create_qualification_decision(db, challenge_id, payload)
         db.commit()

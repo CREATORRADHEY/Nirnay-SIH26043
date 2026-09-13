@@ -5,12 +5,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.dependencies import get_optional_actor
+from app.models.actor import Actor
 from app.schemas.commitment import CommitmentCreate, CommitmentHistoryResponse, CommitmentResponse
 from app.services.commitment_service import (
     create_commitment_version,
     get_commitment_history,
     list_commitments,
 )
+from app.core.enums import PlatformRole
 
 router = APIRouter(tags=["commitments"])
 
@@ -24,8 +27,20 @@ router = APIRouter(tags=["commitments"])
 def post_commitment_version(
     challenge_id: uuid.UUID,
     payload: CommitmentCreate,
+    actor: Optional[Actor] = Depends(get_optional_actor),
     db: Session = Depends(get_db),
 ) -> CommitmentResponse:
+    if actor:
+        # Check institutional boundary
+        if actor.platform_role != PlatformRole.PLATFORM_ADMIN.value:
+            mem_org_ids = [m.organization_id for m in actor.memberships]
+            if payload.organization_id not in mem_org_ids:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Institutional boundary violation: You cannot record commitments on behalf of another organization.",
+                )
+        payload.recorded_by_actor_id = actor.id
+
     try:
         commitment = create_commitment_version(db, challenge_id, payload)
         db.commit()

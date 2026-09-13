@@ -1,10 +1,12 @@
 import uuid
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.dependencies import get_optional_actor
+from app.models.actor import Actor
 from app.schemas.hei_matching import (
     HEICapabilityResponse,
     HEICandidateCreate,
@@ -32,8 +34,12 @@ router = APIRouter(tags=["hei-matching"])
 def post_hei_candidate(
     challenge_id: uuid.UUID,
     payload: HEICandidateCreate,
+    actor: Optional[Actor] = Depends(get_optional_actor),
     db: Session = Depends(get_db),
 ) -> HEICandidateResponse:
+    if actor:
+        payload.created_by_actor_id = actor.id
+
     try:
         candidate = create_hei_candidate(db, challenge_id, payload)
         db.commit()

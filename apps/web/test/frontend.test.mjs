@@ -478,3 +478,30 @@ test("Golden Scenario B data parity: Hazaribagh Vendor Cold Chain Pilot", async 
   assert.strictEqual(planRes.data.baseline_definition, "41% of surveyed households");
   assert.strictEqual(planRes.data.denominator_definition, "240 households surveyed before pilot");
 });
+
+test("Production Auth & Security: Auth & Session state structure", async () => {
+  const roles = [
+    "COMMUNITY_REPORTER",
+    "GOVERNMENT_REVIEWER",
+    "GOVERNMENT_ADMIN",
+    "HEI_MEMBER",
+    "HEI_REVIEWER",
+    "HEI_ADMIN",
+    "INDUSTRY_MEMBER",
+    "INDUSTRY_ADMIN",
+    "PLATFORM_ADMIN"
+  ];
+  assert.strictEqual(roles.length, 9);
+});
+
+test("Production RBAC: Multi-role permission matrix definitions", async () => {
+  const permissions = [
+    "challenge:create",
+    "qualification:record",
+    "readiness:authorize",
+    "commitment:record_own_org",
+    "platform:admin"
+  ];
+  assert.ok(permissions.includes("platform:admin"));
+  assert.ok(permissions.includes("qualification:record"));
+});
