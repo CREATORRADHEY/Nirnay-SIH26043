@@ -8,6 +8,8 @@ from app.models.qualification_decision import QualificationDecision, qualificati
 from app.models.hei_capability import HEICapability
 from app.models.challenge_hei_candidate import ChallengeHEICandidate
 from app.models.commitment import Commitment
+from app.models.readiness_condition import ReadinessCondition, readiness_condition_commitment_dependencies
+from app.models.readiness_decision import ReadinessDecision, readiness_decision_conditions
 
 __all__ = [
     "Base",
@@ -21,4 +23,8 @@ __all__ = [
     "HEICapability",
     "ChallengeHEICandidate",
     "Commitment",
+    "ReadinessCondition",
+    "readiness_condition_commitment_dependencies",
+    "ReadinessDecision",
+    "readiness_decision_conditions",
 ]

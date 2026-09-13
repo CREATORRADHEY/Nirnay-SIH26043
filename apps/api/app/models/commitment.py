@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 import uuid
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import CheckConstraint, DateTime, Enum, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
@@ -11,6 +11,8 @@ from app.models.base import Base
 
 if TYPE_CHECKING:
     from app.models.actor import Actor
+    from app.models.readiness_condition import ReadinessCondition, readiness_condition_commitment_dependencies
+    from app.models.readiness_decision import ReadinessDecision
     from app.models.challenge import Challenge
     from app.models.organization import Organization
 
@@ -101,4 +103,12 @@ class Commitment(Base):
     )
     recorded_by_actor: Mapped["Actor"] = relationship(
         "Actor", back_populates="recorded_commitments"
+    )
+    dependent_readiness_conditions: Mapped[List["ReadinessCondition"]] = relationship(
+        "ReadinessCondition",
+        secondary="readiness_condition_commitment_dependencies",
+        back_populates="commitment_dependencies",
+    )
+    triggered_readiness_reviews: Mapped[List["ReadinessDecision"]] = relationship(
+        "ReadinessDecision", back_populates="triggered_by_commitment"
     )

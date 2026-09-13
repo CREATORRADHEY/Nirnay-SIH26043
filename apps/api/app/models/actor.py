@@ -10,6 +10,8 @@ from app.models.base import Base
 
 if TYPE_CHECKING:
     from app.models.challenge import Challenge
+    from app.models.readiness_condition import ReadinessCondition
+    from app.models.readiness_decision import ReadinessDecision
     from app.models.commitment import Commitment
     from app.models.challenge_hei_candidate import ChallengeHEICandidate
     from app.models.evidence import Evidence
@@ -62,4 +64,10 @@ class Actor(Base):
     )
     recorded_commitments: Mapped[List["Commitment"]] = relationship(
         "Commitment", back_populates="recorded_by_actor"
+    )
+    assessed_readiness_conditions: Mapped[List["ReadinessCondition"]] = relationship(
+        "ReadinessCondition", back_populates="assessed_by_actor"
+    )
+    readiness_decisions_made: Mapped[List["ReadinessDecision"]] = relationship(
+        "ReadinessDecision", back_populates="decided_by_actor"
     )
