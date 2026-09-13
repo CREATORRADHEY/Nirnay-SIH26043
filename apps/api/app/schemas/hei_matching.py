@@ -45,3 +45,28 @@ class HEICandidateResponse(BaseModel):
 class HEICandidateListResponse(BaseModel):
     items: List[HEICandidateResponse]
     total: int
+
+class HEIOrganizationCapabilityItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    capability_type: str
+    name: str
+    description: Optional[str] = None
+    discipline: Optional[str] = None
+
+
+class HEIOrganizationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    organization_id: uuid.UUID
+    name: str
+    organization_type: str
+    district: Optional[str] = None
+    state: str
+    active_capabilities: List[HEIOrganizationCapabilityItem]
+
+
+class HEIOrganizationListResponse(BaseModel):
+    items: List[HEIOrganizationResponse]
+    total: int

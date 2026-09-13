@@ -215,5 +215,55 @@ class TestHEIMatchingAPI(unittest.TestCase):
         self.assertEqual(caps[0]["name"], "Water Quality & Environmental Engineering Lab")
 
 
+    def test_get_hei_organizations_discovery(self) -> None:
+        # Add another org with inactive capability
+        inactive_org = Organization(name="AAA Inactive Org", organization_type="HEI")
+        self.session.add(inactive_org)
+        self.session.commit()
+
+        inactive_cap = HEICapability(
+            organization_id=inactive_org.id,
+            capability_type="TEST",
+            name="Inactive Cap",
+            is_active=False,
+        )
+        self.session.add(inactive_cap)
+        self.session.commit()
+
+        # Add second active HEI org
+        active_org_b = Organization(name="BIT Mesra", organization_type="HEI", district="Ranchi")
+        self.session.add(active_org_b)
+        self.session.commit()
+
+        cap_b = HEICapability(
+            organization_id=active_org_b.id,
+            capability_type="RESEARCH_CENTER",
+            name="Hydrology Research Center",
+            discipline="Civil Engineering",
+            is_active=True,
+        )
+        self.session.add(cap_b)
+        self.session.commit()
+
+        # Execute discovery GET
+        r = self.client.get("/api/v1/hei-organizations")
+        self.assertEqual(r.status_code, 200)
+        data = r.json()
+
+        # Active orgs returned = 2 (BIT Mesra, IIT Ranchi). Inactive/empty excluded.
+        self.assertEqual(data["total"], 2)
+        names = [item["name"] for item in data["items"]]
+        self.assertEqual(names, ["BIT Mesra", "IIT Ranchi"])
+
+        # Verify active_capabilities returned and no score fields present
+        for item in data["items"]:
+            self.assertIn("active_capabilities", item)
+            self.assertNotIn("match_score", item)
+            self.assertNotIn("ai_score", item)
+            self.assertNotIn("ranking_score", item)
+            for cap in item["active_capabilities"]:
+                self.assertIn("name", cap)
+                self.assertIn("capability_type", cap)
+
 if __name__ == "__main__":
     unittest.main()

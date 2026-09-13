@@ -10,11 +10,14 @@ from app.schemas.hei_matching import (
     HEICandidateCreate,
     HEICandidateListResponse,
     HEICandidateResponse,
+    HEIOrganizationListResponse,
+    HEIOrganizationResponse,
 )
 from app.services.hei_matching_service import (
     create_hei_candidate,
     list_hei_candidates,
     list_organization_capabilities,
+    list_hei_organizations,
 )
 
 router = APIRouter(tags=["hei-matching"])
@@ -79,3 +82,18 @@ def get_organization_capabilities(
         return [HEICapabilityResponse.model_validate(i) for i in items]
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.get(
+    "/hei-organizations",
+    response_model=HEIOrganizationListResponse,
+    summary="List HEI organizations with active capabilities",
+)
+def get_hei_organizations(
+    db: Session = Depends(get_db),
+) -> HEIOrganizationListResponse:
+    items, total = list_hei_organizations(db)
+    return HEIOrganizationListResponse(
+        items=[HEIOrganizationResponse.model_validate(i) for i in items],
+        total=total,
+    )

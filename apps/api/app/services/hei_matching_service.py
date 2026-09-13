@@ -123,3 +123,36 @@ def list_organization_capabilities(
     )
     items = list(db.scalars(stmt).all())
     return items, len(items)
+
+
+def list_hei_organizations(db: Session) -> tuple[List[dict], int]:
+    """List organizations that have at least one ACTIVE HEICapability.
+
+    Ordered deterministically by organization.name ASC.
+    Only active capabilities are returned.
+    Read-only service method.
+    """
+    stmt = (
+        select(Organization)
+        .where(Organization.is_active == True)
+        .join(HEICapability, Organization.id == HEICapability.organization_id)
+        .where(HEICapability.is_active == True)
+        .distinct()
+        .order_by(Organization.name.asc())
+    )
+    orgs = list(db.scalars(stmt).all())
+
+    results = []
+    for org in orgs:
+        active_caps = [cap for cap in org.hei_capabilities if cap.is_active]
+        if active_caps:
+            results.append({
+                "organization_id": org.id,
+                "name": org.name,
+                "organization_type": org.organization_type,
+                "district": org.district,
+                "state": org.state,
+                "active_capabilities": active_caps,
+            })
+
+    return results, len(results)

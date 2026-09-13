@@ -53,6 +53,13 @@ export type QualificationRoute =
   | "RESEARCH_REVIEW"
   | "INNOVATION_CHALLENGE";
 
+export interface QualificationDecisionCreate {
+  route: QualificationRoute;
+  rationale: string;
+  decided_by_actor_id: string;
+  evidence_ids: string[];
+}
+
 export interface QualificationDecisionResponse {
   id: string;
   challenge_id: string;
@@ -66,5 +73,59 @@ export interface QualificationDecisionResponse {
 
 export interface QualificationHistoryResponse {
   items: QualificationDecisionResponse[];
+  total: number;
+}
+
+export interface HEIOrganizationCapabilityItem {
+  id: string;
+  capability_type: string;
+  name: string;
+  description?: string | null;
+  discipline?: string | null;
+}
+
+export interface HEIOrganization {
+  organization_id: string;
+  name: string;
+  organization_type: string;
+  district?: string | null;
+  state: string;
+  active_capabilities: HEIOrganizationCapabilityItem[];
+}
+
+export interface HEIOrganizationListResponse {
+  items: HEIOrganization[];
+  total: number;
+}
+
+export interface HEICapability {
+  id: string;
+  organization_id: string;
+  capability_type: string;
+  name: string;
+  description?: string | null;
+  discipline?: string | null;
+  is_active: boolean;
+}
+
+export interface HEICandidateCreate {
+  organization_id: string;
+  match_method: string;
+  rationale: string;
+  created_by_actor_id?: string | null;
+}
+
+export interface HEICandidateResponse {
+  id: string;
+  challenge_id: string;
+  organization_id: string;
+  match_method: string;
+  rationale: string;
+  created_by_actor_id?: string | null;
+  created_at: string;
+}
+
+export interface HEICandidateListResponse {
+  items: HEICandidateResponse[];
   total: number;
 }
