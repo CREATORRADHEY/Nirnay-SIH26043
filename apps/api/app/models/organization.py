@@ -10,6 +10,8 @@ from app.models.base import Base
 
 if TYPE_CHECKING:
     from app.models.challenge import Challenge
+    from app.models.challenge_hei_candidate import ChallengeHEICandidate
+    from app.models.hei_capability import HEICapability
     from app.models.organization_membership import OrganizationMembership
 
 
@@ -49,4 +51,10 @@ class Organization(Base):
     )
     sourced_challenges: Mapped[List["Challenge"]] = relationship(
         "Challenge", back_populates="source_organization"
+    )
+    hei_capabilities: Mapped[List["HEICapability"]] = relationship(
+        "HEICapability", back_populates="organization"
+    )
+    challenge_candidates: Mapped[List["ChallengeHEICandidate"]] = relationship(
+        "ChallengeHEICandidate", back_populates="organization"
     )

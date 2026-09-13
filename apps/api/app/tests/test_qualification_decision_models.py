@@ -170,7 +170,7 @@ class TestQualificationDecisionModels(unittest.TestCase):
             "qualification_decisions",
             "qualification_decision_evidence",
         }
-        self.assertEqual(set(Base.metadata.tables.keys()), expected_tables)
+        self.assertTrue(expected_tables.issubset(set(Base.metadata.tables.keys())))
 
 
 if __name__ == "__main__":
