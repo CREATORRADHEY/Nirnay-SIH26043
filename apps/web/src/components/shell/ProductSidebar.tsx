@@ -70,11 +70,10 @@ export function ProductSidebar({ mobileOpen = false, onCloseMobile }: ProductSid
     },
     {
       label: "Pilots",
-      href: "#",
+      href: "/challenges",
       icon: Rocket,
-      active: false,
-      enabled: false,
-      badge: "Coming soon",
+      active: pathname.startsWith("/pilots"),
+      enabled: true,
     },
     {
       label: "Outcomes",

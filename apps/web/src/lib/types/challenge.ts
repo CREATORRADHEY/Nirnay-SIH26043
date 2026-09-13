@@ -234,3 +234,124 @@ export interface ReadinessDecisionHistoryResponse {
   items: ReadinessDecisionResponse[];
   total: number;
 }
+
+
+export type OperationalStatus = "PLANNED" | "ACTIVE" | "COMPLETED" | "STOPPED";
+
+export type EvidenceConclusion =
+  | "NOT_REVIEWED"
+  | "VALIDATED"
+  | "ITERATE"
+  | "INCONCLUSIVE";
+
+export interface PilotCreate {
+  authorized_by_readiness_decision_id: string;
+  host_organization_id?: string | null;
+  name: string;
+  site_description?: string | null;
+  planned_start?: string | null;
+  planned_end?: string | null;
+  created_by_actor_id: string;
+}
+
+export interface PilotResponse {
+  id: string;
+  challenge_id: string;
+  authorized_by_readiness_decision_id: string;
+  host_organization_id?: string | null;
+  name: string;
+  site_description?: string | null;
+  planned_start?: string | null;
+  planned_end?: string | null;
+  created_by_actor_id: string;
+  created_at: string;
+}
+
+export interface PilotListResponse {
+  items: PilotResponse[];
+  total: number;
+}
+
+export interface PilotOperationalStateCreate {
+  status: OperationalStatus;
+  rationale: string;
+  recorded_by_actor_id: string;
+  expected_version: number;
+}
+
+export interface PilotOperationalStateResponse {
+  id: string;
+  pilot_id: string;
+  status: OperationalStatus;
+  version: number;
+  rationale: string;
+  recorded_by_actor_id: string;
+  recorded_at: string;
+}
+
+export interface PilotOperationalHistoryResponse {
+  items: PilotOperationalStateResponse[];
+  total: number;
+}
+
+export interface PilotEvidencePlanCreate {
+  objective: string;
+  primary_metric: string;
+  baseline_definition: string;
+  denominator_definition: string;
+  data_collection_method: string;
+  evaluation_window?: string | null;
+  success_criteria?: string | null;
+  limitations?: string | null;
+  created_by_actor_id: string;
+  expected_version: number;
+}
+
+export interface PilotEvidencePlanResponse {
+  id: string;
+  pilot_id: string;
+  version: number;
+  objective: string;
+  primary_metric: string;
+  baseline_definition: string;
+  denominator_definition: string;
+  data_collection_method: string;
+  evaluation_window?: string | null;
+  success_criteria?: string | null;
+  limitations?: string | null;
+  created_by_actor_id: string;
+  created_at: string;
+}
+
+export interface PilotEvidencePlanHistoryResponse {
+  items: PilotEvidencePlanResponse[];
+  total: number;
+}
+
+export interface OutcomeAssessmentCreate {
+  evidence_plan_id: string;
+  conclusion: EvidenceConclusion;
+  summary: string;
+  limitations?: string | null;
+  assessed_by_actor_id?: string | null;
+  evidence_ids?: string[];
+  expected_version: number;
+}
+
+export interface OutcomeAssessmentResponse {
+  id: string;
+  pilot_id: string;
+  evidence_plan_id: string;
+  version: number;
+  conclusion: EvidenceConclusion;
+  summary: string;
+  limitations?: string | null;
+  assessed_by_actor_id?: string | null;
+  assessed_at: string;
+  evidence_ids: string[];
+}
+
+export interface OutcomeAssessmentHistoryResponse {
+  items: OutcomeAssessmentResponse[];
+  total: number;
+}

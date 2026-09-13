@@ -1,4 +1,5 @@
 import type {
+  OperationalStatus,
   ChallengeListResponse,
   ChallengeResponse,
   EvidenceListResponse,
@@ -20,10 +21,25 @@ import type {
   ReadinessDecisionCreate,
   ReadinessDecisionResponse,
   ReadinessDecisionHistoryResponse,
+  PilotCreate,
+  PilotResponse,
+  PilotListResponse,
+  PilotOperationalStateCreate,
+  PilotOperationalStateResponse,
+  PilotOperationalHistoryResponse,
+  PilotEvidencePlanCreate,
+  PilotEvidencePlanResponse,
+  PilotEvidencePlanHistoryResponse,
+  OutcomeAssessmentCreate,
+  OutcomeAssessmentResponse,
+  OutcomeAssessmentHistoryResponse,
 } from "./types/challenge";
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+
+export const ENABLE_DEMO_FALLBACK =
+  process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK === "true";
 
 export const DEMO_REVIEWER_ACTOR_ID =
   process.env.NEXT_PUBLIC_DEMO_REVIEWER_ACTOR_ID || "";
@@ -179,7 +195,8 @@ export async function fetchChallenges(params?: {
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: ChallengeListResponse = await res.json();
     return { data, isDemo: false };
-  } catch {
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
     let filtered = [...DEMO_CHALLENGES];
     if (params?.district) {
       filtered = filtered.filter(
@@ -229,7 +246,8 @@ export async function fetchChallengeDetail(
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: ChallengeResponse = await res.json();
     return { data, isDemo: false };
-  } catch {
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
     const found = DEMO_CHALLENGES.find((c) => c.id === challengeId) || DEMO_CHALLENGES[0];
     return { data: found, isDemo: true };
   }
@@ -244,7 +262,8 @@ export async function fetchChallengeEvidence(
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: EvidenceListResponse = await res.json();
     return { data, isDemo: false };
-  } catch {
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
     const demoEv = DEMO_EVIDENCE[challengeId] || { items: [], total: 0 };
     return { data: demoEv, isDemo: true };
   }
@@ -259,7 +278,8 @@ export async function fetchQualificationHistory(
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: QualificationHistoryResponse = await res.json();
     return { data, isDemo: false };
-  } catch {
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
     const items = demoQualificationsStore[challengeId] || [];
     return { data: { items, total: items.length }, isDemo: true };
   }
@@ -275,7 +295,8 @@ export async function fetchLatestQualification(
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: QualificationDecisionResponse = await res.json();
     return { data, isDemo: false };
-  } catch {
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
     const items = demoQualificationsStore[challengeId] || [];
     const latest = items.length > 0 ? items[items.length - 1] : null;
     return { data: latest, isDemo: true };
@@ -300,6 +321,7 @@ export async function createQualificationDecision(
     const data: QualificationDecisionResponse = await res.json();
     return { data, isDemo: false };
   } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
     // Check if error is actual server rejection
     if (err instanceof Error && err.message.includes("is not found")) {
       throw err;
@@ -331,7 +353,8 @@ export async function fetchHEIOrganizations(): Promise<{
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: HEIOrganizationListResponse = await res.json();
     return { data, isDemo: false };
-  } catch {
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
     return {
       data: {
         items: demoHEIOrganizationsStore,
@@ -351,7 +374,8 @@ export async function fetchHEICandidates(
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: HEICandidateListResponse = await res.json();
     return { data, isDemo: false };
-  } catch {
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
     const items = demoCandidatesStore[challengeId] || [];
     return { data: { items, total: items.length }, isDemo: true };
   }
@@ -375,6 +399,7 @@ export async function createHEICandidate(
     const data: HEICandidateResponse = await res.json();
     return { data, isDemo: false };
   } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
     if (err instanceof Error && (err.message.includes("already a candidate") || err.message.includes("not eligible"))) {
       throw err;
     }
@@ -402,7 +427,8 @@ export async function fetchOrganizationCapabilities(
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: HEICapability[] = await res.json();
     return { data, isDemo: false };
-  } catch {
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
     const foundOrg = demoHEIOrganizationsStore.find(
       (o) => o.organization_id === organizationId
     );
@@ -436,7 +462,8 @@ export async function fetchCommitments(
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: CommitmentHistoryResponse = await res.json();
     return { data, isDemo: false };
-  } catch {
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
     let items = demoCommitmentsStore[challengeId] || [];
     if (organizationId) {
       items = items.filter((c) => c.organization_id === organizationId);
@@ -459,7 +486,8 @@ export async function fetchCommitmentHistory(
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: CommitmentHistoryResponse = await res.json();
     return { data, isDemo: false };
-  } catch {
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
     const all = demoCommitmentsStore[challengeId] || [];
     const items = all.filter(
       (c) => c.organization_id === organizationId && c.commitment_type === commitmentType
@@ -486,6 +514,7 @@ export async function createCommitmentVersion(
     const data: CommitmentResponse = await res.json();
     return { data, isDemo: false };
   } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
     if (err instanceof Error && (err.message.includes("409") || err.message.includes("version") || err.message.includes("not found"))) {
       throw err;
     }
@@ -553,7 +582,8 @@ export async function fetchReadinessConditions(
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: ReadinessConditionListResponse = await res.json();
     return { data, isDemo: false };
-  } catch {
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
     const items = demoReadinessConditionsStore[challengeId] || [];
     return { data: { items, total: items.length }, isDemo: true };
   }
@@ -568,7 +598,8 @@ export async function fetchLatestReadinessConditions(
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: ReadinessConditionListResponse = await res.json();
     return { data, isDemo: false };
-  } catch {
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
     const items = demoReadinessConditionsStore[challengeId] || [];
     const latestByKey: Record<string, ReadinessConditionResponse> = {};
     for (const item of items) {
@@ -599,6 +630,7 @@ export async function createReadinessCondition(
     const data: ReadinessConditionResponse = await res.json();
     return { data, isDemo: false };
   } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
     if (err instanceof Error && (err.message.includes("409") || err.message.includes("version") || err.message.includes("not found"))) {
       throw err;
     }
@@ -635,7 +667,8 @@ export async function fetchReadinessHistory(
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: ReadinessDecisionHistoryResponse = await res.json();
     return { data, isDemo: false };
-  } catch {
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
     const items = demoReadinessDecisionsStore[challengeId] || [];
     return { data: { items, total: items.length }, isDemo: true };
   }
@@ -651,7 +684,8 @@ export async function fetchLatestReadinessDecision(
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: ReadinessDecisionResponse = await res.json();
     return { data, isDemo: false };
-  } catch {
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
     const items = demoReadinessDecisionsStore[challengeId] || [];
     const latest = items.length > 0 ? items[items.length - 1] : null;
     return { data: latest, isDemo: true };
@@ -680,6 +714,7 @@ export async function createReadinessDecision(
     const data: ReadinessDecisionResponse = await res.json();
     return { data, isDemo: false };
   } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
     if (err instanceof Error && (err.message.includes("REVIEW_REQUIRED") || err.message.includes("409") || err.message.includes("version") || err.message.includes("not found"))) {
       throw err;
     }
@@ -702,5 +737,372 @@ export async function createReadinessDecision(
     };
     demoReadinessDecisionsStore[challengeId] = [...all, newDec];
     return { data: newDec, isDemo: true };
+  }
+}
+
+
+const demoPilotsStore: Record<string, PilotResponse[]> = {};
+const demoOperationalStatesStore: Record<string, PilotOperationalStateResponse[]> = {};
+const demoEvidencePlansStore: Record<string, PilotEvidencePlanResponse[]> = {};
+const demoOutcomesStore: Record<string, OutcomeAssessmentResponse[]> = {};
+
+export async function createPilot(
+  challengeId: string,
+  payload: PilotCreate
+): Promise<{ data: PilotResponse; isDemo: boolean }> {
+  try {
+    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/pilots`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `HTTP error ${res.status}`);
+    }
+    const data: PilotResponse = await res.json();
+    return { data, isDemo: false };
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
+    const existing = demoPilotsStore[challengeId] || [];
+    const newPilot: PilotResponse = {
+      id: `pilot-demo-${Date.now()}`,
+      challenge_id: challengeId,
+      authorized_by_readiness_decision_id: payload.authorized_by_readiness_decision_id,
+      host_organization_id: payload.host_organization_id || null,
+      name: payload.name,
+      site_description: payload.site_description || null,
+      planned_start: payload.planned_start || null,
+      planned_end: payload.planned_end || null,
+      created_by_actor_id: payload.created_by_actor_id || DEMO_REVIEWER_ACTOR_ID,
+      created_at: new Date().toISOString(),
+    };
+    demoPilotsStore[challengeId] = [...existing, newPilot];
+
+    // Initialize PLANNED state automatically
+    demoOperationalStatesStore[newPilot.id] = [
+      {
+        id: `op-demo-init-${Date.now()}`,
+        pilot_id: newPilot.id,
+        status: "PLANNED" as OperationalStatus,
+        version: 1,
+        rationale: "Initial pilot created from PILOT_READY authorization.",
+        recorded_by_actor_id: newPilot.created_by_actor_id,
+        recorded_at: new Date().toISOString(),
+      },
+    ];
+
+    return { data: newPilot, isDemo: true };
+  }
+}
+
+export async function fetchChallengePilots(
+  challengeId: string
+): Promise<{ data: PilotListResponse; isDemo: boolean }> {
+  try {
+    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/pilots`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data: PilotListResponse = await res.json();
+    return { data, isDemo: false };
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
+    const items = demoPilotsStore[challengeId] || [];
+    return { data: { items, total: items.length }, isDemo: true };
+  }
+}
+
+export async function fetchPilotDetail(
+  pilotId: string
+): Promise<{ data: PilotResponse; isDemo: boolean }> {
+  try {
+    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data: PilotResponse = await res.json();
+    return { data, isDemo: false };
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
+    for (const key of Object.keys(demoPilotsStore)) {
+      const found = demoPilotsStore[key].find((p) => p.id === pilotId);
+      if (found) return { data: found, isDemo: true };
+    }
+    // Synthetic default
+    const synthetic: PilotResponse = {
+      id: pilotId,
+      challenge_id: "c0010000-0000-0000-0000-000000000001",
+      authorized_by_readiness_decision_id: "dec-demo-001",
+      host_organization_id: "99544ae4-8480-42b1-a681-a7b7c75f4343",
+      name: "Ranchi Ward 4 Water Filtration Pilot",
+      site_description: "Community water distribution center and ward testing laboratory",
+      planned_start: new Date().toISOString(),
+      planned_end: new Date(Date.now() + 30 * 86400000).toISOString(),
+      created_by_actor_id: DEMO_REVIEWER_ACTOR_ID,
+      created_at: new Date().toISOString(),
+    };
+    return { data: synthetic, isDemo: true };
+  }
+}
+
+export async function createPilotOperationalState(
+  pilotId: string,
+  payload: PilotOperationalStateCreate
+): Promise<{ data: PilotOperationalStateResponse; isDemo: boolean }> {
+  try {
+    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/operational-states`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `HTTP error ${res.status}`);
+    }
+    const data: PilotOperationalStateResponse = await res.json();
+    return { data, isDemo: false };
+  } catch (err) {
+    if (err instanceof Error && (err.message.includes("409") || err.message.includes("version"))) {
+      throw err;
+    }
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
+
+    const existing = demoOperationalStatesStore[pilotId] || [];
+    const latestVersion = existing.length > 0 ? Math.max(...existing.map((s) => s.version)) : 0;
+    if (payload.expected_version !== latestVersion) {
+      throw new Error(`409 Conflict: Stale expected_version ${payload.expected_version}. Latest version is ${latestVersion}.`);
+    }
+
+    const newState: PilotOperationalStateResponse = {
+      id: `op-demo-${Date.now()}`,
+      pilot_id: pilotId,
+      status: payload.status,
+      version: latestVersion + 1,
+      rationale: payload.rationale,
+      recorded_by_actor_id: payload.recorded_by_actor_id || DEMO_REVIEWER_ACTOR_ID,
+      recorded_at: new Date().toISOString(),
+    };
+    demoOperationalStatesStore[pilotId] = [...existing, newState];
+    return { data: newState, isDemo: true };
+  }
+}
+
+export async function fetchPilotOperationalHistory(
+  pilotId: string
+): Promise<{ data: PilotOperationalHistoryResponse; isDemo: boolean }> {
+  try {
+    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/operational-states`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data: PilotOperationalHistoryResponse = await res.json();
+    return { data, isDemo: false };
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
+    const items = demoOperationalStatesStore[pilotId] || [
+      {
+        id: `op-demo-default-${pilotId}`,
+        pilot_id: pilotId,
+        status: "PLANNED" as OperationalStatus,
+        version: 1,
+        rationale: "Initial pilot created from PILOT_READY authorization.",
+        recorded_by_actor_id: DEMO_REVIEWER_ACTOR_ID,
+        recorded_at: new Date().toISOString(),
+      },
+    ];
+    return { data: { items, total: items.length }, isDemo: true };
+  }
+}
+
+export async function fetchLatestPilotOperationalState(
+  pilotId: string
+): Promise<{ data: PilotOperationalStateResponse | null; isDemo: boolean }> {
+  try {
+    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/operational-states/latest`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (res.status === 404) return { data: null, isDemo: false };
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data: PilotOperationalStateResponse = await res.json();
+    return { data, isDemo: false };
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
+    const items = demoOperationalStatesStore[pilotId] || [];
+    const latest = items.length > 0 ? items[items.length - 1] : {
+      id: `op-demo-default-${pilotId}`,
+      pilot_id: pilotId,
+      status: "PLANNED" as OperationalStatus,
+      version: 1,
+      rationale: "Initial pilot created from PILOT_READY authorization.",
+      recorded_by_actor_id: DEMO_REVIEWER_ACTOR_ID,
+      recorded_at: new Date().toISOString(),
+    };
+    return { data: latest, isDemo: true };
+  }
+}
+
+export async function createPilotEvidencePlan(
+  pilotId: string,
+  payload: PilotEvidencePlanCreate
+): Promise<{ data: PilotEvidencePlanResponse; isDemo: boolean }> {
+  try {
+    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/evidence-plans`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `HTTP error ${res.status}`);
+    }
+    const data: PilotEvidencePlanResponse = await res.json();
+    return { data, isDemo: false };
+  } catch (err) {
+    if (err instanceof Error && (err.message.includes("409") || err.message.includes("version"))) {
+      throw err;
+    }
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
+
+    const existing = demoEvidencePlansStore[pilotId] || [];
+    const latestVersion = existing.length > 0 ? Math.max(...existing.map((p) => p.version)) : 0;
+    if (payload.expected_version !== latestVersion) {
+      throw new Error(`409 Conflict: Stale expected_version ${payload.expected_version}. Latest version is ${latestVersion}.`);
+    }
+
+    const newPlan: PilotEvidencePlanResponse = {
+      id: `plan-demo-${Date.now()}`,
+      pilot_id: pilotId,
+      version: latestVersion + 1,
+      objective: payload.objective,
+      primary_metric: payload.primary_metric,
+      baseline_definition: payload.baseline_definition,
+      denominator_definition: payload.denominator_definition,
+      data_collection_method: payload.data_collection_method,
+      evaluation_window: payload.evaluation_window || null,
+      success_criteria: payload.success_criteria || null,
+      limitations: payload.limitations || null,
+      created_by_actor_id: payload.created_by_actor_id || DEMO_REVIEWER_ACTOR_ID,
+      created_at: new Date().toISOString(),
+    };
+    demoEvidencePlansStore[pilotId] = [...existing, newPlan];
+    return { data: newPlan, isDemo: true };
+  }
+}
+
+export async function fetchPilotEvidencePlanHistory(
+  pilotId: string
+): Promise<{ data: PilotEvidencePlanHistoryResponse; isDemo: boolean }> {
+  try {
+    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/evidence-plans`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data: PilotEvidencePlanHistoryResponse = await res.json();
+    return { data, isDemo: false };
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
+    const items = demoEvidencePlansStore[pilotId] || [];
+    return { data: { items, total: items.length }, isDemo: true };
+  }
+}
+
+export async function fetchLatestPilotEvidencePlan(
+  pilotId: string
+): Promise<{ data: PilotEvidencePlanResponse | null; isDemo: boolean }> {
+  try {
+    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/evidence-plans/latest`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (res.status === 404) return { data: null, isDemo: false };
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data: PilotEvidencePlanResponse = await res.json();
+    return { data, isDemo: false };
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
+    const items = demoEvidencePlansStore[pilotId] || [];
+    const latest = items.length > 0 ? items[items.length - 1] : null;
+    return { data: latest, isDemo: true };
+  }
+}
+
+export async function createOutcomeAssessment(
+  pilotId: string,
+  payload: OutcomeAssessmentCreate
+): Promise<{ data: OutcomeAssessmentResponse; isDemo: boolean }> {
+  if (payload.conclusion !== "NOT_REVIEWED" && !payload.assessed_by_actor_id) {
+    throw new Error(`Conclusion ${payload.conclusion} requires human actor attribution.`);
+  }
+
+  try {
+    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/outcomes`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `HTTP error ${res.status}`);
+    }
+    const data: OutcomeAssessmentResponse = await res.json();
+    return { data, isDemo: false };
+  } catch (err) {
+    if (err instanceof Error && (err.message.includes("409") || err.message.includes("version") || err.message.includes("requires human"))) {
+      throw err;
+    }
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
+
+    const existing = demoOutcomesStore[pilotId] || [];
+    const latestVersion = existing.length > 0 ? Math.max(...existing.map((o) => o.version)) : 0;
+    if (payload.expected_version !== latestVersion) {
+      throw new Error(`409 Conflict: Stale expected_version ${payload.expected_version}. Latest version is ${latestVersion}.`);
+    }
+
+    const newOutcome: OutcomeAssessmentResponse = {
+      id: `out-demo-${Date.now()}`,
+      pilot_id: pilotId,
+      evidence_plan_id: payload.evidence_plan_id,
+      version: latestVersion + 1,
+      conclusion: payload.conclusion,
+      summary: payload.summary,
+      limitations: payload.limitations || null,
+      assessed_by_actor_id: payload.assessed_by_actor_id || null,
+      assessed_at: new Date().toISOString(),
+      evidence_ids: payload.evidence_ids || [],
+    };
+    demoOutcomesStore[pilotId] = [...existing, newOutcome];
+    return { data: newOutcome, isDemo: true };
+  }
+}
+
+export async function fetchOutcomeHistory(
+  pilotId: string
+): Promise<{ data: OutcomeAssessmentHistoryResponse; isDemo: boolean }> {
+  try {
+    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/outcomes`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data: OutcomeAssessmentHistoryResponse = await res.json();
+    return { data, isDemo: false };
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
+    const items = demoOutcomesStore[pilotId] || [];
+    return { data: { items, total: items.length }, isDemo: true };
+  }
+}
+
+export async function fetchLatestOutcomeAssessment(
+  pilotId: string
+): Promise<{ data: OutcomeAssessmentResponse | null; isDemo: boolean }> {
+  try {
+    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/outcomes/latest`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (res.status === 404) return { data: null, isDemo: false };
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data: OutcomeAssessmentResponse = await res.json();
+    return { data, isDemo: false };
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
+    const items = demoOutcomesStore[pilotId] || [];
+    const latest = items.length > 0 ? items[items.length - 1] : null;
+    return { data: latest, isDemo: true };
   }
 }

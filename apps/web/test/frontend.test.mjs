@@ -1,3 +1,4 @@
+process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK = "true";
 import test from "node:test";
 import assert from "node:assert";
 
@@ -273,4 +274,182 @@ test("Hero invalidation flow: ACCEPTED -> SATISFIED -> PILOT_READY -> WITHDRAWN 
   assert.strictEqual(decHist.data.items.length, 2);
   assert.strictEqual(decHist.data.items[0].status, "PILOT_READY");
   assert.strictEqual(decHist.data.items[1].status, "REVIEW_REQUIRED");
+});
+
+
+import {
+  createPilot,
+  fetchPilotDetail,
+  createPilotOperationalState,
+  fetchLatestPilotOperationalState,
+  createPilotEvidencePlan,
+  createOutcomeAssessment,
+  fetchLatestOutcomeAssessment,
+} from "../src/lib/api.ts";
+
+test("Demo Fallback config: disabling NEXT_PUBLIC_ENABLE_DEMO_FALLBACK throws on network error", async () => {
+  const originalEnv = process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK;
+  process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK = "false";
+  try {
+    await assert.rejects(
+      async () => {
+        await fetchPilotDetail("non-existent-pilot-id-12345");
+      },
+      (err) => err !== undefined
+    );
+  } finally {
+    process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK = originalEnv;
+  }
+});
+
+test("Pilot creation and authorization gate validation", async () => {
+  const challengeId = "c0010000-0000-0000-0000-000000000001";
+  const actorId = "d99c55a9-e4d4-42c1-abd1-5e9ccb2ad67c";
+  const readinessId = "dec-demo-001";
+
+  const pilotRes = await createPilot(challengeId, {
+    authorized_by_readiness_decision_id: readinessId,
+    name: "Ranchi Ward 4 Dry-Waste Segregation Pilot",
+    site_description: "Municipal Ward 4 collection area",
+    created_by_actor_id: actorId,
+  });
+
+  assert.ok(pilotRes.data.id);
+  assert.strictEqual(pilotRes.data.name, "Ranchi Ward 4 Dry-Waste Segregation Pilot");
+  assert.strictEqual(pilotRes.data.authorized_by_readiness_decision_id, readinessId);
+
+  // Initial state PLANNED v1
+  const latestOp = await fetchLatestPilotOperationalState(pilotRes.data.id);
+  assert.ok(latestOp.data);
+  assert.strictEqual(latestOp.data.status, "PLANNED");
+  assert.strictEqual(latestOp.data.version, 1);
+});
+
+test("Operational lifecycle advance: PLANNED -> ACTIVE -> COMPLETED", async () => {
+  const pilotId = `pilot-test-${Date.now()}`;
+  const actorId = "d99c55a9-e4d4-42c1-abd1-5e9ccb2ad67c";
+
+  // v0 (none) -> v1 ACTIVE
+  const activeRes = await createPilotOperationalState(pilotId, {
+    status: "ACTIVE",
+    rationale: "Field deployment launched",
+    recorded_by_actor_id: actorId,
+    expected_version: 0,
+  });
+  assert.strictEqual(activeRes.data.status, "ACTIVE");
+  assert.strictEqual(activeRes.data.version, 1);
+
+  // v1 ACTIVE -> v2 COMPLETED
+  const completedRes = await createPilotOperationalState(pilotId, {
+    status: "COMPLETED",
+    rationale: "30-day field observation period completed",
+    recorded_by_actor_id: actorId,
+    expected_version: 1,
+  });
+  assert.strictEqual(completedRes.data.status, "COMPLETED");
+  assert.strictEqual(completedRes.data.version, 2);
+});
+
+test("Evidence Plan creation with baseline & denominator definitions", async () => {
+  const pilotId = `pilot-plan-${Date.now()}`;
+  const actorId = "d99c55a9-e4d4-42c1-abd1-5e9ccb2ad67c";
+
+  const planRes = await createPilotEvidencePlan(pilotId, {
+    objective: "Verify dry-waste household compliance",
+    primary_metric: "Compliance %",
+    baseline_definition: "Pre-pilot rate of 41%",
+    denominator_definition: "Total 240 surveyed households",
+    data_collection_method: "Doorstep physical audit logs",
+    created_by_actor_id: actorId,
+    expected_version: 0,
+  });
+
+  assert.ok(planRes.data.id);
+  assert.strictEqual(planRes.data.baseline_definition, "Pre-pilot rate of 41%");
+  assert.strictEqual(planRes.data.denominator_definition, "Total 240 surveyed households");
+  assert.strictEqual(planRes.data.version, 1);
+});
+
+test("Outcome assessment creation requires human reviewer and evidence plan reference", async () => {
+  const pilotId = `pilot-out-${Date.now()}`;
+  const planId = `plan-ref-${Date.now()}`;
+  const actorId = "d99c55a9-e4d4-42c1-abd1-5e9ccb2ad67c";
+
+  // Reject without reviewer
+  await assert.rejects(
+    async () => {
+      await createOutcomeAssessment(pilotId, {
+        evidence_plan_id: planId,
+        conclusion: "VALIDATED",
+        summary: "Attempt without reviewer",
+        expected_version: 0,
+      });
+    },
+    (err) => err.message.includes("requires human actor attribution")
+  );
+
+  // Success with reviewer
+  const outRes = await createOutcomeAssessment(pilotId, {
+    evidence_plan_id: planId,
+    conclusion: "INCONCLUSIVE",
+    summary: "Denominator changed during observation period",
+    limitations: "Sampling constraint in Ward 4",
+    assessed_by_actor_id: actorId,
+    expected_version: 0,
+  });
+
+  assert.ok(outRes.data.id);
+  assert.strictEqual(outRes.data.conclusion, "INCONCLUSIVE");
+  assert.strictEqual(outRes.data.evidence_plan_id, planId);
+});
+
+test("Hero Outcome Scenario: COMPLETED operational status + INCONCLUSIVE evidence conclusion", async () => {
+  const pilotId = `pilot-hero-${Date.now()}`;
+  const actorId = "d99c55a9-e4d4-42c1-abd1-5e9ccb2ad67c";
+
+  // 1. Advance operational state to COMPLETED
+  await createPilotOperationalState(pilotId, {
+    status: "ACTIVE",
+    rationale: "Field operation active",
+    recorded_by_actor_id: actorId,
+    expected_version: 0,
+  });
+
+  await createPilotOperationalState(pilotId, {
+    status: "COMPLETED",
+    rationale: "Field deployment completed",
+    recorded_by_actor_id: actorId,
+    expected_version: 1,
+  });
+
+  const latestOp = await fetchLatestPilotOperationalState(pilotId);
+  assert.strictEqual(latestOp.data.status, "COMPLETED");
+
+  // 2. Create Evidence Plan
+  const plan = await createPilotEvidencePlan(pilotId, {
+    objective: "Test hero outcome separation",
+    primary_metric: "Waste compliance",
+    baseline_definition: "41% baseline",
+    denominator_definition: "240 households",
+    data_collection_method: "Audit logs",
+    created_by_actor_id: actorId,
+    expected_version: 0,
+  });
+
+  // 3. Create INCONCLUSIVE outcome assessment
+  await createOutcomeAssessment(pilotId, {
+    evidence_plan_id: plan.data.id,
+    conclusion: "INCONCLUSIVE",
+    summary: "The denominator changed during observation period",
+    limitations: "Final measurement not comparable with baseline",
+    assessed_by_actor_id: actorId,
+    expected_version: 0,
+  });
+
+  const latestOut = await fetchLatestOutcomeAssessment(pilotId);
+  assert.strictEqual(latestOut.data.conclusion, "INCONCLUSIVE");
+
+  // Operational status remains COMPLETED, evidence conclusion is INCONCLUSIVE
+  assert.strictEqual(latestOp.data.status, "COMPLETED");
+  assert.notStrictEqual(latestOut.data.conclusion, "VALIDATED");
 });

@@ -29,6 +29,9 @@ import {
   fetchLatestReadinessConditions,
   fetchReadinessHistory,
   fetchLatestReadinessDecision,
+  fetchChallengePilots,
+  fetchLatestPilotOperationalState,
+  fetchLatestOutcomeAssessment,
   DEMO_REVIEWER_ACTOR_ID,
 } from "@/lib/api";
 import {
@@ -41,6 +44,7 @@ import {
   CommitmentResponse,
   ReadinessConditionResponse,
   ReadinessDecisionResponse,
+  PilotResponse,
 } from "@/lib/types/challenge";
 
 import { LatestDecisionPanel } from "@/components/qualification/LatestDecisionPanel";
@@ -65,6 +69,8 @@ import { ConditionMatrix } from "@/components/readiness/ConditionMatrix";
 import { AssessConditionSheet } from "@/components/readiness/AssessConditionSheet";
 import { RecordReadinessDecisionSheet } from "@/components/readiness/RecordReadinessDecisionSheet";
 import { ReadinessTimeline } from "@/components/readiness/ReadinessTimeline";
+import { PilotList } from "@/components/pilots/PilotList";
+import { CreatePilotSheet } from "@/components/pilots/CreatePilotSheet";
 
 interface PassportPageProps {
   params: Promise<{ challengeId: string }>;
@@ -104,6 +110,8 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
   const [recordCommitmentOrg, setRecordCommitmentOrg] = useState<{ organization_id: string; name: string } | null>(null);
   const [showAssessConditionSheet, setShowAssessConditionSheet] = useState(false);
   const [showRecordReadinessDecisionSheet, setShowRecordReadinessDecisionSheet] = useState(false);
+  const [pilotsList, setPilotsList] = useState<PilotResponse[]>([]);
+  const [showCreatePilotSheet, setShowCreatePilotSheet] = useState(false);
 
   const [activeTab, setActiveTab] = useState<
     | "Overview"
@@ -141,6 +149,7 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
         condAllRes,
         decHistRes,
         decLatestRes,
+        pilotsRes,
       ] = await Promise.all([
         fetchChallengeDetail(challengeId),
         fetchChallengeEvidence(challengeId),
@@ -153,6 +162,7 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
         fetchReadinessConditions(challengeId),
         fetchReadinessHistory(challengeId),
         fetchLatestReadinessDecision(challengeId),
+        fetchChallengePilots(challengeId),
       ]);
 
       setChallenge(cRes.data);
@@ -166,6 +176,22 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
       setAllConditionsList(condAllRes.data.items);
       setReadinessDecisionsList(decHistRes.data.items);
       setLatestReadinessDecision(decLatestRes.data);
+
+      const rawPilots = pilotsRes?.data?.items || [];
+      const enrichedPilots = await Promise.all(
+        rawPilots.map(async (p: PilotResponse) => {
+          const [opRes, outRes] = await Promise.all([
+            fetchLatestPilotOperationalState(p.id).catch(() => ({ data: null })),
+            fetchLatestOutcomeAssessment(p.id).catch(() => ({ data: null })),
+          ]);
+          return {
+            ...p,
+            latestOperationalStatus: opRes?.data?.status || "PLANNED",
+            latestConclusion: outRes?.data?.conclusion || "NOT_REVIEWED",
+          };
+        })
+      );
+      setPilotsList(enrichedPilots);
 
       setIsDemo(
         cRes.isDemo ||
@@ -184,19 +210,36 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
 
   const refreshCommitmentsAndReadiness = async () => {
     try {
-      const [commRes, condLatestRes, condAllRes, decHistRes, decLatestRes] =
+      const [commRes, condLatestRes, condAllRes, decHistRes, decLatestRes, pilotsRes] =
         await Promise.all([
           fetchCommitments(challengeId),
           fetchLatestReadinessConditions(challengeId),
           fetchReadinessConditions(challengeId),
           fetchReadinessHistory(challengeId),
           fetchLatestReadinessDecision(challengeId),
+          fetchChallengePilots(challengeId),
         ]);
       setCommitmentsList(commRes.data.items);
       setLatestConditionsList(condLatestRes.data.items);
       setAllConditionsList(condAllRes.data.items);
       setReadinessDecisionsList(decHistRes.data.items);
       setLatestReadinessDecision(decLatestRes.data);
+
+      const rawPilots = pilotsRes?.data?.items || [];
+      const enrichedPilots = await Promise.all(
+        rawPilots.map(async (p: PilotResponse) => {
+          const [opRes, outRes] = await Promise.all([
+            fetchLatestPilotOperationalState(p.id).catch(() => ({ data: null })),
+            fetchLatestOutcomeAssessment(p.id).catch(() => ({ data: null })),
+          ]);
+          return {
+            ...p,
+            latestOperationalStatus: opRes?.data?.status || "PLANNED",
+            latestConclusion: outRes?.data?.conclusion || "NOT_REVIEWED",
+          };
+        })
+      );
+      setPilotsList(enrichedPilots);
     } catch (e) {
       console.error("Failed to refresh commitments/readiness", e);
     }
@@ -705,8 +748,44 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
           </div>
         )}
 
+        {/* PILOTS TAB */}
+        {activeTab === "Pilots" && (
+          <div className="space-y-6">
+            <div className="border-b border-stone-200 pb-4">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#F95700]">
+                FIELD PILOTS
+              </span>
+              <h2 className="text-2xl font-serif font-bold tracking-tight text-stone-900 mt-1">
+                Move from readiness to controlled field learning.
+              </h2>
+              <p className="text-xs sm:text-sm text-stone-600 mt-1 max-w-2xl leading-relaxed">
+                A pilot begins only after current human PILOT_READY authorization. Execution and evidence conclusions remain separate throughout the pilot lifecycle.
+              </p>
+            </div>
+
+            <PilotList
+              pilots={pilotsList}
+              organizations={heiOrganizations}
+              onOpenCreateSheet={() => setShowCreatePilotSheet(true)}
+              isPilotReady={latestReadinessDecision?.status === "PILOT_READY"}
+            />
+
+            <CreatePilotSheet
+              isOpen={showCreatePilotSheet}
+              onClose={() => setShowCreatePilotSheet(false)}
+              challengeId={challengeId}
+              latestReadinessDecision={latestReadinessDecision}
+              organizations={heiOrganizations}
+              reviewerActorId={DEMO_REVIEWER_ACTOR_ID}
+              onPilotCreated={() => {
+                loadPassportData();
+              }}
+            />
+          </div>
+        )}
+
         {/* Future Tab Placeholders */}
-        {["Pilots", "Outcomes"].includes(activeTab) && (
+        {["Outcomes"].includes(activeTab) && (
           <div className="p-10 rounded-lg border border-stone-200 bg-white text-center space-y-3 shadow-2xs">
             <Building2 className="w-8 h-8 text-stone-400 mx-auto opacity-50" />
             <h3 className="text-sm font-bold text-stone-900">
