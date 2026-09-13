@@ -7,6 +7,22 @@ from app.schemas.hei_matching import (
     HEICandidateListResponse,
     HEICandidateResponse,
 )
+from app.schemas.outcome import (
+    OutcomeAssessmentCreate,
+    OutcomeAssessmentHistoryResponse,
+    OutcomeAssessmentResponse,
+)
+from app.schemas.pilot import (
+    PilotCreate,
+    PilotEvidencePlanCreate,
+    PilotEvidencePlanHistoryResponse,
+    PilotEvidencePlanResponse,
+    PilotListResponse,
+    PilotOperationalHistoryResponse,
+    PilotOperationalStateCreate,
+    PilotOperationalStateResponse,
+    PilotResponse,
+)
 from app.schemas.qualification import (
     QualificationDecisionCreate,
     QualificationDecisionResponse,
@@ -45,4 +61,16 @@ __all__ = [
     "ReadinessDecisionCreate",
     "ReadinessDecisionResponse",
     "ReadinessDecisionHistoryResponse",
+    "PilotCreate",
+    "PilotResponse",
+    "PilotListResponse",
+    "PilotOperationalStateCreate",
+    "PilotOperationalStateResponse",
+    "PilotOperationalHistoryResponse",
+    "PilotEvidencePlanCreate",
+    "PilotEvidencePlanResponse",
+    "PilotEvidencePlanHistoryResponse",
+    "OutcomeAssessmentCreate",
+    "OutcomeAssessmentResponse",
+    "OutcomeAssessmentHistoryResponse",
 ]
