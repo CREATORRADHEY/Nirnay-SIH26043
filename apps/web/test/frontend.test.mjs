@@ -1,4 +1,5 @@
 process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK = "true";
+process.env.NEXT_PUBLIC_API_BASE_URL = "http://127.0.0.1:9999";
 import test from "node:test";
 import assert from "node:assert";
 

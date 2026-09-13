@@ -35,14 +35,16 @@ import type {
   OutcomeAssessmentHistoryResponse,
 } from "./types/challenge";
 
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+export function getApiBaseUrl(): string {
+  return process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+}
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 export const ENABLE_DEMO_FALLBACK =
   process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK === "true";
 
 export const DEMO_REVIEWER_ACTOR_ID =
-  process.env.NEXT_PUBLIC_DEMO_REVIEWER_ACTOR_ID || "";
+  process.env.NEXT_PUBLIC_DEMO_REVIEWER_ACTOR_ID || "d99c55a9-e4d4-42c1-abd1-5e9ccb2ad67c";
 
 // Fallback synthetic demo data for frontend resilience when backend is unreachable
 export const DEMO_CHALLENGES: ChallengeResponse[] = [
@@ -222,7 +224,7 @@ export async function fetchChallenges(params?: {
     if (params?.limit) query.set("limit", params.limit.toString());
     if (params?.offset) query.set("offset", params.offset.toString());
 
-    const url = `${API_BASE_URL}/api/v1/challenges?${query.toString()}`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges?${query.toString()}`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: ChallengeListResponse = await res.json();
@@ -273,7 +275,7 @@ export async function fetchChallengeDetail(
   challengeId: string
 ): Promise<{ data: ChallengeResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: ChallengeResponse = await res.json();
@@ -289,7 +291,7 @@ export async function fetchChallengeEvidence(
   challengeId: string
 ): Promise<{ data: EvidenceListResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/evidence`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/evidence`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: EvidenceListResponse = await res.json();
@@ -305,7 +307,7 @@ export async function fetchQualificationHistory(
   challengeId: string
 ): Promise<{ data: QualificationHistoryResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/qualification-decisions`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/qualification-decisions`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: QualificationHistoryResponse = await res.json();
@@ -321,7 +323,7 @@ export async function fetchLatestQualification(
   challengeId: string
 ): Promise<{ data: QualificationDecisionResponse | null; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/qualification-decisions/latest`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/qualification-decisions/latest`;
     const res = await fetch(url, { cache: "no-store" });
     if (res.status === 404) return { data: null, isDemo: false };
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
@@ -340,7 +342,7 @@ export async function createQualificationDecision(
   payload: QualificationDecisionCreate
 ): Promise<{ data: QualificationDecisionResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/qualification-decisions`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/qualification-decisions`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -380,7 +382,7 @@ export async function fetchHEIOrganizations(): Promise<{
   isDemo: boolean;
 }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/hei-organizations`;
+    const url = `${getApiBaseUrl()}/api/v1/hei-organizations`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: HEIOrganizationListResponse = await res.json();
@@ -401,7 +403,7 @@ export async function fetchHEICandidates(
   challengeId: string
 ): Promise<{ data: HEICandidateListResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/hei-candidates`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/hei-candidates`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: HEICandidateListResponse = await res.json();
@@ -418,7 +420,7 @@ export async function createHEICandidate(
   payload: HEICandidateCreate
 ): Promise<{ data: HEICandidateResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/hei-candidates`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/hei-candidates`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -454,7 +456,7 @@ export async function fetchOrganizationCapabilities(
   organizationId: string
 ): Promise<{ data: HEICapability[]; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/organizations/${organizationId}/hei-capabilities`;
+    const url = `${getApiBaseUrl()}/api/v1/organizations/${organizationId}/hei-capabilities`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: HEICapability[] = await res.json();
@@ -484,7 +486,7 @@ export async function fetchCommitments(
   commitmentType?: string
 ): Promise<{ data: CommitmentHistoryResponse; isDemo: boolean }> {
   try {
-    let url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/commitments`;
+    let url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/commitments`;
     const params = new URLSearchParams();
     if (organizationId) params.append("organization_id", organizationId);
     if (commitmentType) params.append("commitment_type", commitmentType);
@@ -513,7 +515,7 @@ export async function fetchCommitmentHistory(
   commitmentType: string
 ): Promise<{ data: CommitmentHistoryResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/commitments/${organizationId}/${commitmentType}`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/commitments/${organizationId}/${commitmentType}`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: CommitmentHistoryResponse = await res.json();
@@ -533,7 +535,7 @@ export async function createCommitmentVersion(
   payload: CommitmentCreate
 ): Promise<{ data: CommitmentResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/commitments`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/commitments`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -609,7 +611,7 @@ export async function fetchReadinessConditions(
   challengeId: string
 ): Promise<{ data: ReadinessConditionListResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/readiness-conditions`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/readiness-conditions`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: ReadinessConditionListResponse = await res.json();
@@ -625,7 +627,7 @@ export async function fetchLatestReadinessConditions(
   challengeId: string
 ): Promise<{ data: ReadinessConditionListResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/readiness-conditions/latest`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/readiness-conditions/latest`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: ReadinessConditionListResponse = await res.json();
@@ -649,7 +651,7 @@ export async function createReadinessCondition(
   payload: ReadinessConditionCreate
 ): Promise<{ data: ReadinessConditionResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/readiness-conditions`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/readiness-conditions`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -694,7 +696,7 @@ export async function fetchReadinessHistory(
   challengeId: string
 ): Promise<{ data: ReadinessDecisionHistoryResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/readiness-decisions`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/readiness-decisions`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: ReadinessDecisionHistoryResponse = await res.json();
@@ -710,7 +712,7 @@ export async function fetchLatestReadinessDecision(
   challengeId: string
 ): Promise<{ data: ReadinessDecisionResponse | null; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/readiness-decisions/latest`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/readiness-decisions/latest`;
     const res = await fetch(url, { cache: "no-store" });
     if (res.status === 404) return { data: null, isDemo: false };
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
@@ -733,7 +735,7 @@ export async function createReadinessDecision(
   }
 
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/readiness-decisions`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/readiness-decisions`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -833,7 +835,7 @@ export async function createPilot(
   payload: PilotCreate
 ): Promise<{ data: PilotResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/pilots`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/pilots`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -883,7 +885,7 @@ export async function fetchChallengePilots(
   challengeId: string
 ): Promise<{ data: PilotListResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/pilots`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/pilots`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: PilotListResponse = await res.json();
@@ -899,7 +901,7 @@ export async function fetchPilotDetail(
   pilotId: string
 ): Promise<{ data: PilotResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: PilotResponse = await res.json();
@@ -932,7 +934,7 @@ export async function createPilotOperationalState(
   payload: PilotOperationalStateCreate
 ): Promise<{ data: PilotOperationalStateResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/operational-states`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}/operational-states`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -974,7 +976,7 @@ export async function fetchPilotOperationalHistory(
   pilotId: string
 ): Promise<{ data: PilotOperationalHistoryResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/operational-states`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}/operational-states`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: PilotOperationalHistoryResponse = await res.json();
@@ -1000,7 +1002,7 @@ export async function fetchLatestPilotOperationalState(
   pilotId: string
 ): Promise<{ data: PilotOperationalStateResponse | null; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/operational-states/latest`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}/operational-states/latest`;
     const res = await fetch(url, { cache: "no-store" });
     if (res.status === 404) return { data: null, isDemo: false };
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
@@ -1027,7 +1029,7 @@ export async function createPilotEvidencePlan(
   payload: PilotEvidencePlanCreate
 ): Promise<{ data: PilotEvidencePlanResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/evidence-plans`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}/evidence-plans`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1075,7 +1077,7 @@ export async function fetchPilotEvidencePlanHistory(
   pilotId: string
 ): Promise<{ data: PilotEvidencePlanHistoryResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/evidence-plans`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}/evidence-plans`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: PilotEvidencePlanHistoryResponse = await res.json();
@@ -1091,7 +1093,7 @@ export async function fetchLatestPilotEvidencePlan(
   pilotId: string
 ): Promise<{ data: PilotEvidencePlanResponse | null; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/evidence-plans/latest`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}/evidence-plans/latest`;
     const res = await fetch(url, { cache: "no-store" });
     if (res.status === 404) return { data: null, isDemo: false };
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
@@ -1114,7 +1116,7 @@ export async function createOutcomeAssessment(
   }
 
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/outcomes`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}/outcomes`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1159,7 +1161,7 @@ export async function fetchOutcomeHistory(
   pilotId: string
 ): Promise<{ data: OutcomeAssessmentHistoryResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/outcomes`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}/outcomes`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: OutcomeAssessmentHistoryResponse = await res.json();
@@ -1175,7 +1177,7 @@ export async function fetchLatestOutcomeAssessment(
   pilotId: string
 ): Promise<{ data: OutcomeAssessmentResponse | null; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/outcomes/latest`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}/outcomes/latest`;
     const res = await fetch(url, { cache: "no-store" });
     if (res.status === 404) return { data: null, isDemo: false };
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
