@@ -10,6 +10,7 @@ from app.models.base import Base
 
 if TYPE_CHECKING:
     from app.models.actor import Actor
+    from app.models.commitment import Commitment
     from app.models.challenge_hei_candidate import ChallengeHEICandidate
     from app.models.evidence import Evidence
     from app.models.organization import Organization
@@ -82,4 +83,7 @@ class Challenge(Base):
     )
     hei_candidates: Mapped[List["ChallengeHEICandidate"]] = relationship(
         "ChallengeHEICandidate", back_populates="challenge"
+    )
+    commitments: Mapped[List["Commitment"]] = relationship(
+        "Commitment", back_populates="challenge"
     )

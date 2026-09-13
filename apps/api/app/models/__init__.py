@@ -7,6 +7,7 @@ from app.models.evidence import Evidence
 from app.models.qualification_decision import QualificationDecision, qualification_decision_evidence
 from app.models.hei_capability import HEICapability
 from app.models.challenge_hei_candidate import ChallengeHEICandidate
+from app.models.commitment import Commitment
 
 __all__ = [
     "Base",
@@ -19,4 +20,5 @@ __all__ = [
     "qualification_decision_evidence",
     "HEICapability",
     "ChallengeHEICandidate",
+    "Commitment",
 ]
