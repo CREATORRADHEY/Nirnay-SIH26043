@@ -68,3 +68,8 @@ class Evidence(Base):
         secondary="qualification_decision_evidence",
         back_populates="evidence_items",
     )
+    outcome_assessments: Mapped[List["OutcomeAssessment"]] = relationship(
+        "OutcomeAssessment",
+        secondary="outcome_assessment_evidence",
+        back_populates="evidence_items",
+    )

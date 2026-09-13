@@ -10,6 +10,7 @@ from app.models.base import Base
 
 if TYPE_CHECKING:
     from app.models.challenge import Challenge
+    from app.models.pilot import Pilot
     from app.models.commitment import Commitment
     from app.models.challenge_hei_candidate import ChallengeHEICandidate
     from app.models.hei_capability import HEICapability
@@ -61,4 +62,7 @@ class Organization(Base):
     )
     commitments: Mapped[List["Commitment"]] = relationship(
         "Commitment", back_populates="organization"
+    )
+    hosted_pilots: Mapped[List["Pilot"]] = relationship(
+        "Pilot", back_populates="host_organization"
     )

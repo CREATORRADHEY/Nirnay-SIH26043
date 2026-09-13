@@ -10,6 +10,7 @@ from app.models.base import Base
 
 if TYPE_CHECKING:
     from app.models.actor import Actor
+    from app.models.pilot import Pilot
     from app.models.readiness_condition import ReadinessCondition
     from app.models.readiness_decision import ReadinessDecision
     from app.models.commitment import Commitment
@@ -94,4 +95,7 @@ class Challenge(Base):
     )
     readiness_decisions: Mapped[List["ReadinessDecision"]] = relationship(
         "ReadinessDecision", back_populates="challenge"
+    )
+    pilots: Mapped[List["Pilot"]] = relationship(
+        "Pilot", back_populates="challenge"
     )

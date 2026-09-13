@@ -98,9 +98,7 @@ class TestIdentityModels(unittest.TestCase):
 
         self.assertTrue(expected_identity_tables.issubset(table_names))
         self.assertNotIn("challenge_validations", table_names)
-        self.assertNotIn("pilots", table_names)
-        self.assertNotIn("outcomes", table_names)
-        self.assertNotIn("pilots", table_names)
+        self.assertNotIn("scaling_recommendations", table_names)
 
 
 if __name__ == "__main__":

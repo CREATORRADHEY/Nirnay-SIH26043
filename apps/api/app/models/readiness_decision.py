@@ -11,6 +11,7 @@ from app.models.base import Base
 
 if TYPE_CHECKING:
     from app.models.actor import Actor
+    from app.models.pilot import Pilot
     from app.models.challenge import Challenge
     from app.models.commitment import Commitment
     from app.models.readiness_condition import ReadinessCondition
@@ -113,4 +114,7 @@ class ReadinessDecision(Base):
         "ReadinessCondition",
         secondary=readiness_decision_conditions,
         back_populates="readiness_decisions",
+    )
+    authorized_pilots: Mapped[List["Pilot"]] = relationship(
+        "Pilot", back_populates="authorized_by_readiness_decision"
     )

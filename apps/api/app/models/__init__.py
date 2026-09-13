@@ -10,6 +10,10 @@ from app.models.challenge_hei_candidate import ChallengeHEICandidate
 from app.models.commitment import Commitment
 from app.models.readiness_condition import ReadinessCondition, readiness_condition_commitment_dependencies
 from app.models.readiness_decision import ReadinessDecision, readiness_decision_conditions
+from app.models.pilot import Pilot
+from app.models.pilot_operational_state import PilotOperationalState
+from app.models.pilot_evidence_plan import PilotEvidencePlan
+from app.models.outcome_assessment import OutcomeAssessment, outcome_assessment_evidence
 
 __all__ = [
     "Base",
@@ -27,4 +31,9 @@ __all__ = [
     "readiness_condition_commitment_dependencies",
     "ReadinessDecision",
     "readiness_decision_conditions",
+    "Pilot",
+    "PilotOperationalState",
+    "PilotEvidencePlan",
+    "OutcomeAssessment",
+    "outcome_assessment_evidence",
 ]

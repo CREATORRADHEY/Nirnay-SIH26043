@@ -10,6 +10,10 @@ from app.models.base import Base
 
 if TYPE_CHECKING:
     from app.models.challenge import Challenge
+    from app.models.pilot import Pilot
+    from app.models.pilot_operational_state import PilotOperationalState
+    from app.models.pilot_evidence_plan import PilotEvidencePlan
+    from app.models.outcome_assessment import OutcomeAssessment
     from app.models.readiness_condition import ReadinessCondition
     from app.models.readiness_decision import ReadinessDecision
     from app.models.commitment import Commitment
@@ -70,4 +74,16 @@ class Actor(Base):
     )
     readiness_decisions_made: Mapped[List["ReadinessDecision"]] = relationship(
         "ReadinessDecision", back_populates="decided_by_actor"
+    )
+    created_pilots: Mapped[List["Pilot"]] = relationship(
+        "Pilot", back_populates="created_by_actor"
+    )
+    pilot_operational_states_recorded: Mapped[List["PilotOperationalState"]] = relationship(
+        "PilotOperationalState", back_populates="recorded_by_actor"
+    )
+    evidence_plans_created: Mapped[List["PilotEvidencePlan"]] = relationship(
+        "PilotEvidencePlan", back_populates="created_by_actor"
+    )
+    outcome_assessments_made: Mapped[List["OutcomeAssessment"]] = relationship(
+        "OutcomeAssessment", back_populates="assessed_by_actor"
     )
