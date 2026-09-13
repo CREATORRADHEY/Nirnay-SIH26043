@@ -12,7 +12,7 @@ class CommitmentCreate(BaseModel):
     commitment_type: str = Field(..., min_length=1, max_length=100)
     status: CommitmentStatus
     scope_description: str = Field(..., min_length=1)
-    recorded_by_actor_id: uuid.UUID
+    recorded_by_actor_id: Optional[uuid.UUID] = None
     valid_from: Optional[datetime] = None
     valid_until: Optional[datetime] = None
     expected_version: int = Field(..., ge=0)
@@ -28,7 +28,7 @@ class CommitmentResponse(BaseModel):
     status: CommitmentStatus
     version: int
     scope_description: str
-    recorded_by_actor_id: uuid.UUID
+    recorded_by_actor_id: Optional[uuid.UUID] = None
     valid_from: Optional[datetime] = None
     valid_until: Optional[datetime] = None
     created_at: datetime

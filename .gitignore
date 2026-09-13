@@ -44,3 +44,7 @@ build/
 *.sqlite
 *.sqlite3
 storage/uploads/
+
+# Test outputs
+playwright-report/
+test-results/

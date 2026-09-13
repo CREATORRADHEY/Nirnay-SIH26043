@@ -35,7 +35,15 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   }
 
   if (!user) {
-    return <>{children}</>;
+    router.push("/login");
+    return (
+      <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center">
+        <div className="flex items-center space-x-3 text-stone-600 font-medium">
+          <div className="w-5 h-5 border-2 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+          <span>Redirecting to login...</span>
+        </div>
+      </div>
+    );
   }
 
   const role = user.platform_role;
@@ -63,10 +71,32 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       { label: "Readiness", href: "/app/readiness" },
       { label: "Pilots", href: "/app/pilots" },
       { label: "Outcomes", href: "/app/outcomes" },
+      { label: "Commitments", href: "/app/commitments" },
       { label: "Notifications", href: "/app/notifications", badge: unreadCount },
     ];
     if (role === "GOVERNMENT_ADMIN" || role === "PLATFORM_ADMIN") {
-      navItems.push({ label: "Organizations", href: "/app/organizations", badge: 0 });
+      navItems.push({ label: "Organizations", href: "/app/organizations" });
+    }
+  } else if (role.startsWith("HEI_")) {
+    navItems = [
+      { label: "Dashboard", href: "/app" },
+      { label: "HEI Matching", href: "/app/hei-matching" },
+      { label: "Commitments", href: "/app/commitments" },
+      { label: "Pilots", href: "/app/pilots" },
+      { label: "Notifications", href: "/app/notifications", badge: unreadCount },
+    ];
+    if (role === "HEI_ADMIN") {
+      navItems.push({ label: "Organization", href: "/app/organizations" });
+    }
+  } else if (role.startsWith("INDUSTRY_")) {
+    navItems = [
+      { label: "Dashboard", href: "/app" },
+      { label: "Commitments", href: "/app/commitments" },
+      { label: "Pilots", href: "/app/pilots" },
+      { label: "Notifications", href: "/app/notifications", badge: unreadCount },
+    ];
+    if (role === "INDUSTRY_ADMIN") {
+      navItems.push({ label: "Organization", href: "/app/organizations" });
     }
   }
 
