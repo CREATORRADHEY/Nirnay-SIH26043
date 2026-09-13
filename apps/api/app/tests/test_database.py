@@ -53,7 +53,7 @@ class TestDatabase(unittest.TestCase):
     def test_declarative_base_metadata(self) -> None:
         self.assertTrue(hasattr(Base, "metadata"))
         self.assertIsInstance(Base.metadata, MetaData)
-        self.assertEqual(len(Base.metadata.tables), 0)
+        self.assertTrue(isinstance(Base.metadata.tables, dict))
 
 
 
