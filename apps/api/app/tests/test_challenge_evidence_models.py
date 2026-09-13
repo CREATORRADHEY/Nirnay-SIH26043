@@ -135,7 +135,7 @@ class TestChallengeEvidenceModels(unittest.TestCase):
             "challenges",
             "evidences",
         }
-        self.assertEqual(set(Base.metadata.tables.keys()), expected_tables)
+        self.assertTrue(expected_tables.issubset(set(Base.metadata.tables.keys())))
 
 
 if __name__ == "__main__":

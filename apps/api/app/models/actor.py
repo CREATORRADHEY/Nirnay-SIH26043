@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from app.models.challenge import Challenge
     from app.models.evidence import Evidence
     from app.models.organization_membership import OrganizationMembership
+    from app.models.qualification_decision import QualificationDecision
 
 
 class Actor(Base):
@@ -50,4 +51,7 @@ class Actor(Base):
     )
     submitted_evidences: Mapped[List["Evidence"]] = relationship(
         "Evidence", back_populates="submitted_by_actor"
+    )
+    qualification_decisions_made: Mapped[List["QualificationDecision"]] = relationship(
+        "QualificationDecision", back_populates="decided_by_actor"
     )

@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 import uuid
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
@@ -11,6 +11,7 @@ from app.models.base import Base
 if TYPE_CHECKING:
     from app.models.actor import Actor
     from app.models.challenge import Challenge
+    from app.models.qualification_decision import QualificationDecision, qualification_decision_evidence
 
 
 class Evidence(Base):
@@ -61,4 +62,9 @@ class Evidence(Base):
     )
     submitted_by_actor: Mapped[Optional["Actor"]] = relationship(
         "Actor", back_populates="submitted_evidences"
+    )
+    qualification_decisions: Mapped[List["QualificationDecision"]] = relationship(
+        "QualificationDecision",
+        secondary="qualification_decision_evidence",
+        back_populates="evidence_items",
     )
