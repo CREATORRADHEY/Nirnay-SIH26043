@@ -285,6 +285,7 @@ import {
   createPilotEvidencePlan,
   createOutcomeAssessment,
   fetchLatestOutcomeAssessment,
+  fetchLatestPilotEvidencePlan,
 } from "../src/lib/api.ts";
 
 test("Demo Fallback config: disabling NEXT_PUBLIC_ENABLE_DEMO_FALLBACK throws on network error", async () => {
@@ -452,4 +453,27 @@ test("Hero Outcome Scenario: COMPLETED operational status + INCONCLUSIVE evidenc
   // Operational status remains COMPLETED, evidence conclusion is INCONCLUSIVE
   assert.strictEqual(latestOp.data.status, "COMPLETED");
   assert.notStrictEqual(latestOut.data.conclusion, "VALIDATED");
+});
+
+
+test("Golden Scenario A data parity: Ward 12 Waste Challenge", async () => {
+  const challengeId = "c0a80001-0000-4000-8000-000000000001";
+  const res = await fetchChallengeDetail(challengeId);
+  assert.ok(res.data);
+  assert.strictEqual(res.data.id, challengeId);
+  assert.ok(res.data.title.includes("Ward 12"));
+  assert.strictEqual(res.data.district, "Ranchi");
+});
+
+test("Golden Scenario B data parity: Hazaribagh Vendor Cold Chain Pilot", async () => {
+  const pilotId = "b0a80002-0000-4000-8000-000000000006";
+  const pilotRes = await fetchPilotDetail(pilotId);
+  assert.ok(pilotRes.data);
+  assert.strictEqual(pilotRes.data.id, pilotId);
+  assert.ok(pilotRes.data.name.includes("Hazaribagh"));
+
+  const planRes = await fetchLatestPilotEvidencePlan(pilotId);
+  assert.ok(planRes.data);
+  assert.strictEqual(planRes.data.baseline_definition, "41% of surveyed households");
+  assert.strictEqual(planRes.data.denominator_definition, "240 households surveyed before pilot");
 });

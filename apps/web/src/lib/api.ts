@@ -47,6 +47,38 @@ export const DEMO_REVIEWER_ACTOR_ID =
 // Fallback synthetic demo data for frontend resilience when backend is unreachable
 export const DEMO_CHALLENGES: ChallengeResponse[] = [
   {
+    id: "c0a80001-0000-4000-8000-000000000001",
+    title: "Unreliable Segregated Dry-Waste Collection in Ward 12, Ranchi",
+    summary:
+      "Ward 12 in Ranchi struggles with unsegregated waste overflow at doorstep collection points, leading to landfill burden.",
+    description:
+      "Municipal ward 12 requires a localized decentralized sorting model. Local HEI technical partnership is required to pilot smart dry-waste bin monitoring and community sorting incentive models.",
+    domain: "Waste Management & Sanitation",
+    source_type: "Government Portal",
+    district: "Ranchi",
+    state: "Jharkhand",
+    submitted_by_actor_id: "d99c55a9-e4d4-42c1-abd1-5e9ccb2ad67c",
+    source_organization_id: "c0a80000-0000-4000-8000-000000000001",
+    created_at: "2026-03-14T09:00:00Z",
+    updated_at: "2026-03-14T09:00:00Z",
+  },
+  {
+    id: "c0a80002-0000-4000-8000-000000000002",
+    title: "Off-Grid Solar Thermal Preservation for Vegetable Vendor Hubs in Hazaribagh",
+    summary:
+      "Smallholder vegetable vendors in Hazaribagh suffer 35% produce loss due to lack of overnight cold storage.",
+    description:
+      "Deploying low-cost solar thermal evaporative cooling units across peri-urban vendor markets to extend produce shelf life from 24h to 72h.",
+    domain: "Agricultural Technology & Rural Infrastructure",
+    source_type: "Government Portal",
+    district: "Hazaribagh",
+    state: "Jharkhand",
+    submitted_by_actor_id: "d99c55a9-e4d4-42c1-abd1-5e9ccb2ad67c",
+    source_organization_id: "c0a80000-0000-4000-8000-000000000001",
+    created_at: "2026-03-15T09:00:00Z",
+    updated_at: "2026-03-15T09:00:00Z",
+  },
+  {
     id: "c0010000-0000-0000-0000-000000000001",
     title: "Sustainable Water Management for Semi-Urban Towns",
     summary:
@@ -741,9 +773,59 @@ export async function createReadinessDecision(
 }
 
 
-const demoPilotsStore: Record<string, PilotResponse[]> = {};
-const demoOperationalStatesStore: Record<string, PilotOperationalStateResponse[]> = {};
-const demoEvidencePlansStore: Record<string, PilotEvidencePlanResponse[]> = {};
+const demoPilotsStore: Record<string, PilotResponse[]> = {
+  "c0a80002-0000-4000-8000-000000000002": [{
+    id: "b0a80002-0000-4000-8000-000000000006",
+    challenge_id: "c0a80002-0000-4000-8000-000000000002",
+    authorized_by_readiness_decision_id: "b0a80002-0000-4000-8000-000000000005",
+    host_organization_id: "c0a80000-0000-4000-8000-000000000001",
+    name: "Hazaribagh Vendor Cold Chain Field Pilot",
+    site_description: "Peri-urban daily vegetable market, Ward 4, Hazaribagh",
+    planned_start: "2026-08-01T00:00:00Z",
+    planned_end: "2026-09-30T00:00:00Z",
+    created_by_actor_id: "d99c55a9-e4d4-42c1-abd1-5e9ccb2ad67c",
+    created_at: "2026-03-16T10:00:00Z",
+  }],
+};
+const demoOperationalStatesStore: Record<string, PilotOperationalStateResponse[]> = {
+  "b0a80002-0000-4000-8000-000000000006": [
+    {
+      id: "b0a80002-0000-4000-8000-000000000007",
+      pilot_id: "b0a80002-0000-4000-8000-000000000006",
+      status: "PLANNED" as OperationalStatus,
+      version: 1,
+      rationale: "Field pilot initialized following human PILOT_READY authorization.",
+      recorded_by_actor_id: "d99c55a9-e4d4-42c1-abd1-5e9ccb2ad67c",
+      recorded_at: "2026-03-16T10:05:00Z",
+    },
+    {
+      id: "b0a80002-0000-4000-8000-000000000008",
+      pilot_id: "b0a80002-0000-4000-8000-000000000006",
+      status: "ACTIVE" as OperationalStatus,
+      version: 2,
+      rationale: "4 solar thermal units deployed and actively monitored across market vendors.",
+      recorded_by_actor_id: "d99c55a9-e4d4-42c1-abd1-5e9ccb2ad67c",
+      recorded_at: "2026-03-16T10:10:00Z",
+    },
+  ],};
+const demoEvidencePlansStore: Record<string, PilotEvidencePlanResponse[]> = {
+  "b0a80002-0000-4000-8000-000000000006": [
+    {
+      id: "b0a80002-0000-4000-8000-000000000009",
+      pilot_id: "b0a80002-0000-4000-8000-000000000006",
+      version: 1,
+      objective: "Evaluate solar thermal cooling units for reducing overnight vegetable spoilage among peri-urban vendors.",
+      primary_metric: "Households receiving scheduled segregated waste collection",
+      baseline_definition: "41% of surveyed households",
+      denominator_definition: "240 households surveyed before pilot",
+      data_collection_method: "Daily physical audit logs and temperature sensor telemetry",
+      evaluation_window: "60-day observation window (Aug-Sep 2026)",
+      success_criteria: "Fresh produce retention rate exceeds 75% at 48 hours across denominator",
+      limitations: "Seasonal rain variations may affect solar thermal efficiency during monsoon weeks",
+      created_by_actor_id: "d99c55a9-e4d4-42c1-abd1-5e9ccb2ad67c",
+      created_at: "2026-03-16T10:15:00Z",
+    },
+  ],};
 const demoOutcomesStore: Record<string, OutcomeAssessmentResponse[]> = {};
 
 export async function createPilot(
