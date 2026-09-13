@@ -11,13 +11,22 @@ import type {
   HEICandidateCreate,
   HEICandidateResponse,
   HEICandidateListResponse,
+  CommitmentCreate,
+  CommitmentResponse,
+  CommitmentHistoryResponse,
+  ReadinessConditionCreate,
+  ReadinessConditionResponse,
+  ReadinessConditionListResponse,
+  ReadinessDecisionCreate,
+  ReadinessDecisionResponse,
+  ReadinessDecisionHistoryResponse,
 } from "./types/challenge";
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 export const DEMO_REVIEWER_ACTOR_ID =
-  process.env.NEXT_PUBLIC_DEMO_REVIEWER_ACTOR_ID || "d99c55a9-e4d4-42c1-abd1-5e9ccb2ad67c";
+  process.env.NEXT_PUBLIC_DEMO_REVIEWER_ACTOR_ID || "";
 
 // Fallback synthetic demo data for frontend resilience when backend is unreachable
 export const DEMO_CHALLENGES: ChallengeResponse[] = [
@@ -403,5 +412,295 @@ export async function fetchOrganizationCapabilities(
       is_active: true,
     }));
     return { data: caps, isDemo: true };
+  }
+}
+
+
+const demoCommitmentsStore: Record<string, CommitmentResponse[]> = {};
+const demoReadinessConditionsStore: Record<string, ReadinessConditionResponse[]> = {};
+const demoReadinessDecisionsStore: Record<string, ReadinessDecisionResponse[]> = {};
+
+export async function fetchCommitments(
+  challengeId: string,
+  organizationId?: string,
+  commitmentType?: string
+): Promise<{ data: CommitmentHistoryResponse; isDemo: boolean }> {
+  try {
+    let url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/commitments`;
+    const params = new URLSearchParams();
+    if (organizationId) params.append("organization_id", organizationId);
+    if (commitmentType) params.append("commitment_type", commitmentType);
+    if (params.toString()) url += `?${params.toString()}`;
+
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data: CommitmentHistoryResponse = await res.json();
+    return { data, isDemo: false };
+  } catch {
+    let items = demoCommitmentsStore[challengeId] || [];
+    if (organizationId) {
+      items = items.filter((c) => c.organization_id === organizationId);
+    }
+    if (commitmentType) {
+      items = items.filter((c) => c.commitment_type === commitmentType);
+    }
+    return { data: { items, total: items.length }, isDemo: true };
+  }
+}
+
+export async function fetchCommitmentHistory(
+  challengeId: string,
+  organizationId: string,
+  commitmentType: string
+): Promise<{ data: CommitmentHistoryResponse; isDemo: boolean }> {
+  try {
+    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/commitments/${organizationId}/${commitmentType}`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data: CommitmentHistoryResponse = await res.json();
+    return { data, isDemo: false };
+  } catch {
+    const all = demoCommitmentsStore[challengeId] || [];
+    const items = all.filter(
+      (c) => c.organization_id === organizationId && c.commitment_type === commitmentType
+    );
+    return { data: { items, total: items.length }, isDemo: true };
+  }
+}
+
+export async function createCommitmentVersion(
+  challengeId: string,
+  payload: CommitmentCreate
+): Promise<{ data: CommitmentResponse; isDemo: boolean }> {
+  try {
+    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/commitments`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `HTTP error ${res.status}`);
+    }
+    const data: CommitmentResponse = await res.json();
+    return { data, isDemo: false };
+  } catch (err) {
+    if (err instanceof Error && (err.message.includes("409") || err.message.includes("version") || err.message.includes("not found"))) {
+      throw err;
+    }
+    const all = demoCommitmentsStore[challengeId] || [];
+    const series = all.filter(
+      (c) => c.organization_id === payload.organization_id && c.commitment_type === payload.commitment_type
+    );
+    const latestVer = series.length > 0 ? Math.max(...series.map((s) => s.version)) : 0;
+    if (payload.expected_version !== latestVer) {
+      throw new Error(`409 Conflict: Stale expected_version ${payload.expected_version}. Latest version is ${latestVer}.`);
+    }
+
+    const newComm: CommitmentResponse = {
+      id: `comm-demo-${Date.now()}`,
+      challenge_id: challengeId,
+      organization_id: payload.organization_id,
+      commitment_type: payload.commitment_type,
+      status: payload.status,
+      version: latestVer + 1,
+      scope_description: payload.scope_description,
+      recorded_by_actor_id: payload.recorded_by_actor_id || DEMO_REVIEWER_ACTOR_ID,
+      valid_from: payload.valid_from || null,
+      valid_until: payload.valid_until || null,
+      created_at: new Date().toISOString(),
+    };
+    demoCommitmentsStore[challengeId] = [...all, newComm];
+
+    // Mock invalidation check for offline demo
+    const decs = demoReadinessDecisionsStore[challengeId] || [];
+    const latestDec = decs.length > 0 ? decs[decs.length - 1] : null;
+    if (latestDec && latestDec.status === "PILOT_READY") {
+      const conds = demoReadinessConditionsStore[challengeId] || [];
+      const isAffected = conds.some((cond) =>
+        cond.commitment_dependency_ids?.some((depId) => {
+          const matchSeries = all.find((c) => c.id === depId);
+          return matchSeries && matchSeries.organization_id === payload.organization_id && matchSeries.commitment_type === payload.commitment_type;
+        })
+      );
+      if (isAffected) {
+        const autoDec: ReadinessDecisionResponse = {
+          id: `dec-auto-${Date.now()}`,
+          challenge_id: challengeId,
+          status: "REVIEW_REQUIRED",
+          version: latestDec.version + 1,
+          rationale: "Pilot readiness reopened automatically because a relied-on commitment series was updated.",
+          decided_by_actor_id: null,
+          created_at: new Date().toISOString(),
+          triggered_by_commitment_id: newComm.id,
+          condition_ids: latestDec.condition_ids,
+        };
+        demoReadinessDecisionsStore[challengeId] = [...decs, autoDec];
+      }
+    }
+
+    return { data: newComm, isDemo: true };
+  }
+}
+
+export async function fetchReadinessConditions(
+  challengeId: string
+): Promise<{ data: ReadinessConditionListResponse; isDemo: boolean }> {
+  try {
+    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/readiness-conditions`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data: ReadinessConditionListResponse = await res.json();
+    return { data, isDemo: false };
+  } catch {
+    const items = demoReadinessConditionsStore[challengeId] || [];
+    return { data: { items, total: items.length }, isDemo: true };
+  }
+}
+
+export async function fetchLatestReadinessConditions(
+  challengeId: string
+): Promise<{ data: ReadinessConditionListResponse; isDemo: boolean }> {
+  try {
+    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/readiness-conditions/latest`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data: ReadinessConditionListResponse = await res.json();
+    return { data, isDemo: false };
+  } catch {
+    const items = demoReadinessConditionsStore[challengeId] || [];
+    const latestByKey: Record<string, ReadinessConditionResponse> = {};
+    for (const item of items) {
+      if (!latestByKey[item.condition_key] || item.version > latestByKey[item.condition_key].version) {
+        latestByKey[item.condition_key] = item;
+      }
+    }
+    const result = Object.values(latestByKey);
+    return { data: { items: result, total: result.length }, isDemo: true };
+  }
+}
+
+export async function createReadinessCondition(
+  challengeId: string,
+  payload: ReadinessConditionCreate
+): Promise<{ data: ReadinessConditionResponse; isDemo: boolean }> {
+  try {
+    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/readiness-conditions`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `HTTP error ${res.status}`);
+    }
+    const data: ReadinessConditionResponse = await res.json();
+    return { data, isDemo: false };
+  } catch (err) {
+    if (err instanceof Error && (err.message.includes("409") || err.message.includes("version") || err.message.includes("not found"))) {
+      throw err;
+    }
+    const all = demoReadinessConditionsStore[challengeId] || [];
+    const keyItems = all.filter((c) => c.condition_key === payload.condition_key);
+    const latestVer = keyItems.length > 0 ? Math.max(...keyItems.map((k) => k.version)) : 0;
+    if (payload.expected_version !== latestVer) {
+      throw new Error(`409 Conflict: Stale expected_version ${payload.expected_version}. Latest version is ${latestVer}.`);
+    }
+
+    const newCond: ReadinessConditionResponse = {
+      id: `cond-demo-${Date.now()}`,
+      challenge_id: challengeId,
+      condition_key: payload.condition_key,
+      status: payload.status,
+      version: latestVer + 1,
+      rationale: payload.rationale,
+      assessed_by_actor_id: payload.assessed_by_actor_id || DEMO_REVIEWER_ACTOR_ID,
+      valid_until: payload.valid_until || null,
+      assessed_at: new Date().toISOString(),
+      commitment_dependency_ids: payload.commitment_dependency_ids || [],
+    };
+    demoReadinessConditionsStore[challengeId] = [...all, newCond];
+    return { data: newCond, isDemo: true };
+  }
+}
+
+export async function fetchReadinessHistory(
+  challengeId: string
+): Promise<{ data: ReadinessDecisionHistoryResponse; isDemo: boolean }> {
+  try {
+    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/readiness-decisions`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data: ReadinessDecisionHistoryResponse = await res.json();
+    return { data, isDemo: false };
+  } catch {
+    const items = demoReadinessDecisionsStore[challengeId] || [];
+    return { data: { items, total: items.length }, isDemo: true };
+  }
+}
+
+export async function fetchLatestReadinessDecision(
+  challengeId: string
+): Promise<{ data: ReadinessDecisionResponse | null; isDemo: boolean }> {
+  try {
+    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/readiness-decisions/latest`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (res.status === 404) return { data: null, isDemo: false };
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data: ReadinessDecisionResponse = await res.json();
+    return { data, isDemo: false };
+  } catch {
+    const items = demoReadinessDecisionsStore[challengeId] || [];
+    const latest = items.length > 0 ? items[items.length - 1] : null;
+    return { data: latest, isDemo: true };
+  }
+}
+
+export async function createReadinessDecision(
+  challengeId: string,
+  payload: ReadinessDecisionCreate
+): Promise<{ data: ReadinessDecisionResponse; isDemo: boolean }> {
+  if (payload.status === "REVIEW_REQUIRED") {
+    throw new Error("REVIEW_REQUIRED status cannot be manually set by client API.");
+  }
+
+  try {
+    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/readiness-decisions`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `HTTP error ${res.status}`);
+    }
+    const data: ReadinessDecisionResponse = await res.json();
+    return { data, isDemo: false };
+  } catch (err) {
+    if (err instanceof Error && (err.message.includes("REVIEW_REQUIRED") || err.message.includes("409") || err.message.includes("version") || err.message.includes("not found"))) {
+      throw err;
+    }
+    const all = demoReadinessDecisionsStore[challengeId] || [];
+    const latestVer = all.length > 0 ? Math.max(...all.map((d) => d.version)) : 0;
+    if (payload.expected_version !== latestVer) {
+      throw new Error(`409 Conflict: Stale expected_version ${payload.expected_version}. Latest version is ${latestVer}.`);
+    }
+
+    const newDec: ReadinessDecisionResponse = {
+      id: `dec-demo-${Date.now()}`,
+      challenge_id: challengeId,
+      status: payload.status,
+      version: latestVer + 1,
+      rationale: payload.rationale,
+      decided_by_actor_id: payload.decided_by_actor_id || DEMO_REVIEWER_ACTOR_ID,
+      created_at: new Date().toISOString(),
+      triggered_by_commitment_id: null,
+      condition_ids: payload.condition_ids || [],
+    };
+    demoReadinessDecisionsStore[challengeId] = [...all, newDec];
+    return { data: newDec, isDemo: true };
   }
 }

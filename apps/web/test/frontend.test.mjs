@@ -116,3 +116,161 @@ test("fetchOrganizationCapabilities returns active capabilities", async () => {
   const result = await fetchOrganizationCapabilities(orgId);
   assert.ok(Array.isArray(result.data));
 });
+
+
+import {
+  fetchCommitments,
+  fetchCommitmentHistory,
+  createCommitmentVersion,
+  createReadinessCondition,
+  fetchReadinessHistory,
+  fetchLatestReadinessDecision,
+  createReadinessDecision,
+} from "../src/lib/api.ts";
+
+test("Commitment workflow: v1 ACCEPTED creation & expected_version validation", async () => {
+  const challengeId = "c0010000-0000-0000-0000-000000000001";
+  const orgId = "99544ae4-8480-42b1-a681-a7b7c75f4343";
+  const actorId = "d99c55a9-e4d4-42c1-abd1-5e9ccb2ad67c";
+
+  // v1 ACCEPTED
+  const res1 = await createCommitmentVersion(challengeId, {
+    organization_id: orgId,
+    commitment_type: "HEI_PARTICIPATION",
+    status: "ACCEPTED",
+    scope_description: "Agreed to field testing in Municipal Ward 4",
+    recorded_by_actor_id: actorId,
+    expected_version: 0,
+  });
+
+  assert.ok(res1.data.id);
+  assert.strictEqual(res1.data.version, 1);
+  assert.strictEqual(res1.data.status, "ACCEPTED");
+
+  // Fetch history
+  const hist = await fetchCommitmentHistory(challengeId, orgId, "HEI_PARTICIPATION");
+  assert.ok(hist.data.items.length >= 1);
+});
+
+test("Commitment concurrency: stale expected_version throws 409 error", async () => {
+  const challengeId = "c0010000-0000-0000-0000-000000000001";
+  const orgId = "99544ae4-8480-42b1-a681-a7b7c75f4343";
+  const actorId = "d99c55a9-e4d4-42c1-abd1-5e9ccb2ad67c";
+
+  await assert.rejects(
+    async () => {
+      await createCommitmentVersion(challengeId, {
+        organization_id: orgId,
+        commitment_type: "HEI_PARTICIPATION",
+        status: "WITHDRAWN",
+        scope_description: "Stale update attempt",
+        recorded_by_actor_id: actorId,
+        expected_version: 0, // Should be 1 now
+      });
+    },
+    (err) => {
+      return err.message.includes("409") || err.message.includes("expected_version") || err.message.includes("Stale");
+    }
+  );
+});
+
+test("Readiness workflow: Condition assessment with commitment dependency", async () => {
+  const challengeId = "c0010000-0000-0000-0000-000000000001";
+  const actorId = "d99c55a9-e4d4-42c1-abd1-5e9ccb2ad67c";
+
+  const comms = await fetchCommitments(challengeId);
+  const commId = comms.data.items[0]?.id;
+
+  const condRes = await createReadinessCondition(challengeId, {
+    condition_key: "HEI_COMMITMENT",
+    status: "SATISFIED",
+    rationale: "HEI commitment verified and active",
+    assessed_by_actor_id: actorId,
+    commitment_dependency_ids: commId ? [commId] : [],
+    expected_version: 0,
+  });
+
+  assert.ok(condRes.data.id);
+  assert.strictEqual(condRes.data.status, "SATISFIED");
+  assert.strictEqual(condRes.data.version, 1);
+});
+
+test("Readiness decision: REVIEW_REQUIRED cannot be manually created by client", async () => {
+  const challengeId = "c0010000-0000-0000-0000-000000000001";
+  const actorId = "d99c55a9-e4d4-42c1-abd1-5e9ccb2ad67c";
+
+  await assert.rejects(
+    async () => {
+      await createReadinessDecision(challengeId, {
+        status: "REVIEW_REQUIRED",
+        rationale: "Manual attempt",
+        decided_by_actor_id: actorId,
+        expected_version: 0,
+      });
+    },
+    (err) => {
+      return err.message.includes("REVIEW_REQUIRED status cannot be manually set");
+    }
+  );
+});
+
+test("Hero invalidation flow: ACCEPTED -> SATISFIED -> PILOT_READY -> WITHDRAWN -> automatic REVIEW_REQUIRED", async () => {
+  const challengeId = `c-hero-${Date.now()}`;
+  const orgId = "org-hero-001";
+  const actorId = "actor-hero-001";
+
+  // 1. Create ACCEPTED commitment v1
+  const comm1 = await createCommitmentVersion(challengeId, {
+    organization_id: orgId,
+    commitment_type: "HEI_PARTICIPATION",
+    status: "ACCEPTED",
+    scope_description: "Initial accepted commitment",
+    recorded_by_actor_id: actorId,
+    expected_version: 0,
+  });
+  assert.strictEqual(comm1.data.version, 1);
+
+  // 2. Assess SATISFIED condition dependent on comm1
+  const cond1 = await createReadinessCondition(challengeId, {
+    condition_key: "HEI_COMMITMENT",
+    status: "SATISFIED",
+    rationale: "HEI commitment satisfied",
+    assessed_by_actor_id: actorId,
+    commitment_dependency_ids: [comm1.data.id],
+    expected_version: 0,
+  });
+  assert.strictEqual(cond1.data.status, "SATISFIED");
+
+  // 3. Human record PILOT_READY decision v1
+  const dec1 = await createReadinessDecision(challengeId, {
+    status: "PILOT_READY",
+    rationale: "Human authorization granted for pilot",
+    decided_by_actor_id: actorId,
+    condition_ids: [cond1.data.id],
+    expected_version: 0,
+  });
+  assert.strictEqual(dec1.data.status, "PILOT_READY");
+
+  // 4. Create WITHDRAWN commitment v2 in same series
+  const comm2 = await createCommitmentVersion(challengeId, {
+    organization_id: orgId,
+    commitment_type: "HEI_PARTICIPATION",
+    status: "WITHDRAWN",
+    scope_description: "Withdrawal due to faculty unavailability",
+    recorded_by_actor_id: actorId,
+    expected_version: 1,
+  });
+  assert.strictEqual(comm2.data.version, 2);
+
+  // 5. Verify automatic invalidation reopening readiness to REVIEW_REQUIRED
+  const latestDec = await fetchLatestReadinessDecision(challengeId);
+  assert.ok(latestDec.data);
+  assert.strictEqual(latestDec.data.status, "REVIEW_REQUIRED");
+  assert.strictEqual(latestDec.data.triggered_by_commitment_id, comm2.data.id);
+
+  // 6. Verify historical PILOT_READY remains preserved in decision history
+  const decHist = await fetchReadinessHistory(challengeId);
+  assert.strictEqual(decHist.data.items.length, 2);
+  assert.strictEqual(decHist.data.items[0].status, "PILOT_READY");
+  assert.strictEqual(decHist.data.items[1].status, "REVIEW_REQUIRED");
+});

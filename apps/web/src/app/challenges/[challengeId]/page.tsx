@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useCallback } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -8,9 +8,7 @@ import {
   MapPin,
   Tag,
   Calendar,
-  FileCheck2,
   Building2,
-  Sparkles,
   Info,
   Plus,
   AlertTriangle,
@@ -26,6 +24,11 @@ import {
   fetchHEIOrganizations,
   fetchHEICandidates,
   createHEICandidate,
+  fetchCommitments,
+  fetchReadinessConditions,
+  fetchLatestReadinessConditions,
+  fetchReadinessHistory,
+  fetchLatestReadinessDecision,
   DEMO_REVIEWER_ACTOR_ID,
 } from "@/lib/api";
 import {
@@ -35,6 +38,9 @@ import {
   QualificationRoute,
   HEIOrganization,
   HEICandidateResponse,
+  CommitmentResponse,
+  ReadinessConditionResponse,
+  ReadinessDecisionResponse,
 } from "@/lib/types/challenge";
 
 import { LatestDecisionPanel } from "@/components/qualification/LatestDecisionPanel";
@@ -47,6 +53,18 @@ import { CandidateList } from "@/components/hei-matching/CandidateList";
 import { HEIDirectoryList } from "@/components/hei-matching/HEIDirectoryList";
 import { CapabilityInspectionSheet } from "@/components/hei-matching/CapabilityInspectionSheet";
 import { CreateCandidateSheet } from "@/components/hei-matching/CreateCandidateSheet";
+
+import { CommitmentSemanticStrip } from "@/components/commitments/CommitmentSemanticStrip";
+import { CandidateToCommitmentList } from "@/components/commitments/CandidateToCommitmentList";
+import { RecordCommitmentSheet } from "@/components/commitments/RecordCommitmentSheet";
+import { CommitmentTimeline } from "@/components/commitments/CommitmentTimeline";
+
+import { HeroInvalidationNotice } from "@/components/readiness/HeroInvalidationNotice";
+import { ReadinessOverviewPanel } from "@/components/readiness/ReadinessOverviewPanel";
+import { ConditionMatrix } from "@/components/readiness/ConditionMatrix";
+import { AssessConditionSheet } from "@/components/readiness/AssessConditionSheet";
+import { RecordReadinessDecisionSheet } from "@/components/readiness/RecordReadinessDecisionSheet";
+import { ReadinessTimeline } from "@/components/readiness/ReadinessTimeline";
 
 interface PassportPageProps {
   params: Promise<{ challengeId: string }>;
@@ -67,6 +85,13 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
   const [heiOrganizations, setHeiOrganizations] = useState<HEIOrganization[]>([]);
   const [candidatesList, setCandidatesList] = useState<HEICandidateResponse[]>([]);
 
+  // Commitment & Readiness states
+  const [commitmentsList, setCommitmentsList] = useState<CommitmentResponse[]>([]);
+  const [latestConditionsList, setLatestConditionsList] = useState<ReadinessConditionResponse[]>([]);
+  const [allConditionsList, setAllConditionsList] = useState<ReadinessConditionResponse[]>([]);
+  const [readinessDecisionsList, setReadinessDecisionsList] = useState<ReadinessDecisionResponse[]>([]);
+  const [latestReadinessDecision, setLatestReadinessDecision] = useState<ReadinessDecisionResponse | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDemo, setIsDemo] = useState(false);
@@ -75,6 +100,10 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
   const [showRecordModal, setShowRecordModal] = useState(false);
   const [inspectOrg, setInspectOrg] = useState<HEIOrganization | null>(null);
   const [candidateOrg, setCandidateOrg] = useState<HEIOrganization | null>(null);
+
+  const [recordCommitmentOrg, setRecordCommitmentOrg] = useState<{ organization_id: string; name: string } | null>(null);
+  const [showAssessConditionSheet, setShowAssessConditionSheet] = useState(false);
+  const [showRecordReadinessDecisionSheet, setShowRecordReadinessDecisionSheet] = useState(false);
 
   const [activeTab, setActiveTab] = useState<
     | "Overview"
@@ -98,17 +127,33 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
     "Outcomes",
   ] as const;
 
-    const loadPassportData = async () => {
+  const loadPassportData = useCallback(async () => {
     try {
-      const [cRes, eRes, qHistRes, qLatestRes, heiOrgsRes, candsRes] =
-        await Promise.all([
-          fetchChallengeDetail(challengeId),
-          fetchChallengeEvidence(challengeId),
-          fetchQualificationHistory(challengeId),
-          fetchLatestQualification(challengeId),
-          fetchHEIOrganizations(),
-          fetchHEICandidates(challengeId),
-        ]);
+      const [
+        cRes,
+        eRes,
+        qHistRes,
+        qLatestRes,
+        heiOrgsRes,
+        candsRes,
+        commRes,
+        condLatestRes,
+        condAllRes,
+        decHistRes,
+        decLatestRes,
+      ] = await Promise.all([
+        fetchChallengeDetail(challengeId),
+        fetchChallengeEvidence(challengeId),
+        fetchQualificationHistory(challengeId),
+        fetchLatestQualification(challengeId),
+        fetchHEIOrganizations(),
+        fetchHEICandidates(challengeId),
+        fetchCommitments(challengeId),
+        fetchLatestReadinessConditions(challengeId),
+        fetchReadinessConditions(challengeId),
+        fetchReadinessHistory(challengeId),
+        fetchLatestReadinessDecision(challengeId),
+      ]);
 
       setChallenge(cRes.data);
       setEvidenceList(eRes.data.items);
@@ -116,68 +161,59 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
       setLatestDecision(qLatestRes.data);
       setHeiOrganizations(heiOrgsRes.data.items);
       setCandidatesList(candsRes.data.items);
+      setCommitmentsList(commRes.data.items);
+      setLatestConditionsList(condLatestRes.data.items);
+      setAllConditionsList(condAllRes.data.items);
+      setReadinessDecisionsList(decHistRes.data.items);
+      setLatestReadinessDecision(decLatestRes.data);
 
       setIsDemo(
         cRes.isDemo ||
           eRes.isDemo ||
           qHistRes.isDemo ||
           heiOrgsRes.isDemo ||
-          candsRes.isDemo
+          commRes.isDemo
       );
-    } catch {
-      setError("Could not load Challenge Passport data.");
+      setError(null);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err) || "Failed to load passport data.");
     } finally {
       setLoading(false);
+    }
+  }, [challengeId]);
+
+  const refreshCommitmentsAndReadiness = async () => {
+    try {
+      const [commRes, condLatestRes, condAllRes, decHistRes, decLatestRes] =
+        await Promise.all([
+          fetchCommitments(challengeId),
+          fetchLatestReadinessConditions(challengeId),
+          fetchReadinessConditions(challengeId),
+          fetchReadinessHistory(challengeId),
+          fetchLatestReadinessDecision(challengeId),
+        ]);
+      setCommitmentsList(commRes.data.items);
+      setLatestConditionsList(condLatestRes.data.items);
+      setAllConditionsList(condAllRes.data.items);
+      setReadinessDecisionsList(decHistRes.data.items);
+      setLatestReadinessDecision(decLatestRes.data);
+    } catch (e) {
+      console.error("Failed to refresh commitments/readiness", e);
     }
   };
 
   useEffect(() => {
     let isMounted = true;
-    async function init() {
-      setLoading(true);
-      setError(null);
-      try {
-        const [cRes, eRes, qHistRes, qLatestRes, heiOrgsRes, candsRes] =
-          await Promise.all([
-            fetchChallengeDetail(challengeId),
-            fetchChallengeEvidence(challengeId),
-            fetchQualificationHistory(challengeId),
-            fetchLatestQualification(challengeId),
-            fetchHEIOrganizations(),
-            fetchHEICandidates(challengeId),
-          ]);
-
-        if (isMounted) {
-          setChallenge(cRes.data);
-          setEvidenceList(eRes.data.items);
-          setQualificationList(qHistRes.data.items);
-          setLatestDecision(qLatestRes.data);
-          setHeiOrganizations(heiOrgsRes.data.items);
-          setCandidatesList(candsRes.data.items);
-
-          setIsDemo(
-            cRes.isDemo ||
-              eRes.isDemo ||
-              qHistRes.isDemo ||
-              heiOrgsRes.isDemo ||
-              candsRes.isDemo
-          );
-        }
-      } catch {
-        if (isMounted) {
-          setError("Could not load Challenge Passport data.");
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+    const init = async () => {
+      if (isMounted) {
+        await loadPassportData();
       }
-    }
+    };
     init();
     return () => {
       isMounted = false;
     };
-  }, [challengeId]);
+  }, [loadPassportData]);
 
   const handleRecordDecisionSubmit = async (data: {
     route: QualificationRoute;
@@ -193,7 +229,6 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
       decided_by_actor_id: DEMO_REVIEWER_ACTOR_ID,
       evidence_ids: data.evidence_ids,
     });
-    // Auto-refresh passport state
     await loadPassportData();
   };
 
@@ -211,17 +246,17 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
       rationale: data.rationale,
       created_by_actor_id: DEMO_REVIEWER_ACTOR_ID,
     });
-    // Auto-refresh candidate list
     await loadPassportData();
   };
 
   if (loading) {
     return (
       <ProductShell>
-        <div className="p-8 space-y-4 animate-pulse">
-          <div className="h-4 bg-[#E8E4D9] rounded w-1/4" />
-          <div className="h-8 bg-[#E8E4D9] rounded w-2/3" />
-          <div className="h-32 bg-[#E8E4D9] rounded w-full" />
+        <div className="max-w-7xl mx-auto px-4 py-16 text-center">
+          <div className="w-8 h-8 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="mt-4 text-xs font-mono text-[var(--text-secondary)]">
+            Retrieving challenge passport telemetry...
+          </p>
         </div>
       </ProductShell>
     );
@@ -230,17 +265,17 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
   if (error || !challenge) {
     return (
       <ProductShell>
-        <div className="p-12 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-center space-y-4">
-          <Info className="w-8 h-8 text-amber-600 mx-auto" />
-          <h2 className="text-lg font-bold text-[var(--text-primary)]">
-            Challenge Passport Not Found
+        <div className="max-w-7xl mx-auto px-4 py-16 text-center space-y-4">
+          <AlertTriangle className="w-10 h-10 text-[var(--danger)] mx-auto" />
+          <h2 className="text-xl font-bold text-[var(--text-primary)]">
+            Unable to load Challenge Passport
           </h2>
-          <p className="text-xs text-[var(--text-secondary)]">
-            {error || "The requested challenge record could not be retrieved."}
+          <p className="text-xs text-[var(--text-secondary)] font-mono max-w-md mx-auto">
+            {error || "Challenge not found"}
           </p>
           <Link
             href="/challenges"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded bg-[var(--primary)] text-white text-xs font-semibold hover:bg-[var(--primary-hover)] transition-colors"
+            className="inline-flex items-center gap-2 text-xs font-semibold text-[var(--primary)] hover:underline"
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Explorer
           </Link>
@@ -249,254 +284,167 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
     );
   }
 
-  // Factual Journey progression steps derived strictly from backend API states
-  const journeySteps = [
-    { label: "Challenge", status: "complete", detail: "Factual Record" },
-    {
-      label: "Evidence",
-      status: evidenceList.length > 0 ? "complete" : "neutral",
-      detail: `${evidenceList.length} Attached`,
-    },
-    {
-      label: "Qualification",
-      status: latestDecision ? "complete" : "neutral",
-      detail: latestDecision ? latestDecision.route : "Pending Review",
-    },
-    {
-      label: "HEI Match",
-      status: candidatesList.length > 0 ? "complete" : "neutral",
-      detail: `${candidatesList.length} Candidates`,
-    },
-    { label: "Commitment", status: "neutral", detail: "Future Phase" },
-    { label: "Readiness", status: "neutral", detail: "Future Phase" },
-    { label: "Pilot", status: "neutral", detail: "Future Phase" },
-    { label: "Outcome", status: "neutral", detail: "Future Phase" },
-  ];
-
   const candidateOrgIds = candidatesList.map((c) => c.organization_id);
 
   return (
     <ProductShell isDemo={isDemo}>
-      <div className="space-y-6">
-        {/* Back Link & Header Badge */}
-        <div className="flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+        {/* Back navigation & Demo notice */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <Link
             href="/challenges"
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" /> Back to Challenges
+            <ArrowLeft className="w-3.5 h-3.5" /> Challenge Explorer
           </Link>
-          <span className="text-[10px] font-mono bg-[#F2EFE9] text-[var(--text-secondary)] px-2 py-0.5 rounded border border-[var(--border)] uppercase font-semibold">
-            FACTUAL PASSPORT RECORD
-          </span>
+
+          {!DEMO_REVIEWER_ACTOR_ID && (
+            <span className="text-xs font-mono bg-amber-50 text-amber-900 border border-amber-200 px-3 py-1 rounded">
+              Demo reviewer identity is not configured.
+            </span>
+          )}
+
+          {isDemo && DEMO_REVIEWER_ACTOR_ID && (
+            <span className="text-[11px] font-mono bg-[#F2EFE9] text-[var(--text-secondary)] px-2.5 py-1 rounded border border-[var(--border)] inline-flex items-center gap-1.5">
+              <Info className="w-3 h-3 text-[var(--primary)]" />
+              Demo Mode Active (Fallback Data)
+            </span>
+          )}
         </div>
 
-        {/* Demo Data Notice Banner */}
-        {isDemo && (
-          <div className="p-3 rounded-lg bg-[#FFF4EE] border border-[#FCD8C5] flex items-center justify-between text-xs text-[var(--text-primary)]">
+        {/* Passport Banner */}
+        <div className="bg-[#FAF8F5] border border-stone-200 rounded-xl p-6 space-y-4 shadow-2xs">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[var(--primary)]" />
-              <span>
-                <strong className="font-semibold">DEMO PASSPORT MODE:</strong> Real backend workflow state rendered with synthetic fallback support.
+              <span className="px-2.5 py-1 text-xs font-bold rounded bg-[#F95700]/10 text-[#F95700] border border-[#F95700]/30 font-mono">
+                PASSPORT #{challenge.id.slice(0, 8)}
+              </span>
+              <span className="px-2.5 py-1 text-xs font-semibold rounded bg-stone-100 text-stone-700 border border-stone-200">
+                {challenge.domain}
               </span>
             </div>
-            <span className="font-mono text-[10px] bg-[#E8E4D9] px-2 py-0.5 rounded text-[var(--text-secondary)]">
-              SAMPLE DATA
-            </span>
-          </div>
-        )}
 
-        {/* Missing Reviewer Identity Warning */}
-        {!DEMO_REVIEWER_ACTOR_ID && (
-          <div className="p-3 rounded-lg bg-amber-50 border border-amber-300 text-amber-900 flex items-center gap-2 text-xs font-medium">
-            <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
-            <span>Demo reviewer identity is not configured. Mutation actions will be disabled.</span>
+            {/* Passport Journey Strip */}
+            <div className="flex items-center gap-2 text-xs font-mono font-semibold">
+              <span className="px-2 py-0.5 rounded bg-stone-200 text-stone-700">
+                DISCOVERED
+              </span>
+              <span className="text-stone-300">→</span>
+              <span
+                className={`px-2 py-0.5 rounded ${
+                  latestDecision?.route === "INNOVATION_CHALLENGE"
+                    ? "bg-emerald-100 text-emerald-900 border border-emerald-300"
+                    : "bg-stone-100 text-stone-500"
+                }`}
+              >
+                QUALIFIED
+              </span>
+              <span className="text-stone-300">→</span>
+              <span
+                className={`px-2 py-0.5 rounded ${
+                  candidatesList.length > 0
+                    ? "bg-[#0A2540]/10 text-[#0A2540] border border-[#0A2540]/20"
+                    : "bg-stone-100 text-stone-500"
+                }`}
+              >
+                CANDIDATE MATCH
+              </span>
+              <span className="text-stone-300">→</span>
+              <span
+                className={`px-2 py-0.5 rounded ${
+                  commitmentsList.length > 0
+                    ? "bg-amber-100 text-amber-950 border border-amber-300"
+                    : "bg-stone-100 text-stone-500"
+                }`}
+              >
+                COMMITMENT
+              </span>
+              <span className="text-stone-300">→</span>
+              <span
+                className={`px-2 py-0.5 rounded ${
+                  latestReadinessDecision?.status === "PILOT_READY"
+                    ? "bg-emerald-100 text-emerald-950 border border-emerald-400 font-bold"
+                    : latestReadinessDecision?.status === "REVIEW_REQUIRED"
+                    ? "bg-amber-100 text-amber-950 border border-amber-400 font-bold animate-pulse"
+                    : "bg-stone-100 text-stone-500"
+                }`}
+              >
+                {latestReadinessDecision?.status === "REVIEW_REQUIRED"
+                  ? "REVIEW REQUIRED"
+                  : latestReadinessDecision?.status || "PILOT READINESS"}
+              </span>
+            </div>
           </div>
-        )}
 
-        {/* Passport Header Title Block */}
-        <div className="p-6 sm:p-8 rounded-xl border border-[var(--border)] bg-[var(--surface)] space-y-4 shadow-xs">
-          <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-secondary)]">
-            <span className="font-mono font-semibold text-[var(--primary)]">
-              ID: {challenge.id}
-            </span>
-            <span>•</span>
-            <span className="inline-flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
-              {challenge.district}, {challenge.state}
-            </span>
-            <span>•</span>
-            <span className="inline-flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
-              Created:{" "}
-              {new Date(challenge.created_at).toLocaleDateString("en-IN", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              })}
-            </span>
-          </div>
-
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] tracking-tight leading-snug">
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-stone-900 leading-tight">
             {challenge.title}
           </h1>
 
-          <div className="flex flex-wrap gap-2 pt-1">
-            <span className="px-3 py-1 text-xs rounded-full bg-[#F4F1EA] text-[var(--text-primary)] border border-[var(--border)] font-medium inline-flex items-center gap-1">
-              <Tag className="w-3 h-3 text-[var(--primary)]" /> {challenge.domain}
+          <p className="text-sm text-stone-700 leading-relaxed max-w-4xl font-sans">
+            {challenge.summary}
+          </p>
+
+          <div className="pt-3 border-t border-stone-200 flex flex-wrap items-center gap-6 text-xs text-stone-600 font-mono">
+            <span className="flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-stone-400" />
+              {challenge.district}, {challenge.state}
             </span>
-            <span className="px-3 py-1 text-xs rounded-full bg-[#F4F1EA] text-[var(--text-secondary)] border border-[var(--border)] font-medium">
-              Source: {challenge.source_type}
+            <span className="flex items-center gap-1.5">
+              <Tag className="w-3.5 h-3.5 text-stone-400" />
+              {challenge.source_type}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-stone-400" />
+              Submitted {new Date(challenge.created_at).toLocaleDateString("en-IN")}
             </span>
           </div>
         </div>
 
-        {/* Passport Journey Progression Strip */}
-        <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] space-y-2 shadow-xs">
-          <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
-            <span>PASSPORT JOURNEY WORKFLOW</span>
-            <span className="font-mono text-[var(--primary)]">FACTUAL AUDIT TRAIL</span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 pt-1">
-            {journeySteps.map((step, idx) => (
-              <div
-                key={idx}
-                className={`p-2 rounded border text-center text-xs flex flex-col justify-between h-14 ${
-                  step.status === "complete"
-                    ? "bg-[#EBF5EE] border-[#C6E7D0] text-[#166534]"
-                    : "bg-[#F9F7F2] border-[var(--border)] text-[var(--text-secondary)] opacity-80"
+        {/* Tab Navigation */}
+        <div className="border-b border-stone-200 overflow-x-auto">
+          <nav className="flex space-x-6 min-w-max">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`py-3 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
+                  activeTab === tab
+                    ? "border-[#F95700] text-[#F95700]"
+                    : "border-transparent text-stone-500 hover:text-stone-800"
                 }`}
               >
-                <span className="font-bold truncate text-[11px]">{step.label}</span>
-                <span className="text-[9px] font-mono truncate">{step.detail}</span>
-              </div>
+                {tab}
+              </button>
             ))}
-          </div>
+          </nav>
         </div>
-
-        {/* Passport Internal Tabs */}
-        <div className="border-b border-[var(--border)] flex gap-1 overflow-x-auto pb-0">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2.5 text-xs font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
-                activeTab === tab
-                  ? "border-[var(--primary)] text-[var(--primary)] font-semibold"
-                  : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        {/* Tab Content Display */}
 
         {/* OVERVIEW TAB */}
         {activeTab === "Overview" && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Main Narrative Column */}
-            <div className="lg:col-span-8 space-y-6">
-              <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface)] space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--primary)]">
-                  Problem Summary
-                </h3>
-                <p className="text-sm text-[var(--text-primary)] leading-relaxed font-medium">
-                  {challenge.summary}
-                </p>
-              </div>
-
-              <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface)] space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
-                  Full Problem Description & Context
-                </h3>
-                <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed whitespace-pre-line">
-                  {challenge.description}
-                </p>
-              </div>
+          <div className="space-y-6">
+            <div className="bg-white border border-stone-200 rounded-lg p-6 space-y-4">
+              <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-[#F95700]">
+                Problem Description
+              </h2>
+              <p className="text-sm text-stone-800 leading-relaxed whitespace-pre-line font-sans">
+                {challenge.description}
+              </p>
             </div>
 
-            {/* Metadata Rail */}
-            <div className="lg:col-span-4 space-y-4">
-              <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] space-y-3 text-xs">
-                <h3 className="font-bold text-[var(--text-primary)] uppercase tracking-wider border-b border-[var(--border)] pb-2">
-                  Passport Metadata Rail
-                </h3>
-
-                <div className="space-y-2.5 text-[var(--text-secondary)]">
-                  <div>
-                    <span className="block font-medium text-[10px] uppercase text-[var(--text-secondary)]">
-                      Challenge Record ID
-                    </span>
-                    <span className="font-mono text-xs text-[var(--text-primary)] font-bold">
-                      {challenge.id}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="block font-medium text-[10px] uppercase text-[var(--text-secondary)]">
-                      Domain
-                    </span>
-                    <span className="text-xs text-[var(--text-primary)] font-medium">
-                      {challenge.domain}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="block font-medium text-[10px] uppercase text-[var(--text-secondary)]">
-                      Source Type
-                    </span>
-                    <span className="text-xs text-[var(--text-primary)] font-medium">
-                      {challenge.source_type}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="block font-medium text-[10px] uppercase text-[var(--text-secondary)]">
-                      District & State
-                    </span>
-                    <span className="text-xs text-[var(--text-primary)] font-medium">
-                      {challenge.district}, {challenge.state}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="block font-medium text-[10px] uppercase text-[var(--text-secondary)]">
-                      Submitted By Actor ID
-                    </span>
-                    <span className="font-mono text-xs text-[var(--text-primary)]">
-                      {challenge.submitted_by_actor_id || "Not provided"}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="block font-medium text-[10px] uppercase text-[var(--text-secondary)]">
-                      Source Organization ID
-                    </span>
-                    <span className="font-mono text-xs text-[var(--text-primary)]">
-                      {challenge.source_organization_id || "Not provided"}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="block font-medium text-[10px] uppercase text-[var(--text-secondary)]">
-                      Created Timestamp
-                    </span>
-                    <span className="text-xs text-[var(--text-primary)]">
-                      {new Date(challenge.created_at).toLocaleString("en-IN")}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="block font-medium text-[10px] uppercase text-[var(--text-secondary)]">
-                      Updated Timestamp
-                    </span>
-                    <span className="text-xs text-[var(--text-primary)]">
-                      {new Date(challenge.updated_at).toLocaleString("en-IN")}
-                    </span>
-                  </div>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white border border-stone-200 rounded-lg p-4 space-y-1">
+                <span className="text-xs font-mono text-stone-500 uppercase">Evidence Submitted</span>
+                <p className="text-xl font-bold text-stone-900">{evidenceList.length} Items</p>
+              </div>
+              <div className="bg-white border border-stone-200 rounded-lg p-4 space-y-1">
+                <span className="text-xs font-mono text-stone-500 uppercase">Qualification Status</span>
+                <p className="text-[#F95700] text-sm font-bold mt-1">
+                  {latestDecision ? latestDecision.route : "Pending Review"}
+                </p>
+              </div>
+              <div className="bg-white border border-stone-200 rounded-lg p-4 space-y-1">
+                <span className="text-xs font-mono text-stone-500 uppercase">Matched Candidate HEIs</span>
+                <p className="text-stone-900 text-xl font-bold">{candidatesList.length} Institutions</p>
               </div>
             </div>
           </div>
@@ -505,48 +453,45 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
         {/* EVIDENCE TAB */}
         {activeTab === "Evidence" && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]">
-                Attached Evidence Records ({evidenceList.length})
-              </h3>
+            <div className="flex items-center justify-between border-b border-stone-200 pb-3">
+              <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-stone-700">
+                Submitted Evidence Telemetry ({evidenceList.length})
+              </h2>
             </div>
 
             {evidenceList.length === 0 ? (
-              <div className="p-8 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-center space-y-2">
-                <FileCheck2 className="w-8 h-8 text-[var(--text-secondary)] mx-auto opacity-50" />
-                <p className="text-xs font-semibold text-[var(--text-primary)]">
-                  No evidence metadata has been attached to this challenge yet.
-                </p>
+              <div className="p-8 rounded-lg border border-stone-200 bg-white text-center">
+                <p className="text-xs text-stone-500 font-mono">No evidence submitted yet.</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {evidenceList.map((ev) => (
                   <div
                     key={ev.id}
-                    className="p-5 rounded-xl border border-[var(--border)] bg-[var(--surface)] space-y-2 shadow-xs"
+                    className="p-5 rounded-lg border border-stone-200 bg-white space-y-2 shadow-2xs"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 text-xs font-semibold rounded bg-[#F4F1EA] text-[var(--primary)] border border-[var(--border)]">
+                        <span className="px-2.5 py-0.5 text-xs font-semibold rounded bg-[#FAF8F5] text-[#F95700] border border-stone-200 font-mono">
                           {ev.evidence_type}
                         </span>
-                        <span className="text-xs font-mono text-[var(--text-secondary)]">
+                        <span className="text-xs font-mono text-stone-500">
                           ID: {ev.id.slice(0, 13)}...
                         </span>
                       </div>
-                      <span className="text-[11px] text-[var(--text-secondary)]">
+                      <span className="text-xs text-stone-500 font-mono">
                         Submitted: {new Date(ev.submitted_at).toLocaleDateString("en-IN")}
                       </span>
                     </div>
 
-                    <p className="text-xs text-[var(--text-primary)] font-medium leading-relaxed">
+                    <p className="text-xs text-stone-800 font-medium leading-relaxed">
                       {ev.description || "No description provided."}
                     </p>
 
-                    <div className="pt-2 border-t border-[var(--border)] flex flex-wrap items-center justify-between text-[11px] text-[var(--text-secondary)] font-mono">
+                    <div className="pt-2 border-t border-stone-200 flex flex-wrap items-center justify-between text-xs text-stone-500 font-mono">
                       <span>
-                        Evidence reference:{" "}
-                        <code className="bg-[#F2EFE9] px-1.5 py-0.5 rounded text-[var(--text-primary)]">
+                        Reference:{" "}
+                        <code className="bg-stone-100 px-1.5 py-0.5 rounded text-stone-900">
                           {ev.storage_reference}
                         </code>
                       </span>
@@ -564,16 +509,15 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
         {/* QUALIFICATION TAB */}
         {activeTab === "Qualification" && (
           <div className="space-y-6">
-            {/* Qualification Header */}
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[var(--border)] pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-stone-200 pb-4">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">
+                <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#F95700]">
                   QUALIFICATION REVIEW
                 </span>
-                <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] mt-1">
+                <h2 className="text-2xl font-serif font-bold tracking-tight text-stone-900 mt-1">
                   Should this problem enter innovation?
                 </h2>
-                <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 max-w-xl leading-relaxed">
+                <p className="text-xs sm:text-sm text-stone-600 mt-1 max-w-xl leading-relaxed">
                   Qualification separates service issues, clarification needs, research questions and genuine innovation challenges before ecosystem resources are committed.
                 </p>
               </div>
@@ -581,38 +525,35 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
               <button
                 onClick={() => setShowRecordModal(true)}
                 disabled={!DEMO_REVIEWER_ACTOR_ID}
-                className="px-4 py-2.5 rounded bg-[var(--primary)] text-white text-xs font-semibold hover:bg-[var(--primary-hover)] transition-colors inline-flex items-center gap-1.5 shrink-0 disabled:opacity-50 cursor-pointer shadow-xs"
+                className="px-4 py-2.5 rounded bg-[#F95700] text-white text-xs font-semibold hover:bg-[#d84b00] transition-colors inline-flex items-center gap-1.5 shrink-0 disabled:opacity-50 cursor-pointer shadow-2xs"
               >
                 <Plus className="w-4 h-4" /> Record Decision
               </button>
             </div>
 
-            {/* Latest Decision Panel or Empty State */}
             {latestDecision ? (
               <LatestDecisionPanel decision={latestDecision} />
             ) : (
-              <div className="p-8 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-center space-y-3">
-                <ShieldCheck className="w-10 h-10 text-[var(--text-secondary)] mx-auto opacity-50" />
-                <h3 className="text-sm font-bold text-[var(--text-primary)]">
+              <div className="p-8 rounded-lg border border-stone-200 bg-white text-center space-y-3">
+                <ShieldCheck className="w-10 h-10 text-stone-400 mx-auto opacity-50" />
+                <h3 className="text-sm font-bold text-stone-900">
                   Qualification review has not been recorded yet.
                 </h3>
-                <p className="text-xs text-[var(--text-secondary)] max-w-md mx-auto leading-relaxed">
+                <p className="text-xs text-stone-600 max-w-md mx-auto leading-relaxed">
                   Human qualification decision will classify this challenge into SERVICE, CLARIFY, RESEARCH_REVIEW, or INNOVATION_CHALLENGE.
                 </p>
                 <button
                   onClick={() => setShowRecordModal(true)}
                   disabled={!DEMO_REVIEWER_ACTOR_ID}
-                  className="px-4 py-2 rounded bg-[var(--primary)] text-white text-xs font-semibold hover:bg-[var(--primary-hover)] transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                  className="px-4 py-2 rounded bg-[#F95700] text-white text-xs font-semibold hover:bg-[#d84b00] transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" /> Record First Decision
                 </button>
               </div>
             )}
 
-            {/* Decision History Audit Timeline */}
             <DecisionTimeline history={qualificationList} />
 
-            {/* Record Decision Modal */}
             <RecordDecisionModal
               isOpen={showRecordModal}
               onClose={() => setShowRecordModal(false)}
@@ -626,15 +567,12 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
         {/* HEI MATCH TAB */}
         {activeTab === "HEI Match" && (
           <div className="space-y-6">
-            {/* Semantic Strip */}
             <HEISemanticStrip />
 
-            {/* Workflow Gate Check */}
             {latestDecision?.route !== "INNOVATION_CHALLENGE" ? (
               <HEIMatchingGate currentRoute={latestDecision?.route} />
             ) : (
               <div className="space-y-6">
-                {/* Existing Candidate Matches */}
                 <CandidateList
                   candidates={candidatesList}
                   organizations={heiOrganizations}
@@ -644,7 +582,6 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
                   }}
                 />
 
-                {/* Eligible HEI Discovery Directory */}
                 <HEIDirectoryList
                   organizations={heiOrganizations}
                   candidateOrgIds={candidateOrgIds}
@@ -652,13 +589,11 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
                   onAddCandidate={(org) => setCandidateOrg(org)}
                 />
 
-                {/* Capability Inspection Side Sheet */}
                 <CapabilityInspectionSheet
                   organization={inspectOrg}
                   onClose={() => setInspectOrg(null)}
                 />
 
-                {/* Create Candidate Side Sheet */}
                 <CreateCandidateSheet
                   organization={candidateOrg}
                   onClose={() => setCandidateOrg(null)}
@@ -670,17 +605,117 @@ export default function ChallengePassportPage({ params }: PassportPageProps) {
           </div>
         )}
 
-        {/* Structured Future Tab Placeholders */}
-        {["Commitments", "Pilot Readiness", "Pilots", "Outcomes"].includes(activeTab) && (
-          <div className="p-10 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-center space-y-3 shadow-xs">
-            <Building2 className="w-8 h-8 text-[var(--text-secondary)] mx-auto opacity-50" />
-            <h3 className="text-sm font-bold text-[var(--text-primary)]">
+        {/* COMMITMENTS TAB */}
+        {activeTab === "Commitments" && (
+          <div className="space-y-6">
+            <div className="border-b border-stone-200 pb-4">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#F95700]">
+                COMMITMENTS
+              </span>
+              <h2 className="text-2xl font-serif font-bold tracking-tight text-stone-900 mt-1">
+                Intent must be explicit before readiness.
+              </h2>
+              <p className="text-xs sm:text-sm text-stone-600 mt-1 max-w-2xl leading-relaxed">
+                Candidate matching identifies relevance. Commitments record what an organization has actually agreed, declined, withdrawn or allowed to expire.
+              </p>
+            </div>
+
+            <CommitmentSemanticStrip />
+
+            <CandidateToCommitmentList
+              candidates={candidatesList}
+              organizations={heiOrganizations}
+              commitments={commitmentsList}
+              onRecordCommitment={(org) => setRecordCommitmentOrg(org)}
+            />
+
+            <CommitmentTimeline
+              commitments={commitmentsList}
+              organizations={heiOrganizations}
+            />
+
+            <RecordCommitmentSheet
+              isOpen={!!recordCommitmentOrg}
+              onClose={() => setRecordCommitmentOrg(null)}
+              challengeId={challengeId}
+              candidateOrg={recordCommitmentOrg}
+              existingCommitments={commitmentsList}
+              reviewerActorId={DEMO_REVIEWER_ACTOR_ID}
+              onCommitmentCreated={refreshCommitmentsAndReadiness}
+            />
+          </div>
+        )}
+
+        {/* PILOT READINESS TAB */}
+        {activeTab === "Pilot Readiness" && (
+          <div className="space-y-6">
+            <div className="border-b border-stone-200 pb-4">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#F95700]">
+                PILOT READINESS
+              </span>
+              <h2 className="text-2xl font-serif font-bold tracking-tight text-stone-900 mt-1">
+                Ready is a decision, not an assumption.
+              </h2>
+              <p className="text-xs sm:text-sm text-stone-600 mt-1 max-w-2xl leading-relaxed">
+                NIRNAY checks whether the conditions a pilot depends on are satisfied, traceable and still valid before a human authorizes the pilot.
+              </p>
+            </div>
+
+            <HeroInvalidationNotice
+              latestDecision={latestReadinessDecision}
+              commitments={commitmentsList}
+              decisions={readinessDecisionsList}
+            />
+
+            <ReadinessOverviewPanel
+              latestDecision={latestReadinessDecision}
+              onOpenRecordDecisionSheet={() => setShowRecordReadinessDecisionSheet(true)}
+              reviewerActorId={DEMO_REVIEWER_ACTOR_ID}
+            />
+
+            <ConditionMatrix
+              latestConditions={latestConditionsList}
+              commitments={commitmentsList}
+              organizations={heiOrganizations}
+              onOpenAssessSheet={() => setShowAssessConditionSheet(true)}
+            />
+
+            <ReadinessTimeline decisions={readinessDecisionsList} />
+
+            <AssessConditionSheet
+              isOpen={showAssessConditionSheet}
+              onClose={() => setShowAssessConditionSheet(false)}
+              challengeId={challengeId}
+              existingConditions={allConditionsList}
+              commitments={commitmentsList}
+              organizations={heiOrganizations}
+              reviewerActorId={DEMO_REVIEWER_ACTOR_ID}
+              onConditionCreated={refreshCommitmentsAndReadiness}
+            />
+
+            <RecordReadinessDecisionSheet
+              isOpen={showRecordReadinessDecisionSheet}
+              onClose={() => setShowRecordReadinessDecisionSheet(false)}
+              challengeId={challengeId}
+              latestConditions={latestConditionsList}
+              existingDecisions={readinessDecisionsList}
+              reviewerActorId={DEMO_REVIEWER_ACTOR_ID}
+              onDecisionCreated={refreshCommitmentsAndReadiness}
+            />
+          </div>
+        )}
+
+        {/* Future Tab Placeholders */}
+        {["Pilots", "Outcomes"].includes(activeTab) && (
+          <div className="p-10 rounded-lg border border-stone-200 bg-white text-center space-y-3 shadow-2xs">
+            <Building2 className="w-8 h-8 text-stone-400 mx-auto opacity-50" />
+            <h3 className="text-sm font-bold text-stone-900">
               {activeTab} Workflow Phase
             </h3>
-            <p className="text-xs text-[var(--text-secondary)] max-w-md mx-auto leading-relaxed">
+            <p className="text-xs text-stone-600 max-w-md mx-auto leading-relaxed">
               This workflow stage will activate automatically as human qualification decisions, HEI candidate matching, commitments, and readiness sign-offs progress.
             </p>
-            <span className="inline-block text-[10px] font-mono bg-[#F2EFE9] text-[var(--text-secondary)] px-2.5 py-1 rounded border border-[var(--border)]">
+            <span className="inline-block text-[10px] font-mono bg-stone-100 text-stone-600 px-2.5 py-1 rounded border border-stone-200">
               FUTURE WORKFLOW STAGE
             </span>
           </div>
