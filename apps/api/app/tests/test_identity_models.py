@@ -91,15 +91,15 @@ class TestIdentityModels(unittest.TestCase):
         self.assertEqual(len(org_fk), 1)
         self.assertEqual(org_fk[0].ondelete, "RESTRICT")
 
-    def test_metadata_tables_contain_only_identity(self) -> None:
-        """Base.metadata contains exactly expected identity tables and no other product tables."""
+    def test_metadata_tables_contain_identity_tables(self) -> None:
+        """Base.metadata contains identity tables and no premature decision tables."""
         table_names = set(Base.metadata.tables.keys())
-        expected_tables = {"organizations", "actors", "organization_memberships"}
+        expected_identity_tables = {"organizations", "actors", "organization_memberships"}
 
-        self.assertEqual(table_names, expected_tables)
-        self.assertNotIn("challenges", table_names)
-        self.assertNotIn("evidences", table_names)
+        self.assertTrue(expected_identity_tables.issubset(table_names))
         self.assertNotIn("challenge_validations", table_names)
+        self.assertNotIn("qualification_decisions", table_names)
+        self.assertNotIn("readiness_conditions", table_names)
         self.assertNotIn("pilots", table_names)
 
 

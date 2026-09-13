@@ -9,6 +9,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
 
 if TYPE_CHECKING:
+    from app.models.challenge import Challenge
+    from app.models.evidence import Evidence
     from app.models.organization_membership import OrganizationMembership
 
 
@@ -42,4 +44,10 @@ class Actor(Base):
     # Relationships - Non-cascading to preserve audit history
     memberships: Mapped[List["OrganizationMembership"]] = relationship(
         "OrganizationMembership", back_populates="actor"
+    )
+    submitted_challenges: Mapped[List["Challenge"]] = relationship(
+        "Challenge", back_populates="submitted_by_actor"
+    )
+    submitted_evidences: Mapped[List["Evidence"]] = relationship(
+        "Evidence", back_populates="submitted_by_actor"
     )
