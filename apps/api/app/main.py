@@ -9,10 +9,23 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.router import api_v1_router
 from app.routers import auth, organizations, dashboard, notifications_router
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        from scripts.seed_golden_demo import seed_golden_demo_data
+        seed_golden_demo_data(reset=False)
+        print("--> Auto-seeded Golden Demo Data on Startup")
+    except Exception as e:
+        print(f"--> Auto-seed info: {e}")
+    yield
+
 app = FastAPI(
     title="NIRNAY API",
     description="Societal Innovation Collaboration & Readiness Platform API",
     version="2.4.0-RC1",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
