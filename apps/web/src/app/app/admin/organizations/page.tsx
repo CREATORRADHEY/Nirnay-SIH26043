@@ -260,7 +260,7 @@ export default function AdminOrganizationsPage() {
                         </span>
                         {org.status_rationale && (
                           <div className="text-[10px] text-[var(--text-secondary)] italic mt-1 max-w-xs truncate" title={org.status_rationale}>
-                            "{org.status_rationale}"
+                            &quot;{org.status_rationale}&quot;
                           </div>
                         )}
                       </td>

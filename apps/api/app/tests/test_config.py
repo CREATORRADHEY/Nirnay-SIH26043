@@ -16,7 +16,7 @@ class TestConfig(unittest.TestCase):
 
     def test_default_settings_construction(self) -> None:
         with patch.dict(os.environ, {}, clear=True):
-            settings = Settings()
+            settings = Settings(_env_file=None)
             self.assertEqual(settings.app_name, "nirnay-api")
             self.assertEqual(settings.app_env, "development")
             self.assertFalse(settings.debug)

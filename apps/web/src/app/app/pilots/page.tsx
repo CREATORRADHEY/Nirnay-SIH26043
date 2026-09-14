@@ -76,7 +76,7 @@ export default function PilotExecutionPage() {
       version: 1,
       rationale: "Field pilot initialized following human PILOT_READY authorization.",
       recorded_by_actor_id: "demo-reviewer",
-      recorded_at: new Date(Date.now() - 86400000 * 60).toISOString(),
+      recorded_at: "2026-07-15T09:00:00.000Z",
     },
     {
       id: "op-v2",
@@ -85,7 +85,7 @@ export default function PilotExecutionPage() {
       version: 2,
       rationale: "4 solar thermal units deployed and actively monitored across market vendors.",
       recorded_by_actor_id: "demo-reviewer",
-      recorded_at: new Date(Date.now() - 86400000 * 30).toISOString(),
+      recorded_at: "2026-08-15T09:00:00.000Z",
     },
     {
       id: "op-v3",
@@ -94,7 +94,7 @@ export default function PilotExecutionPage() {
       version: 3,
       rationale: "Field pilot testing period completed after 60-day observation window.",
       recorded_by_actor_id: "demo-reviewer",
-      recorded_at: new Date().toISOString(),
+      recorded_at: "2026-09-14T09:00:00.000Z",
     },
   ]);
   const [submitting, setSubmitting] = useState(false);

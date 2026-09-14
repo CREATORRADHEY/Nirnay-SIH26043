@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/lib/auth-context";
@@ -42,6 +42,20 @@ export default function CommitmentsPage() {
   } | null>(null);
   const [seriesHistory, setSeriesHistory] = useState<CommitmentResponse[]>([]);
   const [loadingHistory, setLoadingHistory] = useState<boolean>(false);
+
+  const loadCommitmentsForChallenge = useCallback(async (challengeId: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetchCommitments(challengeId);
+      const items = (res as any).data?.items || (res as any).items || [];
+      setCommitments(items);
+    } catch (err: any) {
+      setError(err.message || "Failed to load commitments");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -88,22 +102,8 @@ export default function CommitmentsPage() {
         setLoading(false);
       }
     }
-    init();
-  }, [user]);
-
-  const loadCommitmentsForChallenge = async (challengeId: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetchCommitments(challengeId);
-      const items = (res as any).data?.items || (res as any).items || [];
-      setCommitments(items);
-    } catch (err: any) {
-      setError(err.message || "Failed to load commitments");
-    } finally {
-      setLoading(false);
-    }
-  };
+    void init();
+  }, [user, loadCommitmentsForChallenge]);
 
   const handleChallengeChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const cid = e.target.value;
