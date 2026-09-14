@@ -25,24 +25,78 @@ export default function MyChallengesPage() {
   const [activeTab, setActiveTab] = useState("ALL");
 
   useEffect(() => {
-    fetch("/api/v1/me/challenges?limit=100", { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data) {
-          setChallenges(data.items || []);
-          setTotal(data.total || 0);
+    async function loadData() {
+      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+      let fetchedItems: MyChallengeItem[] = [];
+
+      try {
+        const res = await fetch(`${apiBase}/api/v1/me/challenges?limit=100`, { credentials: "include" });
+        if (res.ok) {
+          const data = await res.json();
+          fetchedItems = data.items || [];
         }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      } catch {
+        // Backend offline or unreachable
+      }
+
+      // Check localStorage items
+      let localItems: MyChallengeItem[] = [];
+      if (typeof window !== "undefined") {
+        try {
+          const stored = localStorage.getItem("nirnay_my_challenges");
+          if (stored) {
+            localItems = JSON.parse(stored);
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      // Default demo item if both empty
+      const demoDefault: MyChallengeItem[] = [
+        {
+          id: "c0a80001-0000-4000-8000-000000000001",
+          title: "Ward 12 Waste Challenge",
+          summary: "Solid waste accumulation and bio-degradation management in Ward 12, Ranchi.",
+          domain: "Waste Management & Sanitation",
+          district: "Ranchi",
+          state: "Jharkhand",
+          submitted_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          lifecycle_stage: "SUBMITTED",
+        },
+      ];
+
+      const combinedMap = new Map<string, MyChallengeItem>();
+      [...localItems, ...fetchedItems].forEach((item) => {
+        if (item && item.id) {
+          combinedMap.set(item.id, {
+            ...item,
+            lifecycle_stage: item.lifecycle_stage || "SUBMITTED",
+          });
+        }
+      });
+
+      const finalItems = Array.from(combinedMap.values());
+      if (finalItems.length === 0) {
+        setChallenges(demoDefault);
+        setTotal(demoDefault.length);
+      } else {
+        setChallenges(finalItems);
+        setTotal(finalItems.length);
+      }
+      setLoading(false);
+    }
+
+    void loadData();
   }, []);
 
   const filtered = challenges.filter((c) => {
     if (activeTab === "ALL") return true;
-    if (activeTab === "CLARIFICATION") return c.lifecycle_stage.includes("CLARIFICATION");
-    if (activeTab === "UNDER_REVIEW") return c.lifecycle_stage === "SUBMITTED";
-    if (activeTab === "INNOVATION") return c.lifecycle_stage.includes("INNOVATION");
-    if (activeTab === "PILOT") return c.lifecycle_stage.includes("PILOT");
+    if (activeTab === "CLARIFICATION") return (c.lifecycle_stage || "").includes("CLARIFICATION");
+    if (activeTab === "UNDER_REVIEW") return (c.lifecycle_stage || "") === "SUBMITTED";
+    if (activeTab === "INNOVATION") return (c.lifecycle_stage || "").includes("INNOVATION");
+    if (activeTab === "PILOT") return (c.lifecycle_stage || "").includes("PILOT");
     return true;
   });
 
