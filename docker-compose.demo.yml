@@ -1,0 +1,73 @@
+name: nirnay-demo
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: nirnay-postgres-demo
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nirnay
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_demo_password_sih2026
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_demo_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d nirnay"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nirnay-network
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: nirnay-api-demo
+    restart: unless-stopped
+    environment:
+      APP_NAME: nirnay-api
+      APP_ENV: staging
+      DEBUG: "false"
+      DEMO_MODE: "true"
+      DATABASE_URL: postgresql+psycopg://postgres:postgres_demo_password_sih2026@postgres:5432/nirnay
+      CORS_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000"
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - nirnay-network
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: nirnay-web-demo
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+      NEXT_PUBLIC_DEMO_REVIEWER_ACTOR_ID: d99c55a9-e4d4-42c1-abd1-5e9ccb2ad67c
+      NEXT_PUBLIC_ENABLE_DEMO_FALLBACK: "false"
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - nirnay-network
+
+volumes:
+  postgres_demo_data:
+
+networks:
+  nirnay-network:
+    driver: bridge
