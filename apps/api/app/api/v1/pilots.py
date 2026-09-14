@@ -1,9 +1,13 @@
 import uuid
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.dependencies import get_current_actor
+from app.models.actor import Actor
+from app.services.policy_service import PolicyService
 from app.schemas.outcome import (
     OutcomeAssessmentCreate,
     OutcomeAssessmentHistoryResponse,
@@ -36,6 +40,7 @@ from app.services.pilot_service import (
     get_pilot_operational_history,
     list_challenge_pilots,
 )
+from app.core.enums import PlatformRole
 
 router = APIRouter(tags=["pilots"])
 
@@ -44,13 +49,23 @@ router = APIRouter(tags=["pilots"])
     "/challenges/{challenge_id}/pilots",
     response_model=PilotResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Authorize a new field Pilot for a Challenge",
+    summary="Authorize and initialize a new Pilot from a PILOT_READY Challenge",
 )
 def post_pilot(
     challenge_id: uuid.UUID,
     payload: PilotCreate,
+    actor: Actor = Depends(get_current_actor),
     db: Session = Depends(get_db),
 ) -> PilotResponse:
+    if actor:
+        if actor.platform_role not in [PlatformRole.GOVERNMENT_REVIEWER.value, PlatformRole.GOVERNMENT_ADMIN.value, PlatformRole.PLATFORM_ADMIN.value]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only Government Reviewers or Platform Administrators can authorize and create ground pilots.",
+            )
+        if not payload.created_by_actor_id:
+            payload.created_by_actor_id = actor.id
+
     try:
         pilot = create_pilot(db, challenge_id, payload)
         db.commit()
@@ -110,8 +125,12 @@ def get_pilot_detail(
 def post_operational_state(
     pilot_id: uuid.UUID,
     payload: PilotOperationalStateCreate,
+    actor: Actor = Depends(get_current_actor),
     db: Session = Depends(get_db),
 ) -> PilotOperationalStateResponse:
+    if not payload.recorded_by_actor_id:
+            payload.recorded_by_actor_id = actor.id
+
     try:
         state = create_pilot_operational_state(db, pilot_id, payload)
         db.commit()
@@ -174,8 +193,14 @@ def get_latest_operational_state_endpoint(
 def post_evidence_plan(
     pilot_id: uuid.UUID,
     payload: PilotEvidencePlanCreate,
+    actor: Actor = Depends(get_current_actor),
     db: Session = Depends(get_db),
 ) -> PilotEvidencePlanResponse:
+    if not PolicyService.can_perform_action(actor, "pilot:create"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied to create pilot project.")
+    if not payload.created_by_actor_id:
+            payload.created_by_actor_id = actor.id
+
     try:
         plan = create_evidence_plan_version(db, pilot_id, payload)
         db.commit()
@@ -238,8 +263,14 @@ def get_latest_evidence_plan_endpoint(
 def post_outcome_assessment(
     pilot_id: uuid.UUID,
     payload: OutcomeAssessmentCreate,
+    actor: Actor = Depends(get_current_actor),
     db: Session = Depends(get_db),
 ) -> OutcomeAssessmentResponse:
+    if not PolicyService.can_perform_action(actor, "outcome:assess"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied to assess pilot outcomes.")
+    if not payload.assessed_by_actor_id:
+            payload.assessed_by_actor_id = actor.id
+
     try:
         assessment = create_outcome_assessment(db, pilot_id, payload)
         db.commit()

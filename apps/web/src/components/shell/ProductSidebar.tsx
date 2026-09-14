@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 import {
   Layers,
   FileText,
@@ -12,6 +13,11 @@ import {
   Rocket,
   Award,
   ChevronRight,
+  ShieldCheck,
+  Building2,
+  Users,
+  ScrollText,
+  Bot,
 } from "lucide-react";
 
 interface ProductSidebarProps {
@@ -21,6 +27,9 @@ interface ProductSidebarProps {
 
 export function ProductSidebar({ mobileOpen = false, onCloseMobile }: ProductSidebarProps) {
   const pathname = usePathname();
+  const { user } = useAuth();
+
+  const isPlatformAdmin = user?.platform_role === "PLATFORM_ADMIN";
 
   const navItems = [
     {
@@ -46,27 +55,24 @@ export function ProductSidebar({ mobileOpen = false, onCloseMobile }: ProductSid
     },
     {
       label: "HEI Matching",
-      href: "#",
+      href: "/challenges",
       icon: Cpu,
       active: false,
-      enabled: false,
-      badge: "Coming soon",
+      enabled: true,
     },
     {
       label: "Commitments",
-      href: "#",
+      href: "/challenges",
       icon: Handshake,
       active: false,
-      enabled: false,
-      badge: "Coming soon",
+      enabled: true,
     },
     {
       label: "Pilot Readiness",
-      href: "#",
+      href: "/challenges",
       icon: UserCheck,
       active: false,
-      enabled: false,
-      badge: "Coming soon",
+      enabled: true,
     },
     {
       label: "Pilots",
@@ -77,11 +83,43 @@ export function ProductSidebar({ mobileOpen = false, onCloseMobile }: ProductSid
     },
     {
       label: "Outcomes",
-      href: "#",
+      href: "/challenges",
       icon: Award,
       active: false,
-      enabled: false,
-      badge: "Coming soon",
+      enabled: true,
+    },
+  ];
+
+  const adminNavItems = [
+    {
+      label: "Admin Overview",
+      href: "/app/admin",
+      icon: ShieldCheck,
+      active: pathname === "/app/admin",
+    },
+    {
+      label: "Organizations",
+      href: "/app/admin/organizations",
+      icon: Building2,
+      active: pathname.startsWith("/app/admin/organizations"),
+    },
+    {
+      label: "Users & Roles",
+      href: "/app/admin/users",
+      icon: Users,
+      active: pathname.startsWith("/app/admin/users"),
+    },
+    {
+      label: "System Audit",
+      href: "/app/admin/audit",
+      icon: ScrollText,
+      active: pathname.startsWith("/app/admin/audit"),
+    },
+    {
+      label: "AI Operations",
+      href: "/app/admin/ai",
+      icon: Bot,
+      active: pathname.startsWith("/app/admin/ai"),
     },
   ];
 
@@ -114,49 +152,69 @@ export function ProductSidebar({ mobileOpen = false, onCloseMobile }: ProductSid
       </div>
 
       {/* Navigation List */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-        <div className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
-          Platform Workspace
-        </div>
+      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
+        {/* Main Workspaces */}
+        <div className="space-y-1">
+          <div className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+            Platform Workspace
+          </div>
 
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          if (!item.enabled) {
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            if (!item.enabled) return null;
+
             return (
-              <div
+              <Link
                 key={item.label}
-                className="flex items-center justify-between px-3 py-2 text-xs font-medium text-[var(--text-secondary)] opacity-60 cursor-not-allowed rounded"
+                href={item.href}
+                onClick={onCloseMobile}
+                className={`flex items-center justify-between px-3 py-2 text-xs font-medium rounded transition-colors ${
+                  item.active
+                    ? "bg-[#FFF4EE] text-[var(--primary)] font-semibold border border-[#FCD8C5]"
+                    : "text-[var(--text-primary)] hover:bg-[#F4F1EA]"
+                }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <Icon className="w-4 h-4 stroke-[1.75]" />
+                  <Icon className={`w-4 h-4 stroke-[1.75] ${item.active ? "text-[var(--primary)]" : "text-[var(--text-secondary)]"}`} />
                   <span>{item.label}</span>
                 </div>
-                <span className="text-[9px] font-mono bg-[#F2EFE9] text-[var(--text-secondary)] px-1.5 py-0.5 rounded border border-[var(--border)]">
-                  {item.badge}
-                </span>
-              </div>
+                {item.active && <ChevronRight className="w-3.5 h-3.5 text-[var(--primary)]" />}
+              </Link>
             );
-          }
+          })}
+        </div>
 
-          return (
-            <Link
-              key={item.label}
-              href={item.href}
-              onClick={onCloseMobile}
-              className={`flex items-center justify-between px-3 py-2 text-xs font-medium rounded transition-colors ${
-                item.active
-                  ? "bg-[#FFF4EE] text-[var(--primary)] font-semibold border border-[#FCD8C5]"
-                  : "text-[var(--text-primary)] hover:bg-[#F4F1EA]"
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Icon className={`w-4 h-4 stroke-[1.75] ${item.active ? "text-[var(--primary)]" : "text-[var(--text-secondary)]"}`} />
-                <span>{item.label}</span>
-              </div>
-              {item.active && <ChevronRight className="w-3.5 h-3.5 text-[var(--primary)]" />}
-            </Link>
-          );
-        })}
+        {/* Platform Admin Console (Only visible to PLATFORM_ADMIN) */}
+        {isPlatformAdmin && (
+          <div className="space-y-1 pt-2 border-t border-[var(--border)]">
+            <div className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--primary)] flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Platform Governance</span>
+            </div>
+
+            {adminNavItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  onClick={onCloseMobile}
+                  className={`flex items-center justify-between px-3 py-2 text-xs font-medium rounded transition-colors ${
+                    item.active
+                      ? "bg-[#FFF4EE] text-[var(--primary)] font-semibold border border-[#FCD8C5]"
+                      : "text-[var(--text-primary)] hover:bg-[#F4F1EA]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Icon className={`w-4 h-4 stroke-[1.75] ${item.active ? "text-[var(--primary)]" : "text-[var(--text-secondary)]"}`} />
+                    <span>{item.label}</span>
+                  </div>
+                  {item.active && <ChevronRight className="w-3.5 h-3.5 text-[var(--primary)]" />}
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Discreet Shell Footer */}
@@ -165,7 +223,7 @@ export function ProductSidebar({ mobileOpen = false, onCloseMobile }: ProductSid
           <span className="font-semibold text-[var(--text-primary)]">System State</span>
           <span className="inline-flex items-center gap-1 font-mono text-[10px] text-[#166534] bg-[#EBF5EE] px-2 py-0.5 rounded border border-[#C6E7D0]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#166534] animate-pulse" />
-            MVP Active
+            P4B Production
           </span>
         </div>
       </div>

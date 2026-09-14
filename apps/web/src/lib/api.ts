@@ -1,3 +1,4 @@
+export type * from "./types/challenge";
 import type {
   OperationalStatus,
   ChallengeListResponse,
@@ -35,14 +36,16 @@ import type {
   OutcomeAssessmentHistoryResponse,
 } from "./types/challenge";
 
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+export function getApiBaseUrl(): string {
+  return process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+}
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 export const ENABLE_DEMO_FALLBACK =
   process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK === "true";
 
 export const DEMO_REVIEWER_ACTOR_ID =
-  process.env.NEXT_PUBLIC_DEMO_REVIEWER_ACTOR_ID || "";
+  process.env.NEXT_PUBLIC_DEMO_REVIEWER_ACTOR_ID || "d99c55a9-e4d4-42c1-abd1-5e9ccb2ad67c";
 
 // Fallback synthetic demo data for frontend resilience when backend is unreachable
 export const DEMO_CHALLENGES: ChallengeResponse[] = [
@@ -222,7 +225,7 @@ export async function fetchChallenges(params?: {
     if (params?.limit) query.set("limit", params.limit.toString());
     if (params?.offset) query.set("offset", params.offset.toString());
 
-    const url = `${API_BASE_URL}/api/v1/challenges?${query.toString()}`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges?${query.toString()}`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: ChallengeListResponse = await res.json();
@@ -273,7 +276,7 @@ export async function fetchChallengeDetail(
   challengeId: string
 ): Promise<{ data: ChallengeResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: ChallengeResponse = await res.json();
@@ -289,7 +292,7 @@ export async function fetchChallengeEvidence(
   challengeId: string
 ): Promise<{ data: EvidenceListResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/evidence`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/evidence`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: EvidenceListResponse = await res.json();
@@ -305,7 +308,7 @@ export async function fetchQualificationHistory(
   challengeId: string
 ): Promise<{ data: QualificationHistoryResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/qualification-decisions`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/qualification-decisions`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: QualificationHistoryResponse = await res.json();
@@ -321,7 +324,7 @@ export async function fetchLatestQualification(
   challengeId: string
 ): Promise<{ data: QualificationDecisionResponse | null; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/qualification-decisions/latest`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/qualification-decisions/latest`;
     const res = await fetch(url, { cache: "no-store" });
     if (res.status === 404) return { data: null, isDemo: false };
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
@@ -340,7 +343,7 @@ export async function createQualificationDecision(
   payload: QualificationDecisionCreate
 ): Promise<{ data: QualificationDecisionResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/qualification-decisions`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/qualification-decisions`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -380,7 +383,7 @@ export async function fetchHEIOrganizations(): Promise<{
   isDemo: boolean;
 }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/hei-organizations`;
+    const url = `${getApiBaseUrl()}/api/v1/hei-organizations`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: HEIOrganizationListResponse = await res.json();
@@ -401,7 +404,7 @@ export async function fetchHEICandidates(
   challengeId: string
 ): Promise<{ data: HEICandidateListResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/hei-candidates`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/hei-candidates`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: HEICandidateListResponse = await res.json();
@@ -418,7 +421,7 @@ export async function createHEICandidate(
   payload: HEICandidateCreate
 ): Promise<{ data: HEICandidateResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/hei-candidates`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/hei-candidates`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -454,7 +457,7 @@ export async function fetchOrganizationCapabilities(
   organizationId: string
 ): Promise<{ data: HEICapability[]; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/organizations/${organizationId}/hei-capabilities`;
+    const url = `${getApiBaseUrl()}/api/v1/organizations/${organizationId}/hei-capabilities`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: HEICapability[] = await res.json();
@@ -484,7 +487,7 @@ export async function fetchCommitments(
   commitmentType?: string
 ): Promise<{ data: CommitmentHistoryResponse; isDemo: boolean }> {
   try {
-    let url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/commitments`;
+    let url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/commitments`;
     const params = new URLSearchParams();
     if (organizationId) params.append("organization_id", organizationId);
     if (commitmentType) params.append("commitment_type", commitmentType);
@@ -513,7 +516,7 @@ export async function fetchCommitmentHistory(
   commitmentType: string
 ): Promise<{ data: CommitmentHistoryResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/commitments/${organizationId}/${commitmentType}`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/commitments/${organizationId}/${commitmentType}`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: CommitmentHistoryResponse = await res.json();
@@ -533,7 +536,7 @@ export async function createCommitmentVersion(
   payload: CommitmentCreate
 ): Promise<{ data: CommitmentResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/commitments`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/commitments`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -609,7 +612,7 @@ export async function fetchReadinessConditions(
   challengeId: string
 ): Promise<{ data: ReadinessConditionListResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/readiness-conditions`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/readiness-conditions`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: ReadinessConditionListResponse = await res.json();
@@ -625,7 +628,7 @@ export async function fetchLatestReadinessConditions(
   challengeId: string
 ): Promise<{ data: ReadinessConditionListResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/readiness-conditions/latest`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/readiness-conditions/latest`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: ReadinessConditionListResponse = await res.json();
@@ -649,7 +652,7 @@ export async function createReadinessCondition(
   payload: ReadinessConditionCreate
 ): Promise<{ data: ReadinessConditionResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/readiness-conditions`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/readiness-conditions`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -694,7 +697,7 @@ export async function fetchReadinessHistory(
   challengeId: string
 ): Promise<{ data: ReadinessDecisionHistoryResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/readiness-decisions`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/readiness-decisions`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: ReadinessDecisionHistoryResponse = await res.json();
@@ -710,7 +713,7 @@ export async function fetchLatestReadinessDecision(
   challengeId: string
 ): Promise<{ data: ReadinessDecisionResponse | null; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/readiness-decisions/latest`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/readiness-decisions/latest`;
     const res = await fetch(url, { cache: "no-store" });
     if (res.status === 404) return { data: null, isDemo: false };
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
@@ -733,7 +736,7 @@ export async function createReadinessDecision(
   }
 
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/readiness-decisions`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/readiness-decisions`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -833,7 +836,7 @@ export async function createPilot(
   payload: PilotCreate
 ): Promise<{ data: PilotResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/pilots`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/pilots`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -883,7 +886,7 @@ export async function fetchChallengePilots(
   challengeId: string
 ): Promise<{ data: PilotListResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/challenges/${challengeId}/pilots`;
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/pilots`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: PilotListResponse = await res.json();
@@ -899,7 +902,7 @@ export async function fetchPilotDetail(
   pilotId: string
 ): Promise<{ data: PilotResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: PilotResponse = await res.json();
@@ -932,7 +935,7 @@ export async function createPilotOperationalState(
   payload: PilotOperationalStateCreate
 ): Promise<{ data: PilotOperationalStateResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/operational-states`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}/operational-states`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -974,7 +977,7 @@ export async function fetchPilotOperationalHistory(
   pilotId: string
 ): Promise<{ data: PilotOperationalHistoryResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/operational-states`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}/operational-states`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: PilotOperationalHistoryResponse = await res.json();
@@ -1000,7 +1003,7 @@ export async function fetchLatestPilotOperationalState(
   pilotId: string
 ): Promise<{ data: PilotOperationalStateResponse | null; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/operational-states/latest`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}/operational-states/latest`;
     const res = await fetch(url, { cache: "no-store" });
     if (res.status === 404) return { data: null, isDemo: false };
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
@@ -1027,7 +1030,7 @@ export async function createPilotEvidencePlan(
   payload: PilotEvidencePlanCreate
 ): Promise<{ data: PilotEvidencePlanResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/evidence-plans`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}/evidence-plans`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1075,7 +1078,7 @@ export async function fetchPilotEvidencePlanHistory(
   pilotId: string
 ): Promise<{ data: PilotEvidencePlanHistoryResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/evidence-plans`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}/evidence-plans`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: PilotEvidencePlanHistoryResponse = await res.json();
@@ -1091,7 +1094,7 @@ export async function fetchLatestPilotEvidencePlan(
   pilotId: string
 ): Promise<{ data: PilotEvidencePlanResponse | null; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/evidence-plans/latest`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}/evidence-plans/latest`;
     const res = await fetch(url, { cache: "no-store" });
     if (res.status === 404) return { data: null, isDemo: false };
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
@@ -1114,7 +1117,7 @@ export async function createOutcomeAssessment(
   }
 
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/outcomes`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}/outcomes`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1159,7 +1162,7 @@ export async function fetchOutcomeHistory(
   pilotId: string
 ): Promise<{ data: OutcomeAssessmentHistoryResponse; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/outcomes`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}/outcomes`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const data: OutcomeAssessmentHistoryResponse = await res.json();
@@ -1175,7 +1178,7 @@ export async function fetchLatestOutcomeAssessment(
   pilotId: string
 ): Promise<{ data: OutcomeAssessmentResponse | null; isDemo: boolean }> {
   try {
-    const url = `${API_BASE_URL}/api/v1/pilots/${pilotId}/outcomes/latest`;
+    const url = `${getApiBaseUrl()}/api/v1/pilots/${pilotId}/outcomes/latest`;
     const res = await fetch(url, { cache: "no-store" });
     if (res.status === 404) return { data: null, isDemo: false };
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
@@ -1187,4 +1190,232 @@ export async function fetchLatestOutcomeAssessment(
     const latest = items.length > 0 ? items[items.length - 1] : null;
     return { data: latest, isDemo: true };
   }
+}
+
+// ==========================================
+// P4B PLATFORM ADMIN API FUNCTIONS
+// ==========================================
+
+export interface AdminOverviewResponse {
+  active_accounts: number;
+  active_organizations: number;
+  pending_organizations: number;
+  suspended_organizations: number;
+  open_clarifications: number;
+  total_challenges: number;
+  active_pilots: number;
+  readiness_review_required: number;
+}
+
+export interface AdminOrganizationItem {
+  id: string;
+  name: string;
+  organization_type: string;
+  district: string;
+  state: string;
+  status: string;
+  status_rationale?: string;
+  created_at: string;
+  members_count: number;
+  capabilities_count: number;
+}
+
+export interface AdminOrganizationsResponse {
+  items: AdminOrganizationItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminUserItem {
+  id: string;
+  display_name: string;
+  email: string | null;
+  platform_role: string;
+  is_active: boolean;
+  created_at: string;
+  organizations: string[];
+}
+
+export interface AdminUsersResponse {
+  items: AdminUserItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminAuditLogItem {
+  id: string;
+  event_type: string;
+  actor_id?: string;
+  ip_address?: string;
+  details?: string;
+  created_at: string;
+}
+
+export interface AdminAuditLogsResponse {
+  items: AdminAuditLogItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminAIOperationsResponse {
+  ai_enabled: boolean;
+  provider: string;
+  model: string;
+  total_requests: number;
+  success_count: number;
+  failure_count: number;
+  avg_latency_ms: number;
+  circuit_breaker_status: string;
+  task_breakdown: Record<string, number>;
+  recent_entries: Array<{
+    id: string;
+    task_type: string;
+    actor_id?: string;
+    challenge_id?: string;
+    provider: string;
+    model: string;
+    prompt_version: string;
+    success: boolean;
+    latency_ms: number;
+    created_at: string;
+  }>;
+}
+
+export async function fetchAdminOverview(): Promise<AdminOverviewResponse> {
+  const url = `${getApiBaseUrl()}/api/v1/admin/overview`;
+  const res = await fetch(url, { credentials: "include", cache: "no-store" });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+    throw new Error(err.detail || "Failed to fetch admin overview");
+  }
+  return res.json();
+}
+
+export async function fetchAdminOrganizations(
+  status?: string,
+  org_type?: string,
+  page: number = 1,
+  limit: number = 20
+): Promise<AdminOrganizationsResponse> {
+  const params = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
+  if (status) params.append("status", status);
+  if (org_type) params.append("org_type", org_type);
+
+  const url = `${getApiBaseUrl()}/api/v1/admin/organizations?${params.toString()}`;
+  const res = await fetch(url, { credentials: "include", cache: "no-store" });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+    throw new Error(err.detail || "Failed to fetch admin organizations");
+  }
+  return res.json();
+}
+
+export async function updateAdminOrganizationStatus(
+  orgId: string,
+  status: string,
+  rationale?: string
+): Promise<AdminOrganizationItem> {
+  const url = `${getApiBaseUrl()}/api/v1/admin/organizations/${orgId}/status`;
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ status, rationale }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+    throw new Error(err.detail || "Failed to update organization status");
+  }
+  return res.json();
+}
+
+export async function fetchAdminUsers(
+  role?: string,
+  is_active?: boolean,
+  search?: string,
+  page: number = 1,
+  limit: number = 20
+): Promise<AdminUsersResponse> {
+  const params = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
+  if (role) params.append("role", role);
+  if (is_active !== undefined) params.append("is_active", is_active.toString());
+  if (search) params.append("search", search);
+
+  const url = `${getApiBaseUrl()}/api/v1/admin/users?${params.toString()}`;
+  const res = await fetch(url, { credentials: "include", cache: "no-store" });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+    throw new Error(err.detail || "Failed to fetch admin users");
+  }
+  return res.json();
+}
+
+export async function updateAdminUserStatus(
+  userId: string,
+  is_active: boolean,
+  rationale?: string
+): Promise<{ id: string; display_name: string; email: string | null; platform_role: string; is_active: boolean }> {
+  const url = `${getApiBaseUrl()}/api/v1/admin/users/${userId}/status`;
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ is_active, rationale }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+    throw new Error(err.detail || "Failed to update user status");
+  }
+  return res.json();
+}
+
+export async function updateAdminUserRole(
+  userId: string,
+  new_role: string,
+  rationale: string
+): Promise<{ id: string; display_name: string; platform_role: string; is_active: boolean }> {
+  const url = `${getApiBaseUrl()}/api/v1/admin/users/${userId}/role`;
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ new_role, rationale }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+    throw new Error(err.detail || "Failed to update user role");
+  }
+  return res.json();
+}
+
+export async function fetchAdminAuditLogs(
+  event_type?: string,
+  actor_id?: string,
+  page: number = 1,
+  limit: number = 20
+): Promise<AdminAuditLogsResponse> {
+  const params = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
+  if (event_type) params.append("event_type", event_type);
+  if (actor_id) params.append("actor_id", actor_id);
+
+  const url = `${getApiBaseUrl()}/api/v1/admin/audit?${params.toString()}`;
+  const res = await fetch(url, { credentials: "include", cache: "no-store" });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+    throw new Error(err.detail || "Failed to fetch admin audit logs");
+  }
+  return res.json();
+}
+
+export async function fetchAdminAIOperations(): Promise<AdminAIOperationsResponse> {
+  const url = `${getApiBaseUrl()}/api/v1/admin/ai-operations`;
+  const res = await fetch(url, { credentials: "include", cache: "no-store" });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+    throw new Error(err.detail || "Failed to fetch AI operations telemetry");
+  }
+  return res.json();
 }

@@ -4,7 +4,7 @@ import uuid
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.core.enums import CommitmentStatus
+from app.core.enums import CommitmentStatus, OrganizationType
 from app.models.actor import Actor
 from app.models.challenge import Challenge
 from app.models.challenge_hei_candidate import ChallengeHEICandidate
@@ -43,7 +43,7 @@ def create_commitment_version(
     if actor is None:
         raise ValueError(f"Actor {schema.recorded_by_actor_id} not found.")
 
-    if schema.status == CommitmentStatus.ACCEPTED:
+    if schema.status == CommitmentStatus.ACCEPTED and org.organization_type == OrganizationType.HEI:
         cand = db.scalars(
             select(ChallengeHEICandidate).where(
                 ChallengeHEICandidate.challenge_id == challenge_id,

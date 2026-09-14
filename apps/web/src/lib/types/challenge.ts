@@ -355,3 +355,6 @@ export interface OutcomeAssessmentHistoryResponse {
   items: OutcomeAssessmentResponse[];
   total: number;
 }
+
+export type Challenge = ChallengeResponse;
+export type HEIOrganizationResponse = HEIOrganization;

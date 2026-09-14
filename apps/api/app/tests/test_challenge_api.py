@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.core.database import get_db
+from app.core.dependencies import get_current_actor
 from app.main import app
 from app.models.actor import Actor
 from app.models.base import Base
@@ -33,7 +34,16 @@ class TestChallengeAPI(unittest.TestCase):
             finally:
                 db.close()
 
+        self.actor = Actor(
+            id=uuid.uuid4(),
+            display_name="Test Citizen",
+            platform_role="COMMUNITY_REPORTER",
+        )
+        self.session.add(self.actor)
+        self.session.commit()
+
         app.dependency_overrides[get_db] = override_get_db
+        app.dependency_overrides[get_current_actor] = lambda: self.actor
         self.client = TestClient(app)
 
     def tearDown(self) -> None:
@@ -64,20 +74,6 @@ class TestChallengeAPI(unittest.TestCase):
         }
         res = self.client.post("/api/v1/challenges", json=payload)
         self.assertEqual(res.status_code, 422)
-
-    def test_post_challenge_invalid_actor_reference(self) -> None:
-        payload = {
-            "title": "Title",
-            "summary": "Summary",
-            "description": "Description",
-            "domain": "WATER",
-            "source_type": "COMMUNITY",
-            "district": "Ranchi",
-            "submitted_by_actor_id": str(uuid.uuid4()),
-        }
-        res = self.client.post("/api/v1/challenges", json=payload)
-        self.assertEqual(res.status_code, 404)
-        self.assertIn("Actor", res.json()["detail"])
 
     def test_get_challenge_detail_success_and_not_found(self) -> None:
         c = Challenge(

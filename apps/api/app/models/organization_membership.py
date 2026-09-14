@@ -17,7 +17,6 @@ class OrganizationMembership(Base):
     """Organization Membership Model.
 
     Represents the association between an Actor and an Organization.
-    Uses restrictive foreign keys to prevent silent audit trail deletion.
     """
 
     __tablename__ = "organization_memberships"
@@ -40,6 +39,7 @@ class OrganizationMembership(Base):
         nullable=False,
         index=True,
     )
+    role: Mapped[str] = mapped_column(String(50), nullable=False, default="MEMBER")
     affiliation_label: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     is_primary: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, index=True)

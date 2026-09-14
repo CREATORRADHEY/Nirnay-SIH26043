@@ -5,14 +5,21 @@ from app.core.config import get_settings
 
 
 def create_database_engine(database_url: str) -> Engine:
-    """Creates a SQLAlchemy engine for the specified database URL.
+    """Creates a SQLAlchemy engine with connection pool hardening.
 
-    Engine creation does not establish an immediate network connection.
     pool_pre_ping=True ensures stale connections are detected before use.
     """
+    connect_args = {}
+    if database_url.startswith("sqlite"):
+        connect_args["check_same_thread"] = False
+        return create_engine(database_url, pool_pre_ping=True, connect_args=connect_args)
+
     return create_engine(
         database_url,
         pool_pre_ping=True,
+        pool_recycle=3600,
+        pool_size=10,
+        max_overflow=20,
     )
 
 

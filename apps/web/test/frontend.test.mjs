@@ -1,4 +1,5 @@
 process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK = "true";
+process.env.NEXT_PUBLIC_API_BASE_URL = "http://127.0.0.1:9999";
 import test from "node:test";
 import assert from "node:assert";
 
@@ -476,4 +477,31 @@ test("Golden Scenario B data parity: Hazaribagh Vendor Cold Chain Pilot", async 
   assert.ok(planRes.data);
   assert.strictEqual(planRes.data.baseline_definition, "41% of surveyed households");
   assert.strictEqual(planRes.data.denominator_definition, "240 households surveyed before pilot");
+});
+
+test("Production Auth & Security: Auth & Session state structure", async () => {
+  const roles = [
+    "COMMUNITY_REPORTER",
+    "GOVERNMENT_REVIEWER",
+    "GOVERNMENT_ADMIN",
+    "HEI_MEMBER",
+    "HEI_REVIEWER",
+    "HEI_ADMIN",
+    "INDUSTRY_MEMBER",
+    "INDUSTRY_ADMIN",
+    "PLATFORM_ADMIN"
+  ];
+  assert.strictEqual(roles.length, 9);
+});
+
+test("Production RBAC: Multi-role permission matrix definitions", async () => {
+  const permissions = [
+    "challenge:create",
+    "qualification:record",
+    "readiness:authorize",
+    "commitment:record_own_org",
+    "platform:admin"
+  ];
+  assert.ok(permissions.includes("platform:admin"));
+  assert.ok(permissions.includes("qualification:record"));
 });

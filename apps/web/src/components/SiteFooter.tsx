@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
+
 export function SiteFooter() {
   return (
-    <footer className="bg-[var(--background)] py-10 border-t border-[var(--border)] text-xs text-[var(--text-secondary)]">
+    <footer id="about" className="bg-[var(--background)] py-10 border-t border-[var(--border)] text-xs text-[var(--text-secondary)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
           <span className="font-bold text-[var(--text-primary)]">NIRNAY</span> — Societal Innovation Collaboration & Readiness Platform (SIH26043)
@@ -11,15 +13,15 @@ export function SiteFooter() {
           </p>
         </div>
         <div className="flex items-center gap-6">
-          <a href="#workflow" className="hover:text-[var(--text-primary)] transition-colors">
+          <Link href="#workflow" className="hover:text-[var(--text-primary)] transition-colors">
             Workflow
-          </a>
-          <a href="#stakeholders" className="hover:text-[var(--text-primary)] transition-colors">
+          </Link>
+          <Link href="#ecosystem" className="hover:text-[var(--text-primary)] transition-colors">
             Ecosystem
-          </a>
-          <a href="#about" className="hover:text-[var(--text-primary)] transition-colors">
-            Architecture
-          </a>
+          </Link>
+          <Link href="/demo" className="hover:text-[var(--text-primary)] transition-colors">
+            Demo Architecture
+          </Link>
         </div>
       </div>
     </footer>

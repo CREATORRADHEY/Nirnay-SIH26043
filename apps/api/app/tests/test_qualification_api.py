@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.core.database import get_db
+from app.core.dependencies import get_current_actor
 from app.main import app
 from app.models.actor import Actor
 from app.models.base import Base
@@ -33,11 +34,12 @@ class TestQualificationAPI(unittest.TestCase):
                 db.close()
 
         app.dependency_overrides[get_db] = override_get_db
+        app.dependency_overrides[get_current_actor] = lambda: self.session.query(Actor).get(self.actor.id) if hasattr(self, "actor") and self.actor else None
         self.client = TestClient(app)
 
         # Seed organization and actor
         self.org = Organization(name="Test Org", organization_type="GOVERNMENT")
-        self.actor = Actor(display_name="Evaluator Actor")
+        self.actor = Actor(display_name="Evaluator Actor", platform_role="GOVERNMENT_REVIEWER")
         self.challenge = Challenge(
             title="Water Pollution",
             summary="Lead contamination",

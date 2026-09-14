@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.core.database import get_db
+from app.core.dependencies import get_current_actor
 from app.core.enums import CommitmentStatus, ConditionStatus, QualificationRoute, ReadinessStatus
 from app.main import app
 from app.models.actor import Actor
@@ -13,6 +14,7 @@ from app.models.base import Base
 from app.models.challenge import Challenge
 from app.models.hei_capability import HEICapability
 from app.models.organization import Organization
+from app.models.organization_membership import OrganizationMembership
 from app.services.readiness_integrity import invalidate_readiness_for_commitment_change
 
 
@@ -35,14 +37,27 @@ class TestCommitmentReadinessAPI(unittest.TestCase):
                 db.close()
 
         app.dependency_overrides[get_db] = override_get_db
+        app.dependency_overrides[get_current_actor] = lambda: self.session.query(Actor).get(self.actor.id) if hasattr(self, "actor") and self.actor else None
         self.client = TestClient(app)
 
         # Seed foundation entities
         self.gov_org = Organization(name="Gov Ministry", organization_type="GOVERNMENT")
         self.hei_org = Organization(name="IIT Dhanbad", organization_type="HEI")
-        self.actor = Actor(display_name="Lead Evaluator")
+        # Use PLATFORM_ADMIN to bypass role-based auth in all setUp operations
+        self.actor = Actor(display_name="Lead Evaluator", platform_role="PLATFORM_ADMIN")
 
         self.session.add_all([self.gov_org, self.hei_org, self.actor])
+        self.session.commit()
+
+        # Add HEI membership (not strictly needed for PLATFORM_ADMIN, but kept for clarity)
+        self.membership = OrganizationMembership(
+            actor_id=self.actor.id,
+            organization_id=self.hei_org.id,
+            role="ADMIN",
+            is_primary=True,
+            is_active=True,
+        )
+        self.session.add(self.membership)
         self.session.commit()
 
         self.cap = HEICapability(

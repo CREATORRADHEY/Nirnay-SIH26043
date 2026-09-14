@@ -1,92 +1,101 @@
 "use client";
 
-import { FileText, Cpu, CheckCircle2, ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { FileText, Users, BarChart3, ChevronRight, ArrowRight } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 
 export function WorkflowSection() {
+  const { user } = useAuth();
+
   const modules = [
     {
-      step: "01",
       icon: FileText,
       title: "Challenge Passport",
       description:
-        "Capture structured societal challenges with evidence, context and traceable qualification history.",
-      actionText: "Explore Intake Pipeline",
-      href: "#intake",
+        "Define real government challenges with structured templates, clear problem statements and measurable goals.",
+      iconBg: "bg-[#FFF4EE]",
+      iconColor: "text-[#EA580C]",
+      href: "/app/challenges",
     },
     {
-      step: "02",
-      icon: Cpu,
+      icon: Users,
       title: "HEI Matching",
       description:
-        "Identify relevant higher-education partners based on capability without treating matching as commitment.",
-      actionText: "View Matching Criteria",
-      href: "#matching",
+        "Get matched with the most relevant higher education institutions based on expertise, capacity and intent.",
+      iconBg: "bg-emerald-50",
+      iconColor: "text-emerald-700",
+      href: "/app/hei-matching",
     },
     {
-      step: "03",
-      icon: CheckCircle2,
+      icon: BarChart3,
       title: "Pilot Outcome",
       description:
-        "Track readiness, pilot execution and evidence-backed outcomes without confusing completion with impact.",
-      actionText: "Audit Readiness Framework",
-      href: "#readiness",
+        "Track pilot progress, measure outcomes and scale what works for greater public impact.",
+      iconBg: "bg-[#FFF4EE]",
+      iconColor: "text-[#EA580C]",
+      href: "/app/readiness",
     },
   ];
 
   return (
-    <section id="workflow" className="py-20 bg-[var(--background)] border-b border-[var(--border)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="max-w-2xl mb-14">
-          <span className="text-xs font-semibold uppercase tracking-wider text-[var(--primary)]">
-            HOW NIRNAY WORKS
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight mt-2">
-            From challenge to change, together.
-          </h2>
-          <p className="text-base text-[var(--text-secondary)] mt-3 leading-relaxed">
-            A rigorous multi-phase workflow connecting public challenge intake, academic capability matching, and human-verified readiness before pilot deployment.
-          </p>
+    <section id="workflow" className="py-16 md:py-20 bg-[#FAF8F5] border-b border-[#E7E5E4]/80">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10">
+        {/* Header Row */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+          <div>
+            <div className="inline-flex items-center gap-2 text-xs font-bold tracking-widest text-[#EA580C] uppercase font-mono mb-2">
+              <span className="w-4 h-0.5 bg-[#EA580C]" />
+              HOW NIRNAY WORKS
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1C1917] tracking-tight font-serif">
+              From challenge to change, together.
+            </h2>
+          </div>
+
+          <div className="max-w-md text-left md:text-right space-y-1.5">
+            <p className="text-xs sm:text-sm text-stone-600 leading-relaxed font-normal">
+              A structured, transparent and collaborative path from problem definition to real-world impact.
+            </p>
+            <Link
+              href="/demo"
+              className="inline-flex items-center text-xs font-bold text-[#EA580C] hover:underline gap-1 cursor-pointer"
+            >
+              Explore the Workflow <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
 
-        {/* 3 Horizontal Feature Modules */}
+        {/* 3 Horizontal Module Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {modules.map((mod, idx) => {
             const Icon = mod.icon;
+            const targetUrl = user ? mod.href : "/login";
             return (
-              <div
+              <Link
                 key={idx}
-                className="group relative rounded-xl border border-[var(--border)] bg-[var(--surface)] p-7 flex flex-col justify-between hover:border-[var(--primary)] transition-all duration-300 shadow-none hover:shadow-sm"
+                href={targetUrl}
+                className="group rounded-2xl border border-stone-200 bg-white p-6 sm:p-7 flex items-start justify-between gap-4 hover:border-[#EA580C] transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer block"
               >
-                <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="p-3 rounded-lg bg-[#F4F1EA] text-[var(--primary)] group-hover:bg-[#FFF4EE] transition-colors">
-                      <Icon className="w-6 h-6 stroke-[1.75]" />
-                    </div>
-                    <span className="font-mono text-xs font-semibold text-[var(--text-secondary)] bg-[#F2EFE9] px-2 py-1 rounded">
-                      {mod.step}
-                    </span>
+                <div className="space-y-3 flex-1">
+                  <div className={`w-12 h-12 rounded-xl ${mod.iconBg} ${mod.iconColor} flex items-center justify-center shrink-0`}>
+                    <Icon className="w-6 h-6" />
                   </div>
 
-                  <h3 className="text-xl font-bold text-[var(--text-primary)] mb-3">
+                  <h3 className="text-lg font-bold text-[#1C1917] tracking-tight group-hover:text-[#EA580C] transition-colors">
                     {mod.title}
                   </h3>
 
-                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-6">
+                  <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
                     {mod.description}
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-[var(--border)]">
-                  <a
-                    href={mod.href}
-                    className="inline-flex items-center text-xs font-semibold text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors gap-1.5"
-                  >
-                    {mod.actionText}
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-[var(--primary)]" />
-                  </a>
+                <div className="pt-2">
+                  <div className="w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center text-stone-400 group-hover:border-[#EA580C] group-hover:text-[#EA580C] transition-colors shrink-0">
+                    <ChevronRight className="w-4 h-4" />
+                  </div>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>

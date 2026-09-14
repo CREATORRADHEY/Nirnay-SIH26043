@@ -1,9 +1,13 @@
 import uuid
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.dependencies import get_current_actor
+from app.models.actor import Actor
+from app.services.policy_service import PolicyService
 from app.schemas.readiness import (
     ReadinessConditionCreate,
     ReadinessConditionListResponse,
@@ -20,6 +24,7 @@ from app.services.readiness_service import (
     get_readiness_history,
     list_readiness_conditions,
 )
+from app.core.enums import PlatformRole
 
 router = APIRouter(tags=["readiness"])
 
@@ -33,8 +38,17 @@ router = APIRouter(tags=["readiness"])
 def post_readiness_condition_version(
     challenge_id: uuid.UUID,
     payload: ReadinessConditionCreate,
+    actor: Actor = Depends(get_current_actor),
     db: Session = Depends(get_db),
 ) -> ReadinessConditionResponse:
+    if not PolicyService.can_perform_action(actor, "readiness:assess"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied: cannot assess readiness conditions.",
+        )
+    if not payload.assessed_by_actor_id:
+        payload.assessed_by_actor_id = actor.id
+
     try:
         cond = create_readiness_condition_version(db, challenge_id, payload)
         db.commit()
@@ -95,8 +109,17 @@ def get_latest_conditions(
 def post_readiness_decision(
     challenge_id: uuid.UUID,
     payload: ReadinessDecisionCreate,
+    actor: Actor = Depends(get_current_actor),
     db: Session = Depends(get_db),
 ) -> ReadinessDecisionResponse:
+    if not PolicyService.can_perform_action(actor, "readiness:authorize"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have reviewer authorization to record readiness decisions.",
+        )
+    if not payload.decided_by_actor_id:
+        payload.decided_by_actor_id = actor.id
+
     try:
         decision = create_readiness_decision(db, challenge_id, payload)
         db.commit()

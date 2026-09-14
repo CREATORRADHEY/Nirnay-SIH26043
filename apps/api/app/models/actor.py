@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 import uuid
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import Boolean, DateTime, String
 from sqlalchemy.dialects.postgresql import UUID
@@ -9,6 +9,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
 
 if TYPE_CHECKING:
+    from app.models.account import Account
+    from app.models.auth_session import AuthSession
     from app.models.challenge import Challenge
     from app.models.pilot import Pilot
     from app.models.pilot_operational_state import PilotOperationalState
@@ -26,8 +28,8 @@ if TYPE_CHECKING:
 class Actor(Base):
     """Actor Entity Model.
 
-    Represents a known platform participant for identity attribution and audit records.
-    Does NOT contain authentication credentials, passwords, or RBAC logic.
+    Represents a known platform participant for identity attribution, RBAC, and audit records.
+    Does NOT store authentication credentials or emails (managed by Account model).
     """
 
     __tablename__ = "actors"
@@ -36,6 +38,9 @@ class Actor(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    platform_role: Mapped[str] = mapped_column(
+        String(50), nullable=False, default="COMMUNITY_REPORTER", index=True
+    )
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, index=True)
 
     created_at: Mapped[datetime] = mapped_column(
@@ -50,7 +55,9 @@ class Actor(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    # Relationships - Non-cascading to preserve audit history
+    # Relationships
+    account: Mapped[Optional["Account"]] = relationship("Account", back_populates="actor", uselist=False)
+    sessions: Mapped[List["AuthSession"]] = relationship("AuthSession", back_populates="actor")
     memberships: Mapped[List["OrganizationMembership"]] = relationship(
         "OrganizationMembership", back_populates="actor"
     )
@@ -87,3 +94,5 @@ class Actor(Base):
     outcome_assessments_made: Mapped[List["OutcomeAssessment"]] = relationship(
         "OutcomeAssessment", back_populates="assessed_by_actor"
     )
+
+
