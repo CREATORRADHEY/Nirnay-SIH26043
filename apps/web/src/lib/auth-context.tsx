@@ -26,6 +26,8 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (display_name: string, email: string, password: string) => Promise<void>;
+  sendMobileOtp: (phone: string) => Promise<{ status: string; message: string; otp_code?: string }>;
+  verifyMobileOtp: (phone: string, code: string, display_name?: string, platform_role?: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -42,6 +44,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await fetch(`${API_BASE}/api/v1/auth/me`, {
         credentials: "include",
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+        },
       });
       if (res.ok) {
         const data = await res.json();
@@ -71,8 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const err = await res.json();
       throw new Error(err.detail || "Login failed");
     }
-    const data = await res.json();
-    setUser(data);
+    await refreshUser();
   };
 
   const register = async (display_name: string, email: string, password: string) => {
@@ -86,20 +92,69 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const err = await res.json();
       throw new Error(err.detail || "Registration failed");
     }
-    const data = await res.json();
-    setUser(data);
+    await refreshUser();
+  };
+
+  const sendMobileOtp = async (phone: string) => {
+    const res = await fetch(`${API_BASE}/api/v1/auth/mobile-otp/send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ phone }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Failed to send OTP");
+    }
+    return await res.json();
+  };
+
+  const verifyMobileOtp = async (phone: string, code: string, display_name?: string, platform_role?: string) => {
+    const res = await fetch(`${API_BASE}/api/v1/auth/mobile-otp/verify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ phone, code, display_name, platform_role }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "OTP verification failed");
+    }
+    await refreshUser();
   };
 
   const logout = async () => {
-    await fetch(`${API_BASE}/api/v1/auth/logout`, {
-      method: "POST",
-      credentials: "include",
-    });
-    setUser(null);
+    try {
+      let csrfToken = "";
+      if (typeof document !== "undefined") {
+        const match = document.cookie.match(/(?:^|; )nirnay_csrf=([^;]*)/);
+        if (match) csrfToken = decodeURIComponent(match[1]);
+      }
+      await fetch(`${API_BASE}/api/v1/auth/logout`, {
+        method: "POST",
+        headers: csrfToken ? { "X-CSRF-Token": csrfToken } : {},
+        credentials: "include",
+        cache: "no-store",
+      });
+    } catch {
+      // Ignore network/API errors on logout
+    } finally {
+      setUser(null);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.clear();
+          sessionStorage.clear();
+          document.cookie = "nirnay_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          document.cookie = "nirnay_csrf=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        } catch {
+          // ignore storage clearing errors
+        }
+      }
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, sendMobileOtp, verifyMobileOtp, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

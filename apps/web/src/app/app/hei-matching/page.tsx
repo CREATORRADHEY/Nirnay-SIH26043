@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/lib/auth-context";
@@ -13,6 +13,8 @@ import {
   HEICandidateResponse,
   HEIOrganizationResponse,
 } from "@/lib/api";
+import { fetchHEICandidateSuggestions } from "@/lib/api/ai";
+import { HEICandidateSuggestionResponse, HEICandidateSuggestion } from "@/lib/types/ai";
 
 export default function HEIMatchingPage() {
   const { user } = useAuth();
@@ -31,6 +33,23 @@ export default function HEIMatchingPage() {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [matchSuccess, setMatchSuccess] = useState<string | null>(null);
 
+  // AI HEI Assistance state
+  const [aiSuggestions, setAiSuggestions] = useState<HEICandidateSuggestionResponse | null>(null);
+  const [loadingAi, setLoadingAi] = useState<boolean>(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  const loadCandidates = useCallback(async (chId: string) => {
+    setLoading(true);
+    try {
+      const res = await fetchHEICandidates(chId);
+      setCandidates(res.data.items || []);
+    } catch (err) {
+      console.error("Failed to load HEI candidates:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!user) return;
     async function init() {
@@ -39,78 +58,75 @@ export default function HEIMatchingPage() {
           fetchChallenges().catch(() => ({ items: [], total: 0 })),
           fetchHEIOrganizations().catch(() => ({ data: { items: [], total: 0 } })),
         ]);
-        const chList = (chRes as any).items || (chRes as any).data?.items || [];
+        const chList = (chRes as { items?: Challenge[]; data?: { items: Challenge[] } }).items || (chRes as { data?: { items: Challenge[] } }).data?.items || [];
         setChallenges(chList);
-        const heiList = (orgsRes as any).data?.items || (orgsRes as any).items || [];
+        const heiList = (orgsRes as { data?: { items: HEIOrganizationResponse[] }; items?: HEIOrganizationResponse[] }).data?.items || (orgsRes as { items?: HEIOrganizationResponse[] }).items || [];
         setHeiOrgs(heiList);
 
         if (chList.length > 0) {
           const firstId = chList[0].id;
           setSelectedChallengeId(firstId);
-          await loadCandidatesForChallenge(firstId);
-        } else {
-          setLoading(false);
+          void loadCandidates(firstId);
         }
       } catch (err) {
+        console.error("Initialization failed:", err);
+      } finally {
         setLoading(false);
       }
     }
     init();
-  }, [user]);
+  }, [user, loadCandidates]);
 
-  const loadCandidatesForChallenge = async (challengeId: string) => {
-    setLoading(true);
-    try {
-      const res = await fetchHEICandidates(challengeId);
-      const items = (res as any).data?.items || (res as any).items || [];
-      setCandidates(items);
-    } catch (err) {
-      setCandidates([]);
-    } finally {
-      setLoading(false);
-    }
+  const handleChallengeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const chId = e.target.value;
+    setSelectedChallengeId(chId);
+    setAiSuggestions(null);
+    loadCandidates(chId);
   };
 
-  const handleChallengeChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const cid = e.target.value;
-    setSelectedChallengeId(cid);
-    if (cid) {
-      await loadCandidatesForChallenge(cid);
+  const handleFetchAISuggestions = async () => {
+    if (!selectedChallengeId) return;
+    setLoadingAi(true);
+    setAiError(null);
+    try {
+      const res = await fetchHEICandidateSuggestions(selectedChallengeId);
+      setAiSuggestions(res.data);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "AI assistance unavailable";
+      setAiError(msg || "AI assistance is temporarily unavailable. You can continue manually.");
+    } finally {
+      setLoadingAi(false);
     }
   };
 
   const openMatchModal = () => {
+    setMatchSuccess(null);
     if (heiOrgs.length > 0) {
       setCandOrgId(heiOrgs[0].organization_id);
     }
     setCandMatchMethod("MANUAL");
     setCandRationale("");
-    setMatchSuccess(null);
     setShowCandidateModal(true);
   };
 
   const handleCreateCandidate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedChallengeId || !candOrgId || !candRationale.trim()) {
-      alert("Please select an HEI organization and enter match rationale.");
-      return;
-    }
+    if (!selectedChallengeId || !candOrgId || !candRationale.trim()) return;
+
     setSubmitting(true);
-    setMatchSuccess(null);
     try {
       await createHEICandidate(selectedChallengeId, {
         organization_id: candOrgId,
-        match_method: candMatchMethod,
-        rationale: candRationale.trim(),
-        created_by_actor_id: user?.id,
+        match_method: candMatchMethod as "MANUAL" | "AI_HYBRID",
+        rationale: candRationale,
       });
-      setMatchSuccess("Candidate match proposed successfully!");
+      setMatchSuccess("HEI candidate match successfully proposed.");
+      loadCandidates(selectedChallengeId);
       setTimeout(() => {
         setShowCandidateModal(false);
-        loadCandidatesForChallenge(selectedChallengeId);
-      }, 1000);
-    } catch (err: any) {
-      alert(err.message || "Error proposing candidate match");
+      }, 1500);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error"; alert(msg || "Failed to create candidate match.");
     } finally {
       setSubmitting(false);
     }
@@ -118,83 +134,133 @@ export default function HEIMatchingPage() {
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        {/* Top Header */}
+      <div className="max-w-6xl mx-auto space-y-6 py-4">
+        {/* Header */}
         <div className="bg-white p-6 rounded-xl border border-stone-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center space-x-2">
-              <span className="bg-amber-600 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded tracking-wider">
-                HEI Research Matching
-              </span>
-              <h1 className="text-2xl font-bold text-stone-900">HEI Directory & Candidate Matching Workspace</h1>
+            <div className="flex items-center space-x-2 text-xs font-bold text-amber-700 uppercase tracking-wider mb-1">
+              <span>R&D Pipeline</span>
+              <span>•</span>
+              <span>HEI Capability Alignment</span>
             </div>
+            <h1 className="text-2xl font-bold text-stone-900 tracking-tight">HEI R&D Matching Workbench</h1>
             <p className="text-sm text-stone-600 mt-1">
-              Match qualified innovation challenges with relevant Higher Education Institutions (HEIs) & research labs.
+              Connect qualified societal challenges with higher educational institution research capabilities and lab infrastructure.
             </p>
           </div>
-          <div className="flex items-center space-x-3">
-            <Link
-              href="/app/review"
-              className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-lg text-xs font-bold transition-colors"
-            >
-              Review Queue →
-            </Link>
-            <button
-              onClick={openMatchModal}
-              className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm"
-            >
-              + Propose HEI Match
-            </button>
-          </div>
+          <button
+            onClick={openMatchModal}
+            disabled={!selectedChallengeId}
+            className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-lg shadow transition-colors disabled:opacity-50 flex items-center space-x-2"
+          >
+            <span>+ Propose Candidate Match</span>
+          </button>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex items-center space-x-2 border-b border-stone-200 pb-2">
-          <button
-            onClick={() => setActiveTab("candidates")}
-            className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
-              activeTab === "candidates"
-                ? "bg-stone-900 text-amber-400"
-                : "text-stone-600 hover:text-stone-900 hover:bg-stone-100"
-            }`}
-          >
-            Candidate Matches by Challenge
-          </button>
-          <button
-            onClick={() => setActiveTab("directory")}
-            className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${
-              activeTab === "directory"
-                ? "bg-stone-900 text-amber-400"
-                : "text-stone-600 hover:text-stone-900 hover:bg-stone-100"
-            }`}
-          >
-            Active HEI Capabilities Directory ({heiOrgs.length})
-          </button>
+        {/* Navigation Tabs */}
+        <div className="flex items-center justify-between border-b border-stone-200 pb-2">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setActiveTab("candidates")}
+              className={`pb-2 text-sm font-bold border-b-2 transition-colors ${
+                activeTab === "candidates"
+                  ? "border-amber-600 text-amber-900"
+                  : "border-transparent text-stone-500 hover:text-stone-800"
+              }`}
+            >
+              Candidate Matches ({candidates.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("directory")}
+              className={`pb-2 text-sm font-bold border-b-2 transition-colors ${
+                activeTab === "directory"
+                  ? "border-amber-600 text-amber-900"
+                  : "border-transparent text-stone-500 hover:text-stone-800"
+              }`}
+            >
+              Institutional Capability Directory ({heiOrgs.length})
+            </button>
+          </div>
+
+          {activeTab === "candidates" && (
+            <div className="flex items-center space-x-2">
+              <label className="text-xs font-bold text-stone-600 uppercase">Challenge:</label>
+              <select
+                value={selectedChallengeId}
+                onChange={handleChallengeChange}
+                className="p-1.5 bg-white border border-stone-300 rounded text-xs font-semibold text-stone-900 max-w-xs"
+              >
+                {challenges.map((ch) => (
+                  <option key={ch.id} value={ch.id}>
+                    {ch.title} ({ch.district})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {activeTab === "candidates" && (
-          <div className="space-y-4">
-            {/* Filter */}
-            <div className="bg-stone-900 text-stone-100 p-4 rounded-xl flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <label className="text-xs font-bold text-stone-300 uppercase tracking-wider">
-                  Select Challenge:
-                </label>
-                <select
-                  value={selectedChallengeId}
-                  onChange={handleChallengeChange}
-                  className="bg-stone-800 border border-stone-700 text-stone-100 text-sm rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-amber-500 min-w-[280px]"
+          <div className="space-y-6">
+            {/* AI HEI Assistance Panel */}
+            <div className="bg-stone-900 text-stone-100 p-5 rounded-xl border border-stone-800 shadow-md space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                  <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider">
+                    AI HEI Candidate Assistance (Advisory)
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleFetchAISuggestions}
+                  disabled={loadingAi || !selectedChallengeId}
+                  className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded transition-colors disabled:opacity-50"
                 >
-                  {challenges.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.title}
-                    </option>
-                  ))}
-                </select>
+                  {loadingAi ? "Analyzing Capabilities..." : "Suggest Relevant HEIs"}
+                </button>
               </div>
-              <div className="text-xs text-stone-400 font-mono">
-                Total Matches: <span className="text-amber-400 font-bold">{candidates.length}</span>
-              </div>
+
+              {aiError && (
+                <div className="p-2.5 bg-red-950/80 border border-red-800 text-red-300 text-xs font-mono rounded">
+                  ⚠️ {aiError}
+                </div>
+              )}
+
+              {aiSuggestions && (
+                <div className="bg-stone-950 p-4 rounded-lg border border-stone-800 text-xs space-y-3">
+                  <p className="text-stone-300">{aiSuggestions.reasoning_summary}</p>
+                  <div className="space-y-2">
+                    {aiSuggestions.suggested_candidates?.map((cand: HEICandidateSuggestion) => (
+                      <div key={cand.organization_id} className="p-3 bg-stone-900 rounded border border-stone-800 flex items-start justify-between gap-3">
+                        <div className="space-y-1">
+                          <span className="font-bold text-amber-300 block">{cand.organization_name || cand.organization_id}</span>
+                          <p className="text-stone-300 text-[11px]">{cand.relevance_explanation}</p>
+                          <div className="flex flex-wrap gap-1">
+                            {cand.relevant_capabilities?.map((cap: string, idx: number) => (
+                              <span key={idx} className="px-1.5 py-0.5 bg-stone-800 text-stone-300 text-[10px] font-mono rounded border border-stone-700">
+                                {cap}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCandOrgId(cand.organization_id);
+                            setCandMatchMethod("AI_HYBRID");
+                            setCandRationale(cand.relevance_explanation);
+                            setShowCandidateModal(true);
+                          }}
+                          className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded whitespace-nowrap shadow transition-colors"
+                        >
+                          + Add Candidate Match
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {loading ? (

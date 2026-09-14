@@ -23,7 +23,13 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       .catch(() => {});
   }, [user, pathname]);
 
-  if (loading) {
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [loading, user, router]);
+
+  if (loading || !user) {
     return (
       <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center">
         <div className="flex items-center space-x-3 text-stone-600 font-medium">
@@ -34,24 +40,22 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     );
   }
 
-  if (!user) {
-    router.push("/login");
-    return (
-      <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center">
-        <div className="flex items-center space-x-3 text-stone-600 font-medium">
-          <div className="w-5 h-5 border-2 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
-          <span>Redirecting to login...</span>
-        </div>
-      </div>
-    );
-  }
-
   const role = user.platform_role;
   const primaryOrg = user.memberships.find((m) => m.is_primary) || user.memberships[0];
 
-  const handleLogout = async () => {
-    await logout();
-    router.push("/login");
+  const handleLogout = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    try {
+      await logout();
+    } catch {
+      // ignore
+    } finally {
+      router.push("/login");
+      window.location.href = "/login";
+    }
   };
 
   let navItems = [
@@ -105,7 +109,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       <header className="bg-stone-900 text-stone-100 border-b border-stone-800 px-6 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center space-x-6">
           <Link href="/app" className="font-bold text-lg tracking-tight flex items-center space-x-2 text-stone-100">
-            <span className="bg-amber-600 text-white text-xs font-black px-2 py-0.5 rounded tracking-widest">NIRNAY</span>
+            <img src="/logo-icon.png" alt="NIRNAY" className="w-6 h-6 object-contain rounded-md shrink-0" /><span className="font-serif font-bold text-base text-white">NIRNAY</span>
             <span className="text-stone-300 font-medium text-sm hidden sm:inline">Platform</span>
           </Link>
           <nav className="hidden md:flex items-center space-x-1">

@@ -1,37 +1,44 @@
 "use client";
 
-import { Landmark, GraduationCap, Microscope, Building, Users2, UserCheck } from "lucide-react";
+import { Landmark, GraduationCap, Microscope, Handshake, Sprout } from "lucide-react";
 
 export function EcosystemStrip() {
   const categories = [
-    { label: "Government", icon: Landmark },
+    { label: "State Governments", icon: Landmark },
     { label: "Higher Education Institutions", icon: GraduationCap },
     { label: "Research Organisations", icon: Microscope },
-    { label: "Industry / MSMEs", icon: Building },
-    { label: "Civil Society", icon: Users2 },
-    { label: "Communities", icon: UserCheck },
+    { label: "Development Partners", icon: Handshake },
+    { label: "Civil Society Organisations", icon: Sprout },
   ];
 
   return (
-    <section className="py-12 bg-[#F2EFE9] border-b border-[var(--border)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <p className="text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)] mb-6">
-          BUILT FOR THE COLLABORATION ECOSYSTEM
-        </p>
+    <section id="ecosystem" className="py-8 md:py-10 bg-[#FAF8F5] border-b border-stone-200">
+      <div className="max-w-[1440px] mx-auto px-6 lg:px-12 flex flex-col lg:flex-row items-center justify-between gap-6">
+        {/* Left Eyebrow */}
+        <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-stone-500 uppercase font-mono shrink-0">
+          <span className="w-4 h-0.5 bg-stone-400" />
+          TRUSTED BY INNOVATORS ACROSS INDIA
+        </div>
 
-        <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-4">
+        {/* Center Icons List - Single Row Alignment */}
+        <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 lg:gap-10">
           {categories.map((cat, idx) => {
             const Icon = cat.icon;
             return (
               <div
                 key={idx}
-                className="px-4 py-2.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-xs font-medium text-[var(--text-primary)] inline-flex items-center gap-2 hover:border-[var(--primary)] transition-colors shadow-none"
+                className="flex items-center gap-2 text-xs font-semibold text-stone-700 hover:text-[#EA580C] transition-colors cursor-pointer whitespace-nowrap"
               >
-                <Icon className="w-4 h-4 text-[var(--primary)] stroke-[1.75]" />
+                <Icon className="w-4 h-4 text-stone-600 stroke-[1.75] shrink-0" />
                 <span>{cat.label}</span>
               </div>
             );
           })}
+        </div>
+
+        {/* Right Margin Text */}
+        <div className="text-[10px] font-mono tracking-widest text-stone-400 uppercase shrink-0 text-center lg:text-right">
+          PEOPLE • IDEAS • INSTITUTIONS • A STRONGER BHARAT
         </div>
       </div>
     </section>

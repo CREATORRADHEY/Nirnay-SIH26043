@@ -1,5 +1,7 @@
 "use client";
 
+import { CitizenAIExtractionModal } from "@/components/ai/CitizenAIExtractionModal";
+
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -39,6 +41,7 @@ export default function NewChallengeWizardPage() {
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [showAIModal, setShowAIModal] = useState(false);
 
   // Form State
   const [title, setTitle] = useState("");
@@ -135,7 +138,18 @@ Frequency: ${occurrenceFrequency}`,
 
   return (
     <AppShell>
-      <div className="max-w-3xl mx-auto space-y-8 py-4">
+      <div className="max-w-3xl mx-auto space-y-6 py-4">
+        {/* Top Back Link */}
+        <div>
+          <button
+            type="button"
+            onClick={() => router.push("/app/challenges")}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-600 hover:text-stone-900 transition-colors cursor-pointer"
+          >
+            <span>← Cancel & Return to My Challenges</span>
+          </button>
+        </div>
+
         {/* Wizard Progress Bar */}
         <div>
           <div className="flex items-center justify-between text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">
@@ -537,6 +551,16 @@ Frequency: ${occurrenceFrequency}`,
           )}
         </div>
       </div>
+      <CitizenAIExtractionModal
+        isOpen={showAIModal}
+        onClose={() => setShowAIModal(false)}
+        onApply={(extracted) => {
+          if (extracted.title) setTitle(extracted.title);
+          if (extracted.summary) setSummary(extracted.summary);
+          if (extracted.description) setDescription(extracted.description);
+          if (extracted.domain) setDomain(extracted.domain);
+        }}
+      />
     </AppShell>
   );
 }

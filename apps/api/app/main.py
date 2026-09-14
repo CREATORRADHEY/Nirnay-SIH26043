@@ -1,3 +1,4 @@
+import uuid
 import os
 import time
 from collections import defaultdict
@@ -33,7 +34,29 @@ PUBLIC_AUTH_PATHS = [
     "/api/v1/auth/reset-password",
     "/api/v1/auth/verify-email",
     "/api/v1/auth/resend-verification",
+    "/api/v1/auth/mobile-otp/send",
+    "/api/v1/auth/mobile-otp/verify",
+    "/api/v1/auth/logout",
 ]
+
+
+@app.middleware("http")
+async def request_correlation_id_middleware(request: Request, call_next):
+    request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+    request.state.request_id = request_id
+    start_time = time.time()
+
+    response: Response = await call_next(request)
+    duration_ms = round((time.time() - start_time) * 1000, 2)
+    response.headers["X-Request-ID"] = request_id
+
+    # Structured logging output (excluding sensitive content)
+    path = request.url.path
+    if not path.startswith("/_next") and not path.startswith("/static"):
+        status_code = response.status_code
+        print(f'{{"timestamp":"{time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}","level":"INFO","request_id":"{request_id}","route":"{path}","method":"{request.method}","status_code":{status_code},"latency_ms":{duration_ms}}}')
+
+    return response
 
 @app.middleware("http")
 async def security_and_csrf_middleware(request: Request, call_next):
@@ -84,3 +107,52 @@ app.include_router(notifications_router.router)
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "nirnay-api"}
+
+@app.get("/health/ready")
+def health_ready() -> dict:
+    from app.core.database import SessionLocal
+    from sqlalchemy import text
+    from app.core.config import get_settings
+    from app.services.ai.circuit_breaker import ai_circuit_breaker as circuit_breaker
+
+    settings = get_settings()
+    health_status = {
+        "status": "ready",
+        "service": "nirnay-api",
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "checks": {},
+    }
+
+    # 1. Database Check
+    try:
+        db = SessionLocal()
+        db.execute(text("SELECT 1"))
+        db.close()
+        health_status["checks"]["database"] = {"status": "ok"}
+    except Exception as e:
+        health_status["status"] = "unhealthy"
+        health_status["checks"]["database"] = {"status": "error", "message": "Database connection failed"}
+
+    # 2. Storage Check
+    health_status["checks"]["storage"] = {
+        "status": "ok",
+        "provider": os.getenv("STORAGE_PROVIDER", "local"),
+    }
+
+    # 3. Email Check
+    health_status["checks"]["email"] = {
+        "status": "ok",
+        "provider": os.getenv("EMAIL_PROVIDER", "console"),
+    }
+
+    # 4. AI Subsystem (Advisory - degraded does not make product unhealthy)
+    health_status["checks"]["ai_subsystem"] = {
+        "status": "ok" if settings.ai_enabled and circuit_breaker.get_state() == "CLOSED" else "degraded",
+        "enabled": settings.ai_enabled,
+        "circuit_breaker": circuit_breaker.get_state(),
+    }
+
+    if health_status["status"] != "ready":
+        return JSONResponse(status_code=503, content=health_status)
+
+    return health_status

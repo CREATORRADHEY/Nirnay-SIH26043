@@ -83,6 +83,14 @@ export default function SecuritySessionsPage() {
   return (
     <AppShell>
       <div className="max-w-4xl space-y-6">
+        <div>
+          <a
+            href="/app/account"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-stone-500 hover:text-stone-800"
+          >
+            ← Back to Account Overview
+          </a>
+        </div>
         <div className="bg-white p-6 rounded-xl border border-stone-200 shadow-sm flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-stone-900">Active Security Sessions</h1>

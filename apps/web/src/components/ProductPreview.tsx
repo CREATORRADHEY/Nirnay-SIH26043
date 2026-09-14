@@ -1,286 +1,373 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
-  Building2,
-  CheckCircle2,
-  FileCheck2,
-  ShieldCheck,
-  Tag,
-  UserCheck,
-  ArrowUpRight,
-  Sparkles,
   LayoutDashboard,
-  Compass,
   FileText,
+  FileCheck2,
   Users,
-  CheckSquare,
-  Activity,
-  Award,
+  ShieldCheck,
+  TrendingUp,
+  BarChart2,
+  Bell,
+  Settings,
   Search,
+  ChevronDown,
+  ArrowLeft,
+  MapPin,
+  Calendar,
+  User,
+  Flame,
+  Users2,
+  ChevronLeft,
+  Shield,
+  Sparkles,
+  CheckCircle2,
 } from "lucide-react";
 
+
 export function ProductPreview() {
-  const [activeTab, setActiveTab] = useState("HEI Match");
+  const [activeTab, setActiveTab] = useState("Overview");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeSidebar, setActiveSidebar] = useState("Dashboard");
+
+  const sidebarNav = [
+    { id: "Dashboard", label: "Dashboard", icon: LayoutDashboard, tab: "Overview" },
+    { id: "Challenges", label: "Challenges", icon: FileText, tab: "Overview" },
+    { id: "Evidence", label: "Evidence", icon: FileCheck2, tab: "Evidence" },
+    { id: "HEI Matching", label: "HEI Matching", icon: Users, tab: "HEI Match" },
+    { id: "Pilot Readiness", label: "Pilot Readiness", icon: ShieldCheck, tab: "Pilot Plan" },
+    { id: "Monitoring", label: "Monitoring", icon: TrendingUp, tab: "Outcomes" },
+    { id: "Reports", label: "Reports", icon: BarChart2, tab: "Outcomes" },
+  ];
 
   const tabs = [
     "Overview",
     "Evidence",
     "Qualification",
     "HEI Match",
-    "Commitments",
-    "Pilot Readiness",
+    "Pilot Plan",
     "Outcomes",
   ];
 
-  const steps = [
-    { label: "Intake", status: "complete" },
-    { label: "Qualify", status: "complete" },
-    { label: "Match", status: "active" },
-    { label: "Commit", status: "pending" },
-    { label: "Readiness", status: "pending" },
-    { label: "Pilot", status: "pending" },
-  ];
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    const matched = sidebarNav.find((s) => s.tab === tab);
+    if (matched) setActiveSidebar(matched.id);
+  };
+
+  const handleSidebarClick = (item: (typeof sidebarNav)[0]) => {
+    setActiveSidebar(item.id);
+    setActiveTab(item.tab);
+  };
 
   return (
-    <div className="w-full bg-white rounded-2xl border border-[#E7E5E4] shadow-xl shadow-stone-200/50 overflow-hidden text-[#1C1917] transition-all duration-300">
-      {/* Top App Header & Search Bar (Real App Shell feel, minimal browser chrome) */}
-      <div className="bg-[#FAF9F6] border-b border-[#E7E5E4] px-4 py-2.5 flex items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2">
-          {/* Subtle NIRNAY App Badge */}
-          <div className="w-5 h-5 rounded bg-[#1C1917] text-white flex items-center justify-center font-serif text-[10px] font-bold">
-            N
-          </div>
-          <span className="font-semibold text-stone-800 tracking-tight">
-            NIRNAY Passport
-          </span>
-          <span className="text-stone-300">|</span>
-          <span className="text-stone-500 font-mono text-[11px]">Ranchi District</span>
-        </div>
-
-        {/* Search Input Mock */}
-        <div className="hidden sm:flex items-center gap-2 bg-white px-2.5 py-1 rounded-md border border-[#E7E5E4] text-stone-400 text-[11px] w-48">
-          <Search className="w-3 h-3 text-stone-400" />
-          <span>Search passport records...</span>
-        </div>
-
-        {/* Discreet DEMO DATA label + Actor badge */}
-        <div className="flex items-center gap-2">
-          <span className="px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200/80 rounded font-mono text-[10px] font-semibold tracking-wide uppercase">
-            DEMO DATA
-          </span>
-          <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-stone-600 bg-white px-2 py-0.5 rounded border border-[#E7E5E4]">
-            <div className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="font-medium">Aditi Verma</span>
-          </div>
-        </div>
+    <div className="relative group">
+      {/* Floating Accent Badges around Frame (POP EFFECT) */}
+      <div className="absolute -top-3.5 left-8 z-30 hidden sm:flex items-center gap-1.5 px-3 py-1 bg-[#1C1917] text-white text-[11px] font-mono font-semibold rounded-full shadow-lg border border-stone-700">
+        <Shield className="w-3.5 h-3.5 text-amber-500" />
+        <span>Human Sign-off Authoritative</span>
       </div>
 
-      {/* Main App Layout: Left Sidebar + Passport Main Content */}
-      <div className="flex min-h-[440px]">
-        {/* Small App Navigation Sidebar */}
-        <div className="w-12 bg-[#FAF9F6] border-r border-[#E7E5E4] py-3 flex flex-col items-center gap-4 text-stone-500 shrink-0">
-          <button className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-200/50 transition-colors" title="Explorer">
-            <Compass className="w-4 h-4" />
-          </button>
-          <button className="p-1.5 rounded-lg bg-amber-500/10 text-[#EA580C] font-semibold" title="Passport">
-            <FileText className="w-4 h-4" />
-          </button>
-          <button className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-200/50 transition-colors" title="HEI Matching">
-            <Users className="w-4 h-4" />
-          </button>
-          <button className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-200/50 transition-colors" title="Commitments">
-            <CheckSquare className="w-4 h-4" />
-          </button>
-          <button className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-200/50 transition-colors" title="Readiness">
-            <ShieldCheck className="w-4 h-4" />
-          </button>
-          <button className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-200/50 transition-colors" title="Pilots">
-            <Activity className="w-4 h-4" />
-          </button>
-          <button className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-200/50 transition-colors" title="Outcomes">
-            <Award className="w-4 h-4" />
-          </button>
-        </div>
+      <div className="absolute -bottom-3 right-8 z-30 hidden sm:flex items-center gap-1.5 px-3 py-1 bg-white text-emerald-800 text-[11px] font-mono font-semibold rounded-full shadow-lg border border-emerald-200">
+        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+        <span>100% Traceable Evidence Dossier</span>
+      </div>
 
-        {/* Passport Workspace Area */}
-        <div className="flex-1 p-4 sm:p-5 space-y-4 overflow-x-hidden bg-white">
-          {/* Passport Header */}
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="px-2 py-0.5 text-[10px] font-mono font-semibold rounded bg-[#F2EFE9] text-stone-700 border border-[#E7E5E4]">
-                ID: PASSPORT-2026-RN-04
-              </span>
-              <span className="px-2 py-0.5 text-[10px] font-mono font-semibold rounded bg-amber-50 text-amber-800 border border-amber-200">
-                INNOVATION_CHALLENGE
-              </span>
+      <div className="absolute top-1/2 -right-3 z-30 hidden xl:flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-900 text-[10px] font-mono font-bold rounded-full shadow-md border border-amber-300 rotate-90 origin-right">
+        <Sparkles className="w-3 h-3 text-amber-600" />
+        <span>AI ADVISORY ONLY</span>
+      </div>
+
+      {/* Main 3D Tilted Card Shell */}
+      <div className="w-full bg-white rounded-2xl border-2 border-stone-200/90 shadow-2xl shadow-stone-900/15 overflow-hidden text-[#1C1917] transform lg:-rotate-1 group-hover:rotate-0 transition-all duration-500 ease-out font-sans">
+        <div className="flex min-h-[500px]">
+          {/* Left Sidebar */}
+          <div className="w-40 sm:w-44 bg-[#FAF8F5] border-r border-stone-200 p-3 flex flex-col justify-between shrink-0">
+            <div>
+              {/* Top Logo & Collapse Toggle */}
+              <div className="flex items-center justify-between px-1 mb-4">
+                <div className="flex items-center gap-1.5">
+                  <img src="/logo-icon.png" alt="NIRNAY" className="w-5 h-5 object-contain shrink-0 rounded-md" />
+                  <span className="font-serif font-bold text-xs text-[#1C1917]">NIRNAY</span>
+                </div>
+                <button className="text-stone-400 hover:text-stone-700 p-0.5">
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Navigation Items */}
+              <nav className="space-y-1">
+                {sidebarNav.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeSidebar === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => handleSidebarClick(item)}
+                      className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                        isActive
+                          ? "bg-[#FFF4EE] text-[#EA580C] shadow-xs"
+                          : "text-stone-600 hover:bg-stone-200/50 hover:text-stone-900"
+                      }`}
+                    >
+                      <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? "text-[#EA580C]" : "text-stone-500"}`} />
+                      <span className="truncate">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
             </div>
 
-            <h3 className="font-serif text-lg sm:text-xl font-bold text-[#1C1917] tracking-tight leading-snug">
-              Sustainable Water Management for Semi-Urban Towns
-            </h3>
-            <p className="text-xs text-stone-500 font-medium mt-0.5">
-              Ranchi, Jharkhand • Urban Infrastructure Domain
-            </p>
-
-            <div className="flex flex-wrap gap-1.5 mt-2.5">
-              <span className="px-2.5 py-0.5 text-[11px] rounded-full bg-[#F4F1EA] text-stone-600 border border-[#E7E5E4] font-medium inline-flex items-center gap-1">
-                <Tag className="w-3 h-3 text-[#EA580C]" /> Environment
-              </span>
-              <span className="px-2.5 py-0.5 text-[11px] rounded-full bg-[#F4F1EA] text-stone-600 border border-[#E7E5E4] font-medium">
-                Urban Development
-              </span>
-              <span className="px-2.5 py-0.5 text-[11px] rounded-full bg-[#F4F1EA] text-stone-600 border border-[#E7E5E4] font-medium">
-                Citizen Reported
-              </span>
-            </div>
-          </div>
-
-          {/* Navigation Tabs */}
-          <div className="border-b border-[#E7E5E4] flex gap-1 overflow-x-auto pb-0 scrollbar-none">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
-                  activeTab === tab
-                    ? "border-[#EA580C] text-[#EA580C] font-semibold"
-                    : "border-transparent text-stone-500 hover:text-stone-800"
-                }`}
-              >
-                {tab}
+            {/* Bottom Sidebar Controls */}
+            <div className="pt-3 border-t border-stone-200 space-y-1">
+              <button className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-medium text-stone-600 hover:bg-stone-200/50 transition-colors">
+                <div className="flex items-center gap-2 truncate">
+                  <Bell className="w-3.5 h-3.5 text-stone-500 shrink-0" />
+                  <span className="truncate">Notifications</span>
+                </div>
+                <span className="w-4 h-4 rounded-full bg-[#EA580C] text-white font-mono text-[9px] font-bold flex items-center justify-center shrink-0">
+                  3
+                </span>
               </button>
-            ))}
+
+              <button className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium text-stone-600 hover:bg-stone-200/50 transition-colors">
+                <Settings className="w-3.5 h-3.5 text-stone-500 shrink-0" />
+                <span>Settings</span>
+              </button>
+            </div>
           </div>
 
-          {/* Workflow Progress Stepper */}
-          <div className="bg-[#FAF9F6] p-3 rounded-xl border border-[#E7E5E4]">
-            <div className="flex items-center justify-between text-[11px] font-medium text-stone-600 mb-2">
-              <span className="uppercase tracking-wider font-semibold text-stone-800">
-                Progress to Pilot
-              </span>
-              <span className="text-[#EA580C] font-mono text-[10px]">Phase 3 of 6 (Candidate Matching)</span>
+          {/* Main Workspace Frame */}
+          <div className="flex-1 flex flex-col bg-white overflow-x-hidden min-w-0">
+            {/* Top Navigation & User Header */}
+            <div className="border-b border-stone-200 px-3.5 py-2.5 flex items-center justify-between gap-3 bg-[#FAF8F5]/80 backdrop-blur-xs">
+              {/* Search Input */}
+              <div className="flex items-center gap-2 bg-white px-2.5 py-1.5 rounded-lg border border-stone-200 text-xs w-52 sm:w-60 focus-within:border-[#EA580C] shadow-2xs">
+                <Search className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search challenges, districts..."
+                  className="w-full bg-transparent border-none outline-none text-xs text-stone-800 placeholder-stone-400 p-0"
+                />
+              </div>
+
+              {/* Right User Status */}
+              <div className="flex items-center gap-2.5">
+                <button className="relative p-1 rounded-full text-stone-500 hover:bg-stone-100">
+                  <Bell className="w-4 h-4" />
+                  <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-500" />
+                </button>
+
+                <div className="flex items-center gap-2 bg-white px-2 py-1 rounded-xl border border-stone-200 shadow-2xs">
+                  <div className="w-6 h-6 rounded-full bg-[#F2EFE9] text-stone-700 font-bold text-[11px] flex items-center justify-center font-mono shrink-0">
+                    AS
+                  </div>
+                  <div className="text-left hidden sm:block">
+                    <div className="text-[11px] font-bold text-stone-900 leading-none">Ananya Singh</div>
+                    <div className="text-[9px] text-stone-500 font-medium leading-tight mt-0.5">Government of Jharkhand</div>
+                  </div>
+                  <ChevronDown className="w-3 h-3 text-stone-400 shrink-0" />
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-6 gap-1.5">
-              {steps.map((step, idx) => (
-                <div key={idx} className="flex flex-col gap-1">
-                  <div
-                    className={`h-1.5 rounded-full ${
-                      step.status === "complete"
-                        ? "bg-emerald-600"
-                        : step.status === "active"
-                        ? "bg-[#EA580C]"
-                        : "bg-stone-200"
-                    }`}
-                  />
-                  <span
-                    className={`text-[10px] truncate text-center font-medium ${
-                      step.status === "active"
-                        ? "text-[#EA580C] font-bold"
-                        : step.status === "complete"
-                        ? "text-stone-800"
-                        : "text-stone-400"
-                    }`}
-                  >
-                    {step.label}
+
+            {/* Main Content Workspace */}
+            <div className="p-4 space-y-3.5 overflow-x-hidden flex-1 bg-white">
+              {/* Breadcrumb Link */}
+              <Link
+                href="/app/challenges"
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-stone-500 hover:text-[#EA580C] transition-colors"
+              >
+                <ArrowLeft className="w-3 h-3" /> Back to Challenges
+              </Link>
+
+              {/* Challenge Header Row */}
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <h2 className="font-serif text-lg sm:text-xl font-bold text-[#1C1917] tracking-tight leading-snug">
+                    Sustainable Water Management for Semi-Urban Towns
+                  </h2>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="px-2 py-0.5 text-[10px] font-mono font-semibold text-stone-500">
+                    CHG-2026-0042
+                  </span>
+                  <span className="px-2.5 py-0.5 text-[11px] font-medium rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1">
+                    Under Review <ChevronDown className="w-3 h-3 text-emerald-600" />
                   </span>
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          {/* Active Tab Content: Candidate HEI Matching Focus */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">
-                HEI Candidate Matching (Candidate / Potential Match)
-              </span>
-              <span className="text-[11px] font-medium text-[#EA580C] inline-flex items-center gap-1 bg-[#FFF4EE] px-2 py-0.5 rounded border border-[#FCD8C5]">
-                <Sparkles className="w-3 h-3" /> 2 HEIs identified as candidates
-              </span>
-            </div>
+              {/* Location & Tag Pills */}
+              <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                <span className="px-2.5 py-0.5 rounded-md bg-[#FAF8F5] text-stone-700 border border-stone-200 font-medium inline-flex items-center gap-1">
+                  <MapPin className="w-3 h-3 text-[#EA580C]" /> Ranchi, Jharkhand
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-medium">
+                  Environment
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-sky-50 text-sky-800 border border-sky-200 font-medium">
+                  Urban Development
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-medium">
+                  Sustainability
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-orange-50 text-orange-800 border border-orange-200 font-medium">
+                  Citizen Reported
+                </span>
+              </div>
 
-            {/* Candidate Card 1 */}
-            <div className="p-3 rounded-xl border border-[#E7E5E4] bg-white hover:border-[#EA580C] transition-colors space-y-2 shadow-xs">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-[#F4F1EA] text-[#EA580C]">
-                    <Building2 className="w-4 h-4" />
-                  </div>
+              {/* Navigation Tabs */}
+              <div className="border-b border-stone-200 flex gap-4 overflow-x-auto pb-0 scrollbar-none">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => handleTabChange(tab)}
+                    className={`pb-2 text-xs font-medium whitespace-nowrap transition-colors border-b-2 -mb-px cursor-pointer ${
+                      activeTab === tab
+                        ? "border-[#EA580C] text-[#EA580C] font-semibold"
+                        : "border-transparent text-stone-500 hover:text-stone-800"
+                    }`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+
+              {/* Content Cards Grid (3 Columns) */}
+              <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5">
+                {/* Left Column: Challenge Summary */}
+                <div className="xl:col-span-4 p-3.5 rounded-xl border border-stone-200/90 bg-[#FAF8F5]/70 shadow-xs flex flex-col justify-between">
                   <div>
-                    <h4 className="text-xs font-bold text-[#1C1917]">
-                      Birla Institute of Technology, Mesra
-                    </h4>
-                    <p className="text-[11px] text-stone-500">
-                      Dept of Environmental Engineering • Ranchi
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-stone-900 mb-2">
+                      <FileText className="w-3.5 h-3.5 text-[#EA580C]" /> Challenge Summary
+                    </div>
+                    <p className="text-[11px] text-stone-600 leading-relaxed font-normal">
+                      Growing water stress in semi-urban towns due to increasing demand, inefficient usage and lack of decentralized management systems. Need scalable, low-cost solutions for water conservation and reuse.
                     </p>
                   </div>
-                </div>
-                <span className="px-2 py-0.5 text-[10px] font-mono font-medium rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
-                  Potential Match
-                </span>
-              </div>
-              <p className="text-xs text-stone-600 leading-relaxed">
-                Specialized expertise in decentralized water filtration & GIS aquifer mapping.
-              </p>
-              <div className="flex items-center justify-between pt-1 border-t border-stone-100 text-[11px]">
-                <span className="text-stone-500 italic text-[10px]">
-                  Status: Candidate Only (Matching != Commitment)
-                </span>
-                <span className="text-[#EA580C] font-medium inline-flex items-center gap-0.5 text-[11px]">
-                  View Capability Profile <ArrowUpRight className="w-3 h-3" />
-                </span>
-              </div>
-            </div>
 
-            {/* Candidate Card 2 */}
-            <div className="p-2.5 rounded-xl border border-[#E7E5E4] bg-[#FAF9F6] space-y-1.5 opacity-90">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-white text-stone-500 border border-[#E7E5E4]">
-                    <Building2 className="w-3.5 h-3.5" />
+                  <div className="pt-3 mt-3 border-t border-stone-200/80 space-y-1.5 text-[10px] text-stone-500 font-medium">
+                    <div className="flex items-center justify-between">
+                      <span>Reported by:</span>
+                      <strong className="text-stone-800 font-semibold">State Department</strong>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Date:</span>
+                      <strong className="text-stone-800 font-semibold">12 Aug 2025</strong>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Location:</span>
+                      <strong className="text-stone-800 font-semibold">Ranchi, Jharkhand</strong>
+                    </div>
                   </div>
+                </div>
+
+                {/* Middle Column: Progress to Pilot Stepper */}
+                <div className="xl:col-span-5 p-3.5 rounded-xl border border-stone-200/90 bg-white shadow-xs flex flex-col justify-between">
                   <div>
-                    <h4 className="text-xs font-bold text-[#1C1917]">
-                      National Institute of Technology, Jamshedpur
-                    </h4>
-                    <p className="text-[10px] text-stone-500">
-                      Water Resources Research Group
-                    </p>
+                    <div className="flex items-center justify-between text-xs font-bold text-stone-900 mb-2">
+                      <span>Progress to Pilot</span>
+                      <span className="text-[10px] font-mono font-normal text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        4 of 6 complete
+                      </span>
+                    </div>
+
+                    {/* Horizontal Stepper */}
+                    <div className="grid grid-cols-6 gap-1 text-center my-3">
+                      <div className="flex flex-col items-center">
+                        <div className="w-3.5 h-3.5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[8px] font-bold">✓</div>
+                        <span className="text-[9px] font-bold text-stone-800 mt-1 leading-tight">Submitted</span>
+                        <span className="text-[8px] text-stone-400 leading-tight">12 Aug</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <div className="w-3.5 h-3.5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[8px] font-bold">✓</div>
+                        <span className="text-[9px] font-bold text-stone-800 mt-1 leading-tight">Evidence</span>
+                        <span className="text-[8px] text-stone-400 leading-tight">Verified</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <div className="w-3.5 h-3.5 rounded-full bg-[#EA580C] text-white flex items-center justify-center text-[8px] font-bold">•</div>
+                        <span className="text-[9px] font-bold text-[#EA580C] mt-1 leading-tight">Qualified</span>
+                        <span className="text-[8px] text-stone-400 leading-tight">for Pilot</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <div className="w-3.5 h-3.5 rounded-full bg-stone-200 mt-0.5" />
+                        <span className="text-[9px] font-medium text-stone-400 mt-1 leading-tight">HEI Match</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <div className="w-3.5 h-3.5 rounded-full bg-stone-200 mt-0.5" />
+                        <span className="text-[9px] font-medium text-stone-400 mt-1 leading-tight">Pilot Plan</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <div className="w-3.5 h-3.5 rounded-full bg-stone-200 mt-0.5" />
+                        <span className="text-[9px] font-medium text-stone-400 mt-1 leading-tight">Outcome</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Collaboration Box */}
+                  <div className="p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-200 flex items-center justify-between gap-2.5 mt-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+                        <Users className="w-3 h-3" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-[10px] font-bold text-stone-900 leading-tight truncate">2 HEIs interested in collaborating</div>
+                        <div className="text-[8px] text-stone-600 leading-tight truncate">Match based on domain expertise and location</div>
+                      </div>
+                    </div>
+                    <Link
+                      href="/app/hei-matching"
+                      className="px-2.5 py-1 text-[9px] font-bold text-[#EA580C] border border-[#EA580C] bg-white rounded-full hover:bg-[#EA580C] hover:text-white transition-colors shrink-0 whitespace-nowrap"
+                    >
+                      View Matches
+                    </Link>
                   </div>
                 </div>
-                <span className="px-2 py-0.5 text-[10px] font-mono font-medium rounded bg-[#F4F1EA] text-stone-600 border border-[#E7E5E4]">
-                  Potential Match
-                </span>
-              </div>
-            </div>
-          </div>
 
-          {/* Small Key Details Panel */}
-          <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#E7E5E4] text-center">
-            <div className="p-2 rounded-lg bg-[#FAF9F6] border border-[#E7E5E4]">
-              <span className="block text-[9px] text-stone-500 font-semibold uppercase tracking-wider">
-                Evidence Dossier
-              </span>
-              <span className="text-xs font-bold text-[#1C1917] inline-flex items-center gap-1 mt-0.5">
-                <FileCheck2 className="w-3 h-3 text-emerald-600" /> 4 Records
-              </span>
-            </div>
-            <div className="p-2 rounded-lg bg-[#FAF9F6] border border-[#E7E5E4]">
-              <span className="block text-[9px] text-stone-500 font-semibold uppercase tracking-wider">
-                Qualification
-              </span>
-              <span className="text-xs font-bold text-[#1C1917] inline-flex items-center gap-1 mt-0.5">
-                <ShieldCheck className="w-3 h-3 text-[#EA580C]" /> Verified
-              </span>
-            </div>
-            <div className="p-2 rounded-lg bg-[#FAF9F6] border border-[#E7E5E4]">
-              <span className="block text-[9px] text-stone-500 font-semibold uppercase tracking-wider">
-                Pilot Readiness
-              </span>
-              <span className="text-xs font-bold text-[#1C1917] inline-flex items-center gap-1 mt-0.5">
-                <UserCheck className="w-3 h-3 text-stone-500" /> Audit Pending
-              </span>
+                {/* Right Column: Key Details */}
+                <div className="xl:col-span-3 p-3.5 rounded-xl border border-stone-200/90 bg-[#FAF8F5]/70 shadow-xs flex flex-col justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-stone-900 mb-2.5 flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#EA580C]" /> Key Details
+                    </div>
+
+                    <div className="space-y-2 text-[11px]">
+                      <div className="flex items-center justify-between gap-2 pb-1 border-b border-stone-200/60">
+                        <span className="text-stone-500 font-medium">Category</span>
+                        <span className="font-bold text-stone-800">Environment</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 pb-1 border-b border-stone-200/60">
+                        <span className="text-stone-500 font-medium">Geography</span>
+                        <span className="font-bold text-stone-800">Semi-Urban</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 pb-1 border-b border-stone-200/60">
+                        <span className="text-stone-500 font-medium">Priority</span>
+                        <span className="font-bold text-amber-700 inline-flex items-center gap-1">
+                          <Flame className="w-3 h-3 text-amber-600 fill-current shrink-0" /> High
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 pb-1 border-b border-stone-200/60">
+                        <span className="text-stone-500 font-medium">People Affected</span>
+                        <span className="font-bold text-stone-800 inline-flex items-center gap-1">
+                          <Users2 className="w-3 h-3 text-stone-500 shrink-0" /> ~125,000
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2 pt-1">
+                        <span className="text-stone-500 font-medium">Status</span>
+                        <span className="font-bold text-emerald-700 inline-flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0" /> Under Review
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -151,6 +151,7 @@ export default function CommitmentsPage() {
         status: formStatus as any,
         scope_description: formScope.trim(),
         expected_version: expectedVersion,
+        recorded_by_actor_id: user ? user.id : "",
       });
       setFormSuccess("Commitment version recorded successfully!");
       setTimeout(() => {

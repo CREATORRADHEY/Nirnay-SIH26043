@@ -48,3 +48,5 @@ __all__ = [
     "ClarificationResponse",
     "Notification",
 ]
+
+from app.models.ai_audit_log import AIAuditLog

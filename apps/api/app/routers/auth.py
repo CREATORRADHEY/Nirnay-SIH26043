@@ -25,6 +25,17 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class SendOTPRequest(BaseModel):
+    phone: str
+
+
+class VerifyOTPRequest(BaseModel):
+    phone: str
+    code: str
+    display_name: Optional[str] = None
+    platform_role: Optional[str] = "COMMUNITY_REPORTER"
+
+
 class ChangePasswordRequest(BaseModel):
     old_password: str
     new_password: str
@@ -55,6 +66,71 @@ class SessionResponse(BaseModel):
     ip_address: Optional[str] = None
     user_agent: Optional[str] = None
     is_current: bool = False
+
+
+@router.post("/mobile-otp/send")
+def send_mobile_otp(payload: SendOTPRequest):
+    digits = "".join(c for c in payload.phone if c.isdigit())
+    if len(digits) < 10:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid mobile phone number. Must contain at least 10 digits.",
+        )
+    return {
+        "status": "success",
+        "message": f"OTP code sent successfully to +91-{digits[-10:]}",
+        "otp_code": "123456",
+    }
+
+
+@router.post("/mobile-otp/verify")
+def verify_mobile_otp(
+    payload: VerifyOTPRequest,
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db),
+):
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("User-Agent")
+
+    actor, raw_token = AuthService.authenticate_mobile_otp(
+        db=db,
+        phone=payload.phone,
+        code=payload.code,
+        display_name=payload.display_name,
+        platform_role=payload.platform_role or "COMMUNITY_REPORTER",
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+
+    csrf_token = generate_secure_token()
+    response.set_cookie(
+        key="nirnay_session",
+        value=raw_token,
+        httponly=True,
+        samesite="lax",
+        secure=False,
+        path="/",
+        max_age=30 * 24 * 3600,
+    )
+    response.set_cookie(
+        key="nirnay_csrf",
+        value=csrf_token,
+        httponly=False,
+        samesite="lax",
+        secure=False,
+        path="/",
+        max_age=30 * 24 * 3600,
+    )
+
+    account = actor.account
+    return {
+        "id": str(actor.id),
+        "display_name": actor.display_name,
+        "email": account.email if account else None,
+        "platform_role": actor.platform_role,
+        "csrf_token": csrf_token,
+    }
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)

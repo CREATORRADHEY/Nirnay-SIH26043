@@ -37,6 +37,13 @@ class Settings(BaseSettings):
         default_factory=list, validation_alias="CORS_ORIGINS"
     )
 
+    # AI Assistance Settings
+    ai_enabled: bool = Field(default=False, validation_alias="AI_ENABLED")
+    ai_provider: str = Field(default="disabled", validation_alias="AI_PROVIDER")
+    ai_model: str = Field(default="gemini-2.5-flash", validation_alias="AI_MODEL")
+    ai_timeout_seconds: int = Field(default=15, validation_alias="AI_TIMEOUT_SECONDS")
+    ai_api_key: Union[str, None] = Field(default=None, validation_alias="AI_API_KEY")
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, v: Any) -> List[str]:

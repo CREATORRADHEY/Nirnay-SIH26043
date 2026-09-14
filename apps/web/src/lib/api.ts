@@ -1,3 +1,4 @@
+export type * from "./types/challenge";
 import type {
   OperationalStatus,
   ChallengeListResponse,
@@ -1189,4 +1190,232 @@ export async function fetchLatestOutcomeAssessment(
     const latest = items.length > 0 ? items[items.length - 1] : null;
     return { data: latest, isDemo: true };
   }
+}
+
+// ==========================================
+// P4B PLATFORM ADMIN API FUNCTIONS
+// ==========================================
+
+export interface AdminOverviewResponse {
+  active_accounts: number;
+  active_organizations: number;
+  pending_organizations: number;
+  suspended_organizations: number;
+  open_clarifications: number;
+  total_challenges: number;
+  active_pilots: number;
+  readiness_review_required: number;
+}
+
+export interface AdminOrganizationItem {
+  id: string;
+  name: string;
+  organization_type: string;
+  district: string;
+  state: string;
+  status: string;
+  status_rationale?: string;
+  created_at: string;
+  members_count: number;
+  capabilities_count: number;
+}
+
+export interface AdminOrganizationsResponse {
+  items: AdminOrganizationItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminUserItem {
+  id: string;
+  display_name: string;
+  email: string | null;
+  platform_role: string;
+  is_active: boolean;
+  created_at: string;
+  organizations: string[];
+}
+
+export interface AdminUsersResponse {
+  items: AdminUserItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminAuditLogItem {
+  id: string;
+  event_type: string;
+  actor_id?: string;
+  ip_address?: string;
+  details?: string;
+  created_at: string;
+}
+
+export interface AdminAuditLogsResponse {
+  items: AdminAuditLogItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminAIOperationsResponse {
+  ai_enabled: boolean;
+  provider: string;
+  model: string;
+  total_requests: number;
+  success_count: number;
+  failure_count: number;
+  avg_latency_ms: number;
+  circuit_breaker_status: string;
+  task_breakdown: Record<string, number>;
+  recent_entries: Array<{
+    id: string;
+    task_type: string;
+    actor_id?: string;
+    challenge_id?: string;
+    provider: string;
+    model: string;
+    prompt_version: string;
+    success: boolean;
+    latency_ms: number;
+    created_at: string;
+  }>;
+}
+
+export async function fetchAdminOverview(): Promise<AdminOverviewResponse> {
+  const url = `${getApiBaseUrl()}/api/v1/admin/overview`;
+  const res = await fetch(url, { credentials: "include", cache: "no-store" });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+    throw new Error(err.detail || "Failed to fetch admin overview");
+  }
+  return res.json();
+}
+
+export async function fetchAdminOrganizations(
+  status?: string,
+  org_type?: string,
+  page: number = 1,
+  limit: number = 20
+): Promise<AdminOrganizationsResponse> {
+  const params = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
+  if (status) params.append("status", status);
+  if (org_type) params.append("org_type", org_type);
+
+  const url = `${getApiBaseUrl()}/api/v1/admin/organizations?${params.toString()}`;
+  const res = await fetch(url, { credentials: "include", cache: "no-store" });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+    throw new Error(err.detail || "Failed to fetch admin organizations");
+  }
+  return res.json();
+}
+
+export async function updateAdminOrganizationStatus(
+  orgId: string,
+  status: string,
+  rationale?: string
+): Promise<AdminOrganizationItem> {
+  const url = `${getApiBaseUrl()}/api/v1/admin/organizations/${orgId}/status`;
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ status, rationale }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+    throw new Error(err.detail || "Failed to update organization status");
+  }
+  return res.json();
+}
+
+export async function fetchAdminUsers(
+  role?: string,
+  is_active?: boolean,
+  search?: string,
+  page: number = 1,
+  limit: number = 20
+): Promise<AdminUsersResponse> {
+  const params = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
+  if (role) params.append("role", role);
+  if (is_active !== undefined) params.append("is_active", is_active.toString());
+  if (search) params.append("search", search);
+
+  const url = `${getApiBaseUrl()}/api/v1/admin/users?${params.toString()}`;
+  const res = await fetch(url, { credentials: "include", cache: "no-store" });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+    throw new Error(err.detail || "Failed to fetch admin users");
+  }
+  return res.json();
+}
+
+export async function updateAdminUserStatus(
+  userId: string,
+  is_active: boolean,
+  rationale?: string
+): Promise<{ id: string; display_name: string; email: string | null; platform_role: string; is_active: boolean }> {
+  const url = `${getApiBaseUrl()}/api/v1/admin/users/${userId}/status`;
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ is_active, rationale }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+    throw new Error(err.detail || "Failed to update user status");
+  }
+  return res.json();
+}
+
+export async function updateAdminUserRole(
+  userId: string,
+  new_role: string,
+  rationale: string
+): Promise<{ id: string; display_name: string; platform_role: string; is_active: boolean }> {
+  const url = `${getApiBaseUrl()}/api/v1/admin/users/${userId}/role`;
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ new_role, rationale }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+    throw new Error(err.detail || "Failed to update user role");
+  }
+  return res.json();
+}
+
+export async function fetchAdminAuditLogs(
+  event_type?: string,
+  actor_id?: string,
+  page: number = 1,
+  limit: number = 20
+): Promise<AdminAuditLogsResponse> {
+  const params = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
+  if (event_type) params.append("event_type", event_type);
+  if (actor_id) params.append("actor_id", actor_id);
+
+  const url = `${getApiBaseUrl()}/api/v1/admin/audit?${params.toString()}`;
+  const res = await fetch(url, { credentials: "include", cache: "no-store" });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+    throw new Error(err.detail || "Failed to fetch admin audit logs");
+  }
+  return res.json();
+}
+
+export async function fetchAdminAIOperations(): Promise<AdminAIOperationsResponse> {
+  const url = `${getApiBaseUrl()}/api/v1/admin/ai-operations`;
+  const res = await fetch(url, { credentials: "include", cache: "no-store" });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+    throw new Error(err.detail || "Failed to fetch AI operations telemetry");
+  }
+  return res.json();
 }
