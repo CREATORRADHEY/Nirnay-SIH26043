@@ -23,6 +23,10 @@ target_metadata = Base.metadata
 
 get_settings.cache_clear()
 db_url = get_settings().database_url.replace("localhost", "127.0.0.1")
+if db_url.startswith("postgresql://"):
+    db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+elif db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
 config.set_main_option("sqlalchemy.url", db_url)
 
 

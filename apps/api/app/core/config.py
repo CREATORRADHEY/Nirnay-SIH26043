@@ -44,6 +44,18 @@ class Settings(BaseSettings):
     ai_timeout_seconds: int = Field(default=15, validation_alias="AI_TIMEOUT_SECONDS")
     ai_api_key: Union[str, None] = Field(default=None, validation_alias="AI_API_KEY")
 
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def parse_database_url(cls, v: Any) -> str:
+        if isinstance(v, str):
+            v_str = v.strip()
+            if v_str.startswith("postgresql://"):
+                return v_str.replace("postgresql://", "postgresql+psycopg://", 1)
+            if v_str.startswith("postgres://"):
+                return v_str.replace("postgres://", "postgresql+psycopg://", 1)
+            return v_str
+        return v
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, v: Any) -> List[str]:
