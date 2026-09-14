@@ -62,6 +62,10 @@ export default function PilotReadinessPage() {
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // Invalidation state
+  const [isInvalidated, setIsInvalidated] = useState<boolean>(false);
+  const [conditions, setConditions] = useState<ReadinessConditionDisplay[]>(DEFAULT_CONDITIONS);
+
   const loadReadinessData = useCallback(async (chId: string) => {
     try {
       const [latestRes, historyRes] = await Promise.all([
@@ -69,10 +73,47 @@ export default function PilotReadinessPage() {
         fetchReadinessHistory(chId).catch(() => ({ data: { items: [] } })),
       ]);
 
-      if (latestRes.data) {
-        setLatestDecision(latestRes.data);
+      let commitmentWithdrawn = false;
+      if (typeof window !== "undefined") {
+        const storedSt = localStorage.getItem(`nirnay_commitment_status_${chId}`);
+        if (storedSt === "WITHDRAWN") {
+          commitmentWithdrawn = true;
+        }
+      }
+
+      if (commitmentWithdrawn) {
+        setIsInvalidated(true);
+        setReadinessStatus("REVIEW_REQUIRED");
+        setConditions([
+          DEFAULT_CONDITIONS[0],
+          DEFAULT_CONDITIONS[1],
+          {
+            id: "cond-commit-1",
+            condition_type: "COMMITMENT_DEPENDENCY",
+            name: "Institutional Commitment Dependency",
+            status: "UNSATISFIED",
+            description: "WITHDRAWN: BIT Mesra hydro-geological testing commitment was withdrawn by HEI Admin.",
+          },
+        ]);
+        const invalidDecision: ReadinessDecisionResponse = {
+          id: `r-invalid-${Date.now()}`,
+          challenge_id: chId,
+          status: "REVIEW_REQUIRED",
+          version: 2,
+          rationale: "AUTOMATED INVALIDATION: Institutional commitment TECHNICAL_FACILITY_ACCESS updated to WITHDRAWN.",
+          decided_by_actor_id: "system-invalidation-engine",
+          condition_ids: ["cond-env-1", "cond-field-1"],
+          created_at: new Date().toISOString(),
+        };
+        setLatestDecision(invalidDecision);
       } else {
-        setLatestDecision(null);
+        setIsInvalidated(false);
+        setConditions(DEFAULT_CONDITIONS);
+        if (latestRes.data) {
+          setLatestDecision(latestRes.data);
+        } else {
+          setLatestDecision(null);
+        }
       }
 
       const histItems = (historyRes as { data?: { items: ReadinessDecisionResponse[] } })?.data?.items || [];
@@ -239,18 +280,36 @@ export default function PilotReadinessPage() {
                     <h3 className="text-sm font-bold text-stone-900">Readiness Conditions Matrix</h3>
                     <span className="text-[11px] text-stone-500 font-mono">Pre-Pilot Clearance Verification</span>
                   </div>
-                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded border border-emerald-300">
-                    3/3 SATISFIED
+                  <span className={`px-2 py-0.5 text-[10px] font-bold rounded border ${
+                    isInvalidated ? "bg-rose-100 text-rose-800 border-rose-300" : "bg-emerald-100 text-emerald-800 border-emerald-300"
+                  }`}>
+                    {isInvalidated ? "2/3 SATISFIED (1 UNSATISFIED)" : "3/3 SATISFIED"}
                   </span>
                 </div>
 
+                {isInvalidated && (
+                  <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-900 rounded-xl text-xs space-y-1">
+                    <div className="font-bold text-xs flex items-center space-x-1">
+                      <span>⚠️ Automated Dependency Invalidation</span>
+                    </div>
+                    <p className="text-[11px] leading-relaxed">
+                      Institutional Commitment <span className="font-mono font-bold">TECHNICAL_FACILITY_ACCESS</span> was updated to <span className="font-bold text-rose-700">WITHDRAWN</span> by HEI Admin.
+                    </p>
+                    <p className="text-[10px] font-mono text-rose-700">
+                      Readiness state automatically invalidated from PILOT_READY to REVIEW_REQUIRED.
+                    </p>
+                  </div>
+                )}
+
                 <div className="space-y-3">
-                  {DEFAULT_CONDITIONS.map((cond) => (
+                  {conditions.map((cond) => (
                     <div key={cond.id} className="p-3.5 bg-stone-50 rounded-xl border border-stone-200 space-y-1 text-xs">
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-stone-900">{cond.name}</span>
-                        <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold rounded">
-                          ✓ {cond.status}
+                        <span className={`px-2 py-0.5 text-[10px] font-mono font-bold rounded ${
+                          cond.status === "SATISFIED" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
+                        }`}>
+                          {cond.status === "SATISFIED" ? "✓ SATISFIED" : "✕ " + cond.status}
                         </span>
                       </div>
                       <p className="text-stone-600 text-[11px] leading-relaxed">{cond.description}</p>

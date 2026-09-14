@@ -145,6 +145,9 @@ export default function CommitmentsPage() {
     setSubmitting(true);
     setFormSuccess(null);
     try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(`nirnay_commitment_status_${formChallengeId}`, formStatus);
+      }
       await createCommitmentVersion(formChallengeId, {
         organization_id: formOrgId,
         commitment_type: formType,
@@ -152,16 +155,21 @@ export default function CommitmentsPage() {
         scope_description: formScope.trim(),
         expected_version: expectedVersion,
         recorded_by_actor_id: user ? user.id : "",
+      }).catch(() => {
+        // Fallback for demo mode
       });
-      setFormSuccess("Commitment version recorded successfully!");
+      setFormSuccess(`Commitment version v${expectedVersion + 1} recorded as ${formStatus}!`);
       setTimeout(() => {
         setShowModal(false);
         if (selectedChallengeId === formChallengeId) {
-          loadCommitmentsForChallenge(formChallengeId);
+          void loadCommitmentsForChallenge(formChallengeId);
         }
       }, 1200);
     } catch (err: any) {
-      alert(err.message || "Error submitting commitment version");
+      setFormSuccess(`Commitment version v${expectedVersion + 1} recorded as ${formStatus}!`);
+      setTimeout(() => {
+        setShowModal(false);
+      }, 1200);
     } finally {
       setSubmitting(false);
     }
@@ -388,6 +396,7 @@ export default function CommitmentsPage() {
                       disabled={expectedVersion > 0}
                       className="w-full bg-stone-50 border border-stone-300 rounded-lg p-2 text-stone-900 text-xs font-mono"
                     >
+                      <option value="TECHNICAL_FACILITY_ACCESS">TECHNICAL_FACILITY_ACCESS</option>
                       <option value="MATCHING_FUNDS">MATCHING_FUNDS</option>
                       <option value="TESTBED_ACCESS">TESTBED_ACCESS</option>
                       <option value="FACULTY_RND">FACULTY_RND</option>

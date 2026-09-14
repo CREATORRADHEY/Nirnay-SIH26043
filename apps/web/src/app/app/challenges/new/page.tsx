@@ -9,6 +9,7 @@ import { AppShell } from "@/components/AppShell";
 
 const DOMAIN_OPTIONS = [
   { value: "WATER", label: "Water Resources & Quality" },
+  { value: "ENVIRONMENT_HEALTH", label: "Environment & Public Health" },
   { value: "ENERGY", label: "Clean Energy & Power" },
   { value: "HEALTHCARE", label: "Healthcare & Nutrition" },
   { value: "AGRICULTURE", label: "Agriculture & Farming" },
@@ -52,6 +53,7 @@ export default function NewChallengeWizardPage() {
   const [district, setDistrict] = useState("Ranchi");
   const [localArea, setLocalArea] = useState("");
   const [affectedPeople, setAffectedPeople] = useState("");
+  const [severity, setSeverity] = useState("HIGH");
   const [occurrenceFrequency, setOccurrenceFrequency] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [evidenceType, setEvidenceType] = useState("DOCUMENT");
@@ -348,17 +350,35 @@ Frequency: ${occurrenceFrequency}`,
               </div>
 
               <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
-                    Who & How Many People are Affected?
-                  </label>
-                  <input
-                    type="text"
-                    value={affectedPeople}
-                    onChange={(e) => setAffectedPeople(e.target.value)}
-                    placeholder="e.g. ~500 households, school children, local farmers"
-                    className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-lg text-sm text-stone-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                      Population Impacted (Count / Description)
+                    </label>
+                    <input
+                      type="text"
+                      value={affectedPeople}
+                      onChange={(e) => setAffectedPeople(e.target.value)}
+                      placeholder="e.g. 1,500 residents (~500 households)"
+                      className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-lg text-sm text-stone-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                      Perceived Severity *
+                    </label>
+                    <select
+                      value={severity}
+                      onChange={(e) => setSeverity(e.target.value)}
+                      className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-lg text-sm font-bold text-stone-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    >
+                      <option value="CRITICAL">CRITICAL (Immediate Health/Life Risk)</option>
+                      <option value="HIGH">HIGH (Severe Community Disruption)</option>
+                      <option value="MEDIUM">MEDIUM (Moderate Impact)</option>
+                      <option value="LOW">LOW (Minor Local Issue)</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div>
