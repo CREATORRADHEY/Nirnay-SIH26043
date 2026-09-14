@@ -94,36 +94,14 @@ export function HeroSection() {
               </Link>
 
               <Link
-                href="/demo"
+                href="/challenges"
                 className="px-6 py-3 rounded-xl bg-white text-[#1C1917] border border-stone-300 font-semibold text-sm hover:bg-stone-50 transition-all duration-200 inline-flex items-center gap-2.5 shadow-xs cursor-pointer"
               >
                 <div className="w-6 h-6 rounded-full border border-stone-300 flex items-center justify-center">
                   <Play className="w-3 h-3 text-[#1C1917] fill-current ml-0.5" />
                 </div>
-                Watch Demo
+                Explore Challenges
               </Link>
-            </div>
-
-            {/* Impact Metrics Row */}
-            <div className="pt-8 border-t border-stone-200/80 grid grid-cols-3 gap-4">
-              <div>
-                <span className="block text-2xl sm:text-3xl font-extrabold text-[#1C1917] font-serif">
-                  500+
-                </span>
-                <span className="text-xs text-stone-500 font-medium">Challenges Posted</span>
-              </div>
-              <div>
-                <span className="block text-2xl sm:text-3xl font-extrabold text-[#1C1917] font-serif">
-                  300+
-                </span>
-                <span className="text-xs text-stone-500 font-medium">HEIs Onboarded</span>
-              </div>
-              <div>
-                <span className="block text-2xl sm:text-3xl font-extrabold text-[#1C1917] font-serif">
-                  90+
-                </span>
-                <span className="text-xs text-stone-500 font-medium">Pilots in Progress</span>
-              </div>
             </div>
           </div>
 

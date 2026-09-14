@@ -34,10 +34,10 @@ export function CallToActionSection() {
           </Link>
 
           <Link
-            href="/demo"
+            href="/challenges"
             className="px-7 py-3.5 rounded-xl bg-stone-800 text-stone-200 border border-stone-700 font-semibold text-sm hover:bg-stone-700 transition-all duration-200 inline-flex items-center gap-2 cursor-pointer"
           >
-            <Compass className="w-4 h-4 text-amber-400" /> Explore Interactive Demo
+            <Compass className="w-4 h-4 text-amber-400" /> Explore Public Challenges
           </Link>
         </div>
       </div>

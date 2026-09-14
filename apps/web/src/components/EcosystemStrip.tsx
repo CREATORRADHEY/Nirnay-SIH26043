@@ -17,7 +17,7 @@ export function EcosystemStrip() {
         {/* Left Eyebrow */}
         <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-stone-500 uppercase font-mono shrink-0">
           <span className="w-4 h-0.5 bg-stone-400" />
-          TRUSTED BY INNOVATORS ACROSS INDIA
+          BUILT FOR A COLLABORATIVE INNOVATION ECOSYSTEM
         </div>
 
         {/* Center Icons List - Single Row Alignment */}

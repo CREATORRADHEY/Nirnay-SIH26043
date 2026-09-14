@@ -57,10 +57,10 @@ export function WorkflowSection() {
               A structured, transparent and collaborative path from problem definition to real-world impact.
             </p>
             <Link
-              href="/demo"
+              href="/challenges"
               className="inline-flex items-center text-xs font-bold text-[#EA580C] hover:underline gap-1 cursor-pointer"
             >
-              Explore the Workflow <ArrowRight className="w-3.5 h-3.5" />
+              Explore Public Challenges <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>

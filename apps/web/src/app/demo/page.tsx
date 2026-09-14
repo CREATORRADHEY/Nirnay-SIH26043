@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { ArrowRight, Shield, Compass } from "lucide-react";
 import { PresenterGuide } from "@/components/demo/PresenterGuide";
 import { SystemCheck } from "@/components/demo/SystemCheck";
@@ -10,6 +11,13 @@ export const metadata = {
 };
 
 export default function JuryDemoPage() {
+  if (
+    process.env.NODE_ENV === "production" &&
+    process.env.NEXT_PUBLIC_ENABLE_DEMO_REHEARSAL !== "true"
+  ) {
+    notFound();
+  }
+
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-[#1C1917] px-6 py-10 max-w-6xl mx-auto font-sans">
       {/* Header */}

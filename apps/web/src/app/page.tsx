@@ -2,7 +2,6 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { HeroSection } from "@/components/HeroSection";
 import { WorkflowSection } from "@/components/WorkflowSection";
 import { PlatformCapabilities } from "@/components/PlatformCapabilities";
-import { JuryScenariosSection } from "@/components/JuryScenariosSection";
 import { EcosystemStrip } from "@/components/EcosystemStrip";
 import { CallToActionSection } from "@/components/CallToActionSection";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -15,7 +14,6 @@ export default function Home() {
         <HeroSection />
         <WorkflowSection />
         <PlatformCapabilities />
-        <JuryScenariosSection />
         <EcosystemStrip />
         <CallToActionSection />
       </main>

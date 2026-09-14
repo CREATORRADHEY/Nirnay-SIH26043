@@ -24,7 +24,7 @@ export function PlatformCapabilities() {
       description:
         "AI is strictly advisory and non-authoritative. Schema-constrained inference and prompt injection defense protect human authority over qualification and pilot readiness.",
       highlight: "AI Advisory Only",
-      href: "/demo",
+      href: "/challenges",
     },
     {
       icon: Layers,
@@ -33,7 +33,7 @@ export function PlatformCapabilities() {
       description:
         "When an underlying institutional commitment is withdrawn, NIRNAY preserves historical audit logs but automatically invalidates readiness and reopens human review.",
       highlight: "v2 REVIEW_REQUIRED",
-      href: "/demo",
+      href: "/challenges",
     },
     {
       icon: Scale,
@@ -42,7 +42,7 @@ export function PlatformCapabilities() {
       description:
         "Operational pilot completion is kept strictly separate from outcome evaluation. Completed pilots cannot auto-generate impact claims without human review.",
       highlight: "INCONCLUSIVE Guard",
-      href: "/demo",
+      href: "/challenges",
     },
     {
       icon: Users2,
@@ -58,7 +58,7 @@ export function PlatformCapabilities() {
       tag: "AUDITABILITY",
       title: "Immutable Decision History",
       description:
-        "Every qualification, readiness decision, and institutional commitment is versioned with cryptographic hashes and explicit actor attribution.",
+        "Every qualification, readiness decision, and institutional commitment is versioned with structured audit logs and explicit actor attribution.",
       highlight: "Traceable Audit Logs",
       href: "/app/challenges",
     },
@@ -67,8 +67,8 @@ export function PlatformCapabilities() {
       tag: "PASSPORT REGISTRY",
       title: "Public Challenge Passports",
       description:
-        "Standardized challenge intake with pre-declared baseline metrics, population estimates, and verified evidence dossiers accessible to ecosystem partners.",
-      highlight: "Open Passport Registry",
+        "Standardized challenge intake with pre-declared baseline metrics, population estimates, and structured evidence dossiers accessible to ecosystem partners.",
+      highlight: "Public Challenge Directory",
       href: "/challenges",
     },
   ];
