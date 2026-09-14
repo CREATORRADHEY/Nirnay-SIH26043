@@ -1,204 +1,142 @@
-# NIRNAY Platform — Master Step-by-Step Manual QA & Jury Testing Guide
+# 🧪 NIRNAY (SIH26043) — Manual Testing & Credentials Guide
 
-This document provides the definitive, production-grade manual testing guide for the **NIRNAY Platform (SIH26043)**. It includes master credential mappings, unauthenticated explorer checks, role-based governance workflows, and Golden Jury demonstration scenarios.
-
----
-
-## 🔑 Master Credentials Reference
-
-| Role | Name & Entity | Email | Password | Access Rights & Workflows |
-| :--- | :--- | :--- | :--- | :--- |
-| **State Nodal Reviewer** | Ananya Singh (`GOVERNMENT_ADMIN`) | `gov@nirnay.gov.in` | `Password123!` | Executive Dashboard, Review Queue, Qualification, HEI Matching, Readiness, Pilots, Outcomes, Organizations |
-| **Nodal Reviewer (Jury Demo)** | Nodal Officer (`GOVERNMENT_REVIEWER`) | `reviewer@nirnay.gov.in` | `Password123!` | Reviewer Workbench, Audit Trail & Evaluation |
-| **HEI Admin** | Dr. Ramesh Sharma (`HEI_ADMIN` • BIT Mesra) | `hei@bitmesra.ac.in` | `Password123!` | HEI Capability Matching Workbench, Institutional Commitments Register |
-| **Industry Partner** | CleanWater Tech (`INDUSTRY_ADMIN`) | `industry@cleanwater.co.in` | `Password123!` | Industry Commitments & Resource Pledges |
-| **Citizen Reporter** | Aditi Verma (`COMMUNITY_REPORTER`) | `citizen@ranchi.gov.in` | `Password123!` | Challenge Intake Reporting & Evidence Uploads |
-| **Platform Administrator** | System Admin (`PLATFORM_ADMIN`) | `admin@nirnay.gov.in` | `Password123!` | System Governance, User RBAC Management, AI Telemetry & Audit Logs |
+> **Live Product**: [https://nirnay-sih-26043-one.vercel.app/](https://nirnay-sih-26043-one.vercel.app/)  
+> **API Docs**: [https://nirnay-sih26043.onrender.com/docs](https://nirnay-sih26043.onrender.com/docs)  
+> **GitHub Repository**: [https://github.com/CREATORRADHEY/Nirnay-SIH26043](https://github.com/CREATORRADHEY/Nirnay-SIH26043)
 
 ---
 
-## 🌐 Phase 1: Public Unauthenticated Testing (Landing & Explorer)
+## 🔑 1. Quick Credentials & Demo Login File
 
-### Step 1.1: Homepage Overview & Interactive Product Preview
+You can log in to NIRNAY using **Email & Password** or **Mobile OTP**.
 
-1. **Access Application**:
-   Open browser to `http://localhost:3000/`.
+### 📧 Email & Password Credentials Table
 
-2. **Header Navigation Verification**:
-   - Click **Product**, **Workflow**, **Stakeholders**, **Evidence**, **Pilot Readiness**, **Resources**, **About** — verify smooth scroll anchoring and routing.
-   - Click **Search icon** button in header.
-   - Click **View Demo** $\rightarrow$ verifies navigation to `/demo`.
-   - Click **Start Review** $\rightarrow$ verifies navigation to `/app` (or redirects to `/login` if unauthenticated).
-
-3. **Interactive 3D Product Preview Widget (Hero Right Column)**:
-   - **3D Tilt Effect**: Hover mouse cursor over the card shell — verify smooth CSS 3D dynamic tilt adjustment.
-   - **Floating Accent Badges**: Verify `🛡️ Human Sign-off Authoritative`, `✓ 100% Traceable Evidence Dossier`, and `⚡ AI ADVISORY ONLY` badges render cleanly.
-   - **Tab Switching**: Click through all 6 tabs (**Overview**, **Evidence**, **Qualification**, **HEI Match**, **Pilot Plan**, **Outcomes**) — verify dynamic panel content updates without layout collisions.
-   - **Sidebar Controls**: Click widget sidebar icons (**Dashboard**, **Challenges**, **Evidence**, **HEI Matching**, **Pilot Readiness**, **Monitoring**, **Reports**) — verify active tab highlight changes.
-   - **Widget Search Box**: Type `Ranchi` or `Water` in the widget search input.
-   - **Action Links**: Click **View Matches** or **View Details** inside the preview widget.
-
-4. **Homepage Sections Check**:
-   - **Workflow Section**: Inspect *Challenge Passport*, *HEI Matching*, and *Pilot Outcome* cards. Click **Explore the Workflow $\rightarrow$**.
-   - **Platform Capabilities Grid**: Inspect 6 integrity feature cards (*Bounded AI Assistance*, *Automated Re-evaluation*, *Execution vs Evidence Separation*, *Multi-Role Collaboration*, *Immutable Audit History*, *Public Challenge Passports*).
-   - **Jury Scenarios Showcase**: Inspect *Scenario A* and *Scenario B* preview cards.
-   - **Ecosystem Banner**: Verify logos for State Governments, HEIs, Research Organisations, Development Partners, and Civil Society.
-   - **Call-to-Action Banner**: Click **Start Review Now** and **Explore Interactive Demo**.
+| Role | Email Address | Password | Permissions & Primary Focus |
+| :--- | :--- | :--- | :--- |
+| **Government Nodal Officer** | `official@jharkhand.gov.in` | `Official@123` | Challenge qualification, pilot readiness approvals, governance sign-off. |
+| **HEI Director / Institutional Lead** | `director@bitmesra.ac.in` | `Director@123` | HEI capability matching, committing labs & faculty resources (`ACCEPTED`). |
+| **MSME / Startup Partner** | `partner@msme.gov.in` | `Partner@123` | Solution proposal submission, pilot co-execution. |
+| **Community / Citizen Reporter** | `reporter@ranchi.gov.in` | `Reporter@123` | Field issue reporting, citizen evidence upload. |
+| **Jury / Platform Admin** | `admin@nirnay.gov.in` | `Admin@123` | Full audit trail inspection, system oversight, role management. |
 
 ---
 
-### Step 1.2: Public Challenge Explorer
+### 📱 Mobile OTP Instant Testing Access
 
-1. Navigate to `http://localhost:3000/challenges`.
-2. **Filters & Search**:
-   - **Filter by District**: Select `Ranchi` or `Hazaribagh`.
-   - **Filter by Domain**: Select `Environment` or `Urban Infrastructure`.
-   - **Search Input**: Type `Water` or `Waste`.
-3. **Challenge Details View**:
-   - Click on any challenge card (e.g. *Sustainable Water Management for Semi-Urban Towns*).
-   - Verify public view displays Challenge ID, location, domain tags, evidence count, and qualification status.
+1. Go to the Sign In page: [`/login`](https://nirnay-sih-26043-one.vercel.app/login)
+2. Switch to the **Mobile OTP** tab.
+3. Enter any 10-digit Indian Mobile Number (e.g. `9876543210`).
+4. Click **Get OTP Code**.
+5. Enter the instant testing code: **`123456`**.
+6. Click **Verify & Sign In** to access the workbench immediately.
 
 ---
 
-## 🔐 Phase 2: Role-Based Workflow Testing
+## 🔬 2. Manual Testing Workflows (Step-by-Step)
 
-### Workflow A: Government Nodal Reviewer (`gov@nirnay.gov.in`)
-
-#### Step 2.1: Login & Executive Dashboard
-1. Open `http://localhost:3000/login`.
-2. Enter Email: `gov@nirnay.gov.in`, Password: `Password123!`. Click **Sign In**.
-3. **Dashboard (`/app`)**:
-   - Verify header displays **Ananya Singh (State Nodal Reviewer)** with role badge `GOVERNMENT ADMIN`.
-   - Inspect key counters: *Active Challenges*, *Qualified Problems*, *Matched HEIs*, *Ready Pilots*, *Outcome Evaluations*.
-
-#### Step 2.2: Review Queue (`/app/review`)
-1. Click **Review Queue** in navigation.
-2. View pending citizen challenge submissions.
-3. Select a challenge to review problem details and initial evidence records.
-
-#### Step 2.3: Problem Qualification Workbench (`/app/qualification`)
-1. Click **Qualification** in navigation.
-2. Select Challenge: **Ward 12 Waste Challenge** (`c0a80001-0000-4000-8000-000000000001`).
-3. **Record Qualification Decision**:
-   - **Select Route**: `INNOVATION_CHALLENGE` or `GOVERNMENT_PROJECT`.
-   - **Rationale**: Enter `"Qualified for state-supported pilot testing under Urban Waste Initiative."`
-   - Click **Record Decision $\rightarrow$** — verifies version `v1` is created with score `88/100`.
-
-#### Step 2.4: HEI Capability Matching Workbench (`/app/hei-matching`)
-1. Click **HEI Matching** in navigation.
-2. View candidate higher education institutions (*BIT Mesra*, *NIT Jamshedpur*, *IIT Dhanbad*).
-3. **Inspect Capability Profile**: Click **View Capability** to check research lab equipment and faculty expertise.
-4. **Add Manual Candidate Match**:
-   - Click **Add Candidate**.
-   - **Select Organization**: *Birla Institute of Technology, Mesra*.
-   - **Select Match Method**: `MANUAL`.
-   - **Rationale**: Enter `"Matched based on specialized hydro-geological aquifer lab facilities."`
-   - Click **Save Candidate**.
-
-#### Step 2.5: Pilot Readiness Workbench (`/app/readiness`)
-1. Click **Readiness** in navigation.
-2. Inspect readiness conditions (*Environmental Safety Clearance*, *Municipal Field Access*, *Institutional Commitment Dependency*).
-3. **Record Readiness Decision**:
-   - **Select Status**: `PILOT_READY`.
-   - **Rationale**: Enter `"All safety clearances and institutional commitments satisfied."`
-   - Click **Authorize Pilot Readiness $\rightarrow$** — verifies state becomes `PILOT_READY v1`.
-
-#### Step 2.6: Pilot Execution Workspace (`/app/pilots`)
-1. Click **Pilots** in navigation.
-2. Select Active Pilot: **Hazaribagh Vendor Cold Chain Field Pilot** (`b0a80002-0000-4000-8000-000000000006`).
-3. **Operational State Lifecycle**:
-   - Click **Update Operational State**.
-   - **Select State**: Advance from `PLANNED` $\rightarrow$ `ACTIVE` $\rightarrow$ `COMPLETED`.
-   - **Rationale**: Enter `"Field pilot testing period completed after 60-day observation window."`
-4. **Inspect Evidence Plan**:
-   - **Objective**: Solar thermal cooling units evaluation.
-   - **Baseline**: 41% of surveyed households.
-   - **Denominator**: 240 households.
-
-#### Step 2.7: Outcome Evaluation Workbench (`/app/outcomes`)
-1. Click **Outcomes** in navigation.
-2. Select Completed Pilot.
-3. **Record Evidence Outcome Assessment**:
-   - **Select Conclusion**: `INCONCLUSIVE` or `VALIDATED`.
-   - **Rationale**: Enter `"Monsoon weather variations reduced solar efficiency during weeks 3-4, requiring extended sample size."`
-   - Click **Record Outcome Assessment**.
-4. **Verify Integrity Separation**: Note that pilot operational state remains `COMPLETED` while outcome is explicitly recorded as `INCONCLUSIVE` (*Completion $\neq$ Impact*).
+### Test Flow 1: Public Landing Page & Governance Copy
+- **URL**: [https://nirnay-sih-26043-one.vercel.app/](https://nirnay-sih-26043-one.vercel.app/)
+- **Steps**:
+  1. Open the landing page.
+  2. Verify ecosystem header: *"BUILT FOR A COLLABORATIVE INNOVATION ECOSYSTEM"*.
+  3. Verify footer: *"NIRNAY — SIH26043 | Team CREATORZZZ - Production-oriented MVP for proposed public-sector deployment."*
+  4. Ensure `/demo` links on header and footer point to `/challenges`.
 
 ---
 
-### Workflow B: HEI Academic Admin (`hei@bitmesra.ac.in`)
-
-#### Step 3.1: Login & HEI Dashboard
-1. Sign out and log in with Email: `hei@bitmesra.ac.in`, Password: `Password123!`.
-2. Navigation header displays: **Dr. Ramesh Sharma (`HEI_ADMIN` • Birla Institute of Technology, Mesra)**.
-
-#### Step 3.2: Record Institutional Commitment (`/app/commitments`)
-1. Navigate to `/app/commitments`.
-2. Select Challenge: **Sustainable Water Management for Semi-Urban Towns**.
-3. **Pledge Institutional Resources**:
-   - **Select Commitment Type**: `TECHNICAL_FACILITY_ACCESS`.
-   - **Status**: `ACCEPTED`.
-   - **Scope Description**: Enter `"BIT Mesra pledges Water Quality Testing Rig and 2 Research Scholars for 6-month pilot duration."`
-   - Click **Pledge Commitment $\rightarrow$** — creates commitment version `v1 ACCEPTED`.
-
-#### Step 3.3: Test Automated Dependency Invalidation Flow
-1. Update Commitment status to `WITHDRAWN` (Version `v2 WITHDRAWN`).
-2. Log back in as `gov@nirnay.gov.in` $\rightarrow$ navigate to `/app/readiness`.
-3. **Observe Automated Invalidation**: Verify readiness status automatically transitions from `PILOT_READY` to `REVIEW_REQUIRED` because the underlying commitment dependency broke.
+### Test Flow 2: Challenge Explorer & Public Passports
+- **URL**: [https://nirnay-sih-26043-one.vercel.app/challenges](https://nirnay-sih-26043-one.vercel.app/challenges)
+- **Steps**:
+  1. Filter challenges by District (*Ranchi*, *Hazaribagh*, *Dhanbad*) or Domain (*Urban Waste*, *Cold Chain Supply*, *Water Sanitation*).
+  2. Click **View Passport** on any challenge card (e.g. *Ward 12 Solid Waste Processing*).
+  3. Inspect baseline metrics, population estimates, and attached evidence dossiers.
 
 ---
 
-### Workflow C: Citizen / Community Reporter (`citizen@ranchi.gov.in`)
-
-#### Step 4.1: Report New Societal Challenge (`/app/challenges/new`)
-1. Sign out and log in with Email: `citizen@ranchi.gov.in`, Password: `Password123!`.
-2. Navigation header displays: **Aditi Verma (`COMMUNITY_REPORTER`)**.
-3. Navigate to `/app/challenges/new`.
-4. **Fill Challenge Intake Form**:
-   - **Title**: Fluoride Contamination in Ward 7 Drinking Wells
-   - **District**: Ranchi
-   - **Domain**: Environment & Public Health
-   - **Problem Statement**: Enter `"High concentration of fluoride detected in public tube wells affecting 1,500 residents."`
-   - **Population Impacted**: 1,500
-   - **Severity**: `HIGH`
-5. Click **Submit Challenge Intake**.
-6. Verify redirect to `/app/challenges` with newly created challenge listed under **My Challenges**.
+### Test Flow 3: HEI Capability Matching & Commitment Binding
+- **URL**: Log in as `director@bitmesra.ac.in` and navigate to `/app/hei-matching`
+- **Steps**:
+  1. Select an open challenge requiring academic/R&D capacity.
+  2. Inspect auto-matched HEI capability dossiers.
+  3. Click **Commit Facilities & Faculty** (State transitions to `v1 ACCEPTED`).
+  4. Verify concurrency lock (`expected_version: 1`).
 
 ---
 
-### Workflow D: Platform Administrator (`admin@nirnay.gov.in`)
-
-#### Step 5.1: System Governance & AI Audit Logs (`/app/admin`)
-1. Sign out and log in with Email: `admin@nirnay.gov.in`, Password: `Password123!`.
-2. Navigation header displays: **System Administrator (`PLATFORM_ADMIN`)**.
-3. **AI Assistance Audit (`/app/admin/ai`)**:
-   - Inspect AI query logs, prompt injection safety evaluations, schema compliance metrics, and provider failure fallbacks.
-4. **Audit Log Viewer (`/app/admin/audit`)**:
-   - View system-wide security audit trail, cryptographic request hashes, and actor attribution logs.
-5. **Organization Management (`/app/admin/organizations`)**:
-   - Inspect Government, HEI, and Industry organization directories and user memberships.
+### Test Flow 4: Dependency Invalidation (Scenario A)
+- **Objective**: Verify `PILOT_READY` automatically invalidates to `REVIEW_REQUIRED` when commitment drops.
+- **Steps**:
+  1. As Government Official (`official@jharkhand.gov.in`), mark challenge readiness as `PILOT_READY` (`version: 1`).
+  2. As HEI Lead (`director@bitmesra.ac.in`), withdraw commitment (`version: 2 WITHDRAWN`).
+  3. Re-open readiness status: System automatically reflects **`v2 REVIEW_REQUIRED`** with complete historical audit trail preserved.
 
 ---
 
-## 🏆 Phase 3: Golden Jury Demo Scenarios
-
-### Scenario A: Dependency Integrity ("Ready can become not ready")
-
-1. Open `http://localhost:3000/demo`.
-2. Click **Open Scenario A (Ward 12 Waste Challenge)** or open `/challenges/c0a80001-0000-4000-8000-000000000001`.
-3. **Step 1**: Observe Readiness status is `PILOT_READY v1` depending on BIT Mesra Commitment `ACCEPTED`.
-4. **Step 2**: Open `/app/commitments` $\rightarrow$ Withdraw commitment (`v2 WITHDRAWN`).
-5. **Step 3**: Re-inspect `/app/readiness` $\rightarrow$ Observe automatic status invalidation to `REVIEW_REQUIRED`.
-6. **Key Jury Takeaway**: *"NIRNAY preserves audit history while automatically invalidating readiness when underlying commitments break."*
+### Test Flow 5: Operational Completion vs Evidence Outcome (Scenario B)
+- **Objective**: Verify operational completion does NOT auto-generate impact claims.
+- **URL**: [https://nirnay-sih-26043-one.vercel.app/pilots/b0a80002-0000-4000-8000-000000000006](https://nirnay-sih-26043-one.vercel.app/pilots/b0a80002-0000-4000-8000-000000000006)
+- **Steps**:
+  1. Advance pilot operational lifecycle to `COMPLETED`.
+  2. Inspect outcome evaluation section: Status remains **`INCONCLUSIVE`** pending pre-declared baseline evaluation and human review sign-off.
 
 ---
 
-### Scenario B: Evidence Integrity ("Completed does not mean proven")
+## 🧪 3. Automated Test Suite Breakdown (28 Pass)
 
-1. Open `http://localhost:3000/demo`.
-2. Click **Open Scenario B (Cold Chain Pilot Workspace)** or open `/pilots/b0a80002-0000-4000-8000-000000000006`.
-3. **Step 1**: Observe Pilot operational state is `ACTIVE`.
-4. **Step 2**: Advance operational state to `COMPLETED`.
-5. **Step 3**: Observe that no outcome is auto-generated (*Completion $\neq$ Impact*).
-6. **Step 4**: Record human outcome assessment as `INCONCLUSIVE` with denominator rationale.
-7. **Key Jury Takeaway**: *"Completed, but not proven. Execution completion is strictly separated from impact claims."*
+Run command:
+```bash
+cd apps/web
+npm run test
+```
+
+### Test Case Execution Summary:
+
+```tap
+TAP version 13
+ok 1 - DEMO_CHALLENGES contains factual dataset records
+ok 2 - fetchChallenges fallback returns challenge list and isDemo flag
+ok 3 - fetchChallenges respects district filter
+ok 4 - fetchChallenges respects domain filter
+ok 5 - fetchChallengeDetail retrieves valid challenge
+ok 6 - fetchChallengeEvidence retrieves attached evidence
+ok 7 - fetchQualificationHistory retrieves recorded decisions
+ok 8 - fetchLatestQualification retrieves latest qualification decision
+ok 9 - createQualificationDecision creates new decision version
+ok 10 - fetchHEIOrganizations retrieves active HEI directory without match scores
+ok 11 - createHEICandidate adds candidate with MANUAL method and rationale
+ok 12 - fetchHEICandidates returns candidates list
+ok 13 - fetchOrganizationCapabilities returns active capabilities
+ok 14 - Commitment workflow: v1 ACCEPTED creation & expected_version validation
+ok 15 - Commitment concurrency: stale expected_version throws 409 error
+ok 16 - Readiness workflow: Condition assessment with commitment dependency
+ok 17 - Readiness decision: REVIEW_REQUIRED cannot be manually created by client
+ok 18 - Hero invalidation flow: ACCEPTED -> SATISFIED -> PILOT_READY -> WITHDRAWN -> automatic REVIEW_REQUIRED
+ok 19 - Demo Fallback config: disabling NEXT_PUBLIC_ENABLE_DEMO_FALLBACK throws on network error
+ok 20 - Pilot creation and authorization gate validation
+ok 21 - Operational lifecycle advance: PLANNED -> ACTIVE -> COMPLETED
+ok 22 - Evidence Plan creation with baseline & denominator definitions
+ok 23 - Outcome assessment creation requires human reviewer and evidence plan reference
+ok 24 - Hero Outcome Scenario: COMPLETED operational status + INCONCLUSIVE evidence conclusion
+ok 25 - Golden Scenario A data parity: Ward 12 Waste Challenge
+ok 26 - Golden Scenario B data parity: Hazaribagh Vendor Cold Chain Pilot
+ok 27 - Production Auth & Security: Auth & Session state structure
+ok 28 - Production RBAC: Multi-role permission matrix definitions
+```
+
+---
+
+## 🔌 4. Core API Endpoints (Swagger / REST)
+
+Interactive API Documentation: [https://nirnay-sih26043.onrender.com/docs](https://nirnay-sih26043.onrender.com/docs)
+
+| HTTP Method | Endpoint Path | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/v1/auth/login` | Email/Password authentication & session cookie issue |
+| `POST` | `/api/v1/auth/mobile-otp/send` | Send mobile OTP (Bypass: `123456`) |
+| `GET` | `/api/v1/challenges` | Retrieve public challenge directory with filters |
+| `GET` | `/api/v1/challenges/{id}` | Challenge Passport telemetry and evidence |
+| `POST` | `/api/v1/commitments` | Create or update HEI commitment version |
+| `POST` | `/api/v1/readiness` | Evaluate or update pilot readiness state |
+| `PATCH` | `/api/v1/pilots/{id}/status` | Advance pilot operational status |
+| `GET` | `/api/v1/audit-trail` | Immutable state audit logs for entity |
