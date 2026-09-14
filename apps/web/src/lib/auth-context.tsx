@@ -101,25 +101,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let orgName = "Ranchi Action Forum";
     let orgType = "CITIZEN";
 
-    if (lowerEmail.includes("official") || lowerEmail.includes("jharkhand")) {
+    if (lowerEmail.includes("gov@") || lowerEmail.includes("official") || lowerEmail.includes("jharkhand")) {
       role = "GOVERNMENT_OFFICIAL";
-      name = "State Nodal Officer (Jharkhand UDHD)";
-      orgName = "Urban Development & Housing Department";
+      name = "State Nodal Reviewer (Gov Admin)";
+      orgName = "Urban Development & Housing Department (Govt of Jharkhand)";
       orgType = "GOVERNMENT";
-    } else if (lowerEmail.includes("director") || lowerEmail.includes("bitmesra")) {
+    } else if (lowerEmail.includes("reviewer@")) {
+      role = "GOVERNMENT_OFFICIAL";
+      name = "Nodal Reviewer (Jury Demo)";
+      orgName = "State Governance Review Panel";
+      orgType = "GOVERNMENT";
+    } else if (lowerEmail.includes("hei@") || lowerEmail.includes("director") || lowerEmail.includes("bitmesra")) {
       role = "HEI_DIRECTOR";
-      name = "Dr. S. K. Roy (Director, BIT Mesra)";
-      orgName = "BIT Mesra Innovation & Research Lab";
+      name = "HEI Admin (BIT Mesra)";
+      orgName = "BIT Mesra Innovation & Research Center";
       orgType = "HEI";
-    } else if (lowerEmail.includes("partner") || lowerEmail.includes("msme")) {
+    } else if (lowerEmail.includes("industry@") || lowerEmail.includes("partner") || lowerEmail.includes("msme") || lowerEmail.includes("cleanwater")) {
       role = "MSME_PARTNER";
-      name = "Verma CleanTech Solutions";
-      orgName = "Verma CleanTech Pvt Ltd";
+      name = "Industry Partner (CleanWater Co)";
+      orgName = "CleanWater Tech Innovations India";
       orgType = "MSME";
-    } else if (lowerEmail.includes("admin")) {
+    } else if (lowerEmail.includes("citizen@") || lowerEmail.includes("reporter") || lowerEmail.includes("ranchi")) {
+      role = "COMMUNITY_REPORTER";
+      name = "Citizen Reporter";
+      orgName = "Ranchi Citizens Action Forum";
+      orgType = "CITIZEN";
+    } else if (lowerEmail.includes("admin@")) {
       role = "PLATFORM_ADMIN";
-      name = "NIRNAY System Administrator";
-      orgName = "NIRNAY Governance Unit";
+      name = "Platform Administrator";
+      orgName = "NIRNAY Central Governance Platform Unit";
       orgType = "GOVERNMENT";
     }
 
