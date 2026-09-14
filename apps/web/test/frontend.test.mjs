@@ -9,7 +9,7 @@ import {
   fetchChallengeEvidence,
   fetchQualificationHistory,
   DEMO_CHALLENGES,
-} from "../src/lib/api.ts";
+} from "../src/lib/api.js";
 
 test("DEMO_CHALLENGES contains factual dataset records", () => {
   assert.ok(DEMO_CHALLENGES.length >= 2);
@@ -61,7 +61,7 @@ import {
   createHEICandidate,
   fetchOrganizationCapabilities,
   DEMO_REVIEWER_ACTOR_ID,
-} from "../src/lib/api.ts";
+} from "../src/lib/api.js";
 
 test("fetchLatestQualification retrieves latest qualification decision", async () => {
   const challengeId = "c0010000-0000-0000-0000-000000000001";
@@ -128,7 +128,7 @@ import {
   fetchReadinessHistory,
   fetchLatestReadinessDecision,
   createReadinessDecision,
-} from "../src/lib/api.ts";
+} from "../src/lib/api.js";
 
 test("Commitment workflow: v1 ACCEPTED creation & expected_version validation", async () => {
   const challengeId = "c0010000-0000-0000-0000-000000000001";
@@ -287,7 +287,7 @@ import {
   createOutcomeAssessment,
   fetchLatestOutcomeAssessment,
   fetchLatestPilotEvidencePlan,
-} from "../src/lib/api.ts";
+} from "../src/lib/api.js";
 
 test("Demo Fallback config: disabling NEXT_PUBLIC_ENABLE_DEMO_FALLBACK throws on network error", async () => {
   const originalEnv = process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK;
