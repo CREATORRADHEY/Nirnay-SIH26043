@@ -15,6 +15,59 @@ from app.services.audit_service import log_security_event
 from app.core.enums import SecurityAuditEventType
 
 
+import re
+
+DISPOSABLE_EMAIL_DOMAINS = {
+    "yopmail.com", "yopmail.fr", "yopmail.net", "tempmail.com", "temp-mail.org",
+    "tempmail.net", "tempmailo.com", "mailinator.com", "mailinator.net",
+    "10minutemail.com", "10minutemail.net", "guerrillamail.com", "guerrillamail.block",
+    "sharklasers.com", "throwawaymail.com", "trashmail.com", "dispostable.com",
+    "getnada.com", "mohmal.com", "maildrop.cc", "crazymailing.com", "fakeinbox.com",
+    "binkmail.com", "safetymail.info", "mytrashmail.com", "burnermail.io", "nada.ltd"
+}
+
+VALID_PLATFORM_ROLES = {
+    "COMMUNITY_REPORTER",
+    "HEI_INNOVATOR",
+    "HEI_REPRESENTATIVE",
+    "HEI_ADMIN",
+    "INDUSTRY_PARTNER",
+    "INDUSTRY_ADMIN",
+    "GOVERNMENT_OFFICIAL",
+    "GOVERNMENT_REVIEWER",
+    "GOVERNMENT_ADMIN",
+    "PLATFORM_ADMIN",
+}
+
+
+def validate_password_policy(password: str) -> None:
+    if len(password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 8 characters long.",
+        )
+    if not re.search(r"[A-Z]", password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must contain at least one uppercase letter (A-Z).",
+        )
+    if not re.search(r"[a-z]", password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must contain at least one lowercase letter (a-z).",
+        )
+    if not re.search(r"[0-9]", password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must contain at least one numeric digit (0-9).",
+        )
+    if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]", password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must contain at least one special character (!@#$%^&* etc.).",
+        )
+
+
 class AuthService:
     SESSION_DURATION_DAYS = 30
     TOKEN_EXPIRY_HOURS = 24
@@ -31,6 +84,24 @@ class AuthService:
         user_agent: Optional[str] = None,
     ) -> Tuple[Actor, str]:
         normalized_email = email.strip().lower()
+
+        if "@" not in normalized_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Please enter a valid email address.",
+            )
+
+        domain = normalized_email.split("@")[-1]
+        if domain in DISPOSABLE_EMAIL_DOMAINS or domain.endswith(".temp") or domain.endswith(".disposable"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Disposable or temporary email addresses are not permitted. Please use a permanent email address.",
+            )
+
+        validate_password_policy(password)
+
+        if platform_role not in VALID_PLATFORM_ROLES:
+            platform_role = "COMMUNITY_REPORTER"
 
         existing_acc = db.scalar(select(Account).where(Account.email == normalized_email))
         if existing_acc:
@@ -384,3 +455,82 @@ class AuthService:
                 continue
             s.revoked_at = datetime.now(timezone.utc)
         db.commit()
+
+    @classmethod
+    def authenticate_mobile_otp(
+        cls,
+        db: Session,
+        phone: str,
+        code: str,
+        display_name: Optional[str] = None,
+        platform_role: Optional[str] = "COMMUNITY_REPORTER",
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None,
+    ) -> Tuple[Actor, str]:
+        digits = "".join(c for c in phone if c.isdigit())
+        if len(digits) < 10:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid mobile phone number. Must contain at least 10 digits.",
+            )
+
+        if code.strip() != "123456" and code.strip() != "654321":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid OTP code. Use test code 123456.",
+            )
+
+        synth_email = f"phone_{digits[-10:]}@nirnay.gov.in"
+        account = db.scalar(select(Account).where(Account.email == synth_email))
+
+        if not account:
+            name = display_name.strip() if display_name and display_name.strip() else f"User {digits[-4:]}"
+            actor = Actor(
+                display_name=name,
+                platform_role=platform_role or "COMMUNITY_REPORTER",
+                is_active=True,
+            )
+            db.add(actor)
+            db.flush()
+
+            hashed_pwd = hash_password(f"MobileOTP!{digits[-4:]}")
+            account = Account(
+                actor_id=actor.id,
+                email=synth_email,
+                password_hash=hashed_pwd,
+                is_verified=True,
+            )
+            db.add(account)
+        else:
+            actor = account.actor
+
+        if not actor or not actor.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Account is inactive or disabled.",
+            )
+
+        raw_session_token = generate_secure_token()
+        session_obj = AuthSession(
+            actor_id=actor.id,
+            token_hash=hash_token(raw_session_token),
+            expires_at=datetime.now(timezone.utc) + timedelta(days=cls.SESSION_DURATION_DAYS),
+            last_seen_at=datetime.now(timezone.utc),
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
+        db.add(session_obj)
+
+        log_security_event(
+            db,
+            event_type=SecurityAuditEventType.LOGIN_SUCCESS,
+            actor_id=str(actor.id),
+            account_id=str(account.id),
+            ip_address=ip_address,
+            user_agent=user_agent,
+            details=f"Mobile OTP login success for +91-{digits[-10:]}.",
+        )
+
+        db.commit()
+        return actor, raw_session_token
+

@@ -25,7 +25,7 @@ interface AuthContextType {
   user: UserProfile | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (display_name: string, email: string, password: string) => Promise<void>;
+  register: (display_name: string, email: string, password: string, platform_role?: string) => Promise<void>;
   sendMobileOtp: (phone: string) => Promise<{ status: string; message: string; otp_code?: string }>;
   verifyMobileOtp: (phone: string, code: string, display_name?: string, platform_role?: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -81,12 +81,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await refreshUser();
   };
 
-  const register = async (display_name: string, email: string, password: string) => {
+  const register = async (display_name: string, email: string, password: string, platform_role?: string) => {
     const res = await fetch(`${API_BASE}/api/v1/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ display_name, email, password }),
+      body: JSON.stringify({ display_name, email, password, platform_role: platform_role || "COMMUNITY_REPORTER" }),
     });
     if (!res.ok) {
       const err = await res.json();

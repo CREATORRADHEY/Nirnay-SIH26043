@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { ArrowLeft, Phone, Mail, ShieldCheck, RefreshCw } from "lucide-react";
+import { ArrowLeft, Phone, Mail, ShieldCheck, RefreshCw, Eye, EyeOff, AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
   const { login, sendMobileOtp, verifyMobileOtp } = useAuth();
@@ -15,6 +15,7 @@ export default function LoginPage() {
   // Email form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   // Mobile OTP state
   const [phone, setPhone] = useState("");
@@ -181,15 +182,22 @@ export default function LoginPage() {
                     Forgot password?
                   </Link>
                 </div>
-                <div className="mt-1">
+                <div className="mt-1 relative">
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-3 py-2 border border-stone-300 rounded-md shadow-sm placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-amber-600 text-sm"
+                    className="w-full px-3 py-2 pr-10 border border-stone-300 rounded-md shadow-sm placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-600 focus:border-amber-600 text-sm"
                     placeholder="••••••••"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-2.5 text-stone-400 hover:text-stone-600 cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
