@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { FileText, Users, BarChart3, ChevronRight, ArrowRight } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 
 export function WorkflowSection() {
+  const { user } = useAuth();
+
   const modules = [
     {
       icon: FileText,
@@ -66,17 +69,19 @@ export function WorkflowSection() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {modules.map((mod, idx) => {
             const Icon = mod.icon;
+            const targetUrl = user ? mod.href : "/login";
             return (
-              <div
+              <Link
                 key={idx}
-                className="group rounded-2xl border border-stone-200 bg-white p-6 sm:p-7 flex items-start justify-between gap-4 hover:border-[#EA580C] transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer"
+                href={targetUrl}
+                className="group rounded-2xl border border-stone-200 bg-white p-6 sm:p-7 flex items-start justify-between gap-4 hover:border-[#EA580C] transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer block"
               >
                 <div className="space-y-3 flex-1">
                   <div className={`w-12 h-12 rounded-xl ${mod.iconBg} ${mod.iconColor} flex items-center justify-center shrink-0`}>
                     <Icon className="w-6 h-6" />
                   </div>
 
-                  <h3 className="text-lg font-bold text-[#1C1917] tracking-tight">
+                  <h3 className="text-lg font-bold text-[#1C1917] tracking-tight group-hover:text-[#EA580C] transition-colors">
                     {mod.title}
                   </h3>
 
@@ -90,7 +95,7 @@ export function WorkflowSection() {
                     <ChevronRight className="w-4 h-4" />
                   </div>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>

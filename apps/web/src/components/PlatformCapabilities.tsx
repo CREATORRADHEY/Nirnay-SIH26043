@@ -11,8 +11,11 @@ import {
   ArrowRight,
   Sparkles,
 } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 
 export function PlatformCapabilities() {
+  const { user } = useAuth();
+
   const capabilities = [
     {
       icon: Sparkles,
@@ -91,10 +94,12 @@ export function PlatformCapabilities() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {capabilities.map((cap, idx) => {
             const Icon = cap.icon;
+            const targetUrl = cap.href.startsWith("/app") ? (user ? cap.href : "/login") : cap.href;
             return (
-              <div
+              <Link
                 key={idx}
-                className="group rounded-2xl border border-stone-200/90 bg-[#FAF8F5]/60 p-7 flex flex-col justify-between hover:border-[#EA580C] transition-all duration-300 shadow-xs hover:shadow-md"
+                href={targetUrl}
+                className="group rounded-2xl border border-stone-200/90 bg-[#FAF8F5]/60 p-7 flex flex-col justify-between hover:border-[#EA580C] transition-all duration-300 shadow-xs hover:shadow-md cursor-pointer block"
               >
                 <div>
                   <div className="flex items-center justify-between mb-5">
@@ -110,7 +115,7 @@ export function PlatformCapabilities() {
                     {cap.tag}
                   </span>
 
-                  <h3 className="text-lg font-bold text-[#1C1917] mt-1 mb-2 font-serif">
+                  <h3 className="text-lg font-bold text-[#1C1917] mt-1 mb-2 font-serif group-hover:text-[#EA580C] transition-colors">
                     {cap.title}
                   </h3>
 
@@ -120,14 +125,13 @@ export function PlatformCapabilities() {
                 </div>
 
                 <div className="pt-5 mt-5 border-t border-stone-200/80">
-                  <Link
-                    href={cap.href}
+                  <span
                     className="inline-flex items-center text-xs font-bold text-[#EA580C] group-hover:text-[#C2410C] transition-colors gap-1.5"
                   >
                     Learn More <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                  </Link>
+                  </span>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
