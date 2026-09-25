@@ -53,6 +53,9 @@ class Settings(BaseSettings):
 
     # Storage Adapter Settings
     storage_provider: str = Field(default="local", validation_alias="STORAGE_PROVIDER")
+    allow_ephemeral_storage: bool = Field(
+        default=False, validation_alias="ALLOW_EPHEMERAL_STORAGE"
+    )
     s3_bucket: Union[str, None] = Field(default=None, validation_alias="S3_BUCKET")
     s3_endpoint_url: Union[str, None] = Field(default=None, validation_alias="S3_ENDPOINT_URL")
     s3_access_key_id: Union[str, None] = Field(default=None, validation_alias="S3_ACCESS_KEY_ID")

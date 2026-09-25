@@ -167,19 +167,32 @@ class TestConfig(unittest.TestCase):
             self.assertEqual(settings.release_sha, "abc123def456")
 
     def test_storage_adapter_production_fail_closed(self) -> None:
-        from app.services.storage_service import get_storage_adapter, S3CompatibleStorageAdapter
+        from app.services.storage_service import get_storage_adapter, LocalStorageAdapter, S3CompatibleStorageAdapter
 
-        prod_local_storage = {
+        prod_local_prohibited = {
             "APP_ENV": "production",
             "DEMO_MODE": "false",
             "DATABASE_URL": "postgresql+psycopg://user:pass@prod-db:5432/nirnay",
             "STORAGE_PROVIDER": "local",
+            "ALLOW_EPHEMERAL_STORAGE": "false",
         }
-        with patch.dict(os.environ, prod_local_storage, clear=True):
+        with patch.dict(os.environ, prod_local_prohibited, clear=True):
             get_settings.cache_clear()
             with self.assertRaises(RuntimeError) as cm:
                 get_storage_adapter()
             self.assertIn("CRITICAL PRODUCTION CONFIGURATION ERROR", str(cm.exception))
+
+        prod_local_opt_in = {
+            "APP_ENV": "production",
+            "DEMO_MODE": "false",
+            "DATABASE_URL": "postgresql+psycopg://user:pass@prod-db:5432/nirnay",
+            "STORAGE_PROVIDER": "local",
+            "ALLOW_EPHEMERAL_STORAGE": "true",
+        }
+        with patch.dict(os.environ, prod_local_opt_in, clear=True):
+            get_settings.cache_clear()
+            adapter = get_storage_adapter()
+            self.assertIsInstance(adapter, LocalStorageAdapter)
 
         prod_s3_storage = {
             "APP_ENV": "production",

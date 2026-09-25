@@ -108,31 +108,25 @@ def get_storage_adapter() -> StorageAdapter:
     settings = get_settings()
     provider = getattr(settings, "storage_provider", "local").lower()
     app_env = getattr(settings, "app_env", "development").lower()
-
-    if app_env == "production":
-        s3_bucket = getattr(settings, "s3_bucket", None)
-        if provider == "s3" and s3_bucket:
-            return S3CompatibleStorageAdapter(
-                bucket=s3_bucket,
-                endpoint_url=getattr(settings, "s3_endpoint_url", None),
-                access_key=getattr(settings, "s3_access_key_id", None),
-                secret_key=getattr(settings, "s3_secret_access_key", None),
-            )
-        raise RuntimeError(
-            "CRITICAL PRODUCTION CONFIGURATION ERROR: Ephemeral LocalStorageAdapter is prohibited when APP_ENV=production. "
-            "Must configure STORAGE_PROVIDER=s3 with valid S3_BUCKET."
-        )
+    allow_ephemeral = getattr(settings, "allow_ephemeral_storage", False)
 
     if provider == "s3":
         s3_bucket = getattr(settings, "s3_bucket", None)
-        if s3_bucket:
+        if s3_bucket and isinstance(s3_bucket, str) and s3_bucket.strip():
             return S3CompatibleStorageAdapter(
                 bucket=s3_bucket,
                 endpoint_url=getattr(settings, "s3_endpoint_url", None),
                 access_key=getattr(settings, "s3_access_key_id", None),
                 secret_key=getattr(settings, "s3_secret_access_key", None),
             )
+        raise ValueError("S3CompatibleStorageAdapter requires a valid non-empty S3_BUCKET name.")
+
+    if app_env == "production":
+        if not allow_ephemeral:
+            raise RuntimeError(
+                "CRITICAL PRODUCTION CONFIGURATION ERROR: Ephemeral LocalStorageAdapter is prohibited when APP_ENV=production "
+                "unless ALLOW_EPHEMERAL_STORAGE=true is explicitly set for MVP demo environments."
+            )
+        return LocalStorageAdapter()
+
     return LocalStorageAdapter()
-
-
-default_storage_adapter = LocalStorageAdapter()

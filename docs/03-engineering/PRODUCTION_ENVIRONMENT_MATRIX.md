@@ -72,13 +72,17 @@ By proxying browser requests `/api/v1/*` through Next.js rewrites on Vercel:
 
 ### 4. OBJECT STORAGE (AWS S3 / GCP Cloud Storage / MinIO)
 
+> [!IMPORTANT]
+> MVP hosted demo currently uses explicitly configured ephemeral evidence storage (`STORAGE_PROVIDER=local`, `ALLOW_EPHEMERAL_STORAGE=true`). Durable S3-compatible object storage is required before production or field deployment.
+
 | Variable Name | Required? | Secret? | Stage | Default / Description |
 |---------------|-----------|---------|-------|-----------------------|
-| `STORAGE_PROVIDER` | Required | No | Runtime | Set to `"s3"` in production (`"local"` prohibited in production). |
-| `S3_BUCKET` | Required (in Prod) | No | Runtime | S3 bucket name for challenge evidence attachments. |
+| `STORAGE_PROVIDER` | Required | No | Runtime | Set to `"s3"` for production, or `"local"` for MVP/development. |
+| `ALLOW_EPHEMERAL_STORAGE` | Optional | No | Runtime | Set to `"true"` to explicitly authorize ephemeral local storage in hosted MVP demo environments. Defaults to `"false"` (fails closed when `APP_ENV=production` and `STORAGE_PROVIDER=local`). |
+| `S3_BUCKET` | Required (for S3) | No | Runtime | S3 bucket name for challenge evidence attachments. |
 | `S3_ENDPOINT_URL` | Optional | No | Runtime | Custom S3 endpoint URL (e.g. for MinIO / Cloudflare R2 / GCP Interop). |
-| `S3_ACCESS_KEY_ID` | Required (in Prod) | Yes | Runtime | IAM access key ID. |
-| `S3_SECRET_ACCESS_KEY` | Required (in Prod) | Yes | Runtime | IAM secret access key. |
+| `S3_ACCESS_KEY_ID` | Required (for S3) | Yes | Runtime | IAM access key ID. |
+| `S3_SECRET_ACCESS_KEY` | Required (for S3) | Yes | Runtime | IAM secret access key. |
 | `S3_REGION` | Optional | No | Runtime | S3 region (defaults to `us-east-1`). |
 
 ---

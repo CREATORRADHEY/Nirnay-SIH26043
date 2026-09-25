@@ -168,10 +168,42 @@ def health_ready() -> dict:
         health_status["checks"]["database"] = {"status": "error", "message": "Database connection failed"}
 
     # 2. Storage Check
-    health_status["checks"]["storage"] = {
-        "status": "ok",
-        "provider": os.getenv("STORAGE_PROVIDER", "local"),
-    }
+    st_provider = st.storage_provider.lower()
+    app_env_val = st.app_env.lower()
+    allow_ephemeral = st.allow_ephemeral_storage
+
+    if st_provider == "s3" and st.s3_bucket:
+        health_status["checks"]["storage"] = {
+            "status": "ok",
+            "provider": "s3",
+            "durable": True,
+            "mode": "PRODUCTION_DURABLE",
+        }
+    elif st_provider == "local":
+        if app_env_val == "production" and not allow_ephemeral:
+            health_status["status"] = "unhealthy"
+            health_status["checks"]["storage"] = {
+                "status": "error",
+                "provider": "local",
+                "durable": False,
+                "mode": "PROHIBITED_LOCAL",
+                "warning": "Ephemeral local storage is prohibited in production when ALLOW_EPHEMERAL_STORAGE=false.",
+            }
+        else:
+            health_status["checks"]["storage"] = {
+                "status": "ok",
+                "provider": "local",
+                "durable": False,
+                "mode": "MVP_EPHEMERAL" if app_env_val == "production" else "DEVELOPMENT",
+                "warning": "Evidence files may be lost after service restart or redeploy.",
+            }
+    else:
+        health_status["checks"]["storage"] = {
+            "status": "ok",
+            "provider": st_provider,
+            "durable": False,
+            "mode": "UNKNOWN",
+        }
 
     # 3. Email Check
     health_status["checks"]["email"] = {
