@@ -9,6 +9,12 @@ def create_database_engine(database_url: str) -> Engine:
 
     pool_pre_ping=True ensures stale connections are detected before use.
     """
+    database_url = database_url.strip().strip('"').strip("'").strip()
+    if database_url.startswith("postgresql://"):
+        database_url = "postgresql+psycopg://" + database_url[len("postgresql://"):]
+    elif database_url.startswith("postgres://"):
+        database_url = "postgresql+psycopg://" + database_url[len("postgres://"):]
+
     connect_args = {}
     if database_url.startswith("sqlite"):
         connect_args["check_same_thread"] = False

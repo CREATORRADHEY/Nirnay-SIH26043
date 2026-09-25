@@ -20,6 +20,7 @@ from app.models.outcome_assessment import OutcomeAssessment
 from app.models.security_audit_log import SecurityAuditLog
 from app.models.clarification import ClarificationRequest, ClarificationResponse
 from app.models.notification import Notification
+from app.models.decision_assurance import DecisionAssuranceRecord, DecisionReviewRequest
 
 __all__ = [
     "Base",
@@ -47,6 +48,8 @@ __all__ = [
     "ClarificationRequest",
     "ClarificationResponse",
     "Notification",
+    "DecisionAssuranceRecord",
+    "DecisionReviewRequest",
 ]
 
 from app.models.ai_audit_log import AIAuditLog

@@ -48,3 +48,9 @@ storage/uploads/
 # Test outputs
 playwright-report/
 test-results/
+
+# Runtime evidence uploads
+apps/api/storage/uploads/
+
+# Runtime evidence uploads
+apps/api/storage/uploads/

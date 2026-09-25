@@ -33,7 +33,7 @@ from app.services.clarification_service import (
     create_clarification_response,
     resolve_clarification,
 )
-from app.services.storage_service import default_storage_adapter
+from app.services.storage_service import get_storage_adapter
 from app.services.policy_service import PolicyService
 
 router = APIRouter(tags=["challenges"])
@@ -250,7 +250,8 @@ async def upload_challenge_evidence_file(
 
     try:
         file_bytes = await file.read()
-        storage_ref, _ = default_storage_adapter.save_file(
+        storage_adapter = get_storage_adapter()
+        storage_ref, _ = storage_adapter.save_file(
             file_bytes=file_bytes,
             original_filename=file.filename or "file.bin",
             content_type=file.content_type or "application/octet-stream",
@@ -298,7 +299,8 @@ def download_evidence_file(
         )
 
     try:
-        file_path = default_storage_adapter.get_file_path(evidence.storage_reference)
+        storage_adapter = get_storage_adapter()
+        file_path = storage_adapter.get_file_path(evidence.storage_reference)
         return FileResponse(file_path, filename=f"evidence_{evidence_id}{os.path.splitext(file_path)[1]}")
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))

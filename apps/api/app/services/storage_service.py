@@ -87,10 +87,12 @@ class LocalStorageAdapter(StorageAdapter):
 class S3CompatibleStorageAdapter(StorageAdapter):
     """Production Object Storage Adapter (AWS S3 / GCP Cloud Storage / MinIO)."""
     def __init__(self, bucket: str, endpoint_url: Optional[str] = None, access_key: Optional[str] = None, secret_key: Optional[str] = None):
-        self.bucket = bucket
-        self.endpoint_url = endpoint_url
-        self.access_key = access_key
-        self.secret_key = secret_key
+        if not bucket or not isinstance(bucket, str) or not bucket.strip():
+            raise ValueError("S3CompatibleStorageAdapter requires a valid non-empty S3_BUCKET name.")
+        self.bucket = bucket.strip()
+        self.endpoint_url = endpoint_url.strip() if endpoint_url else None
+        self.access_key = access_key.strip() if access_key else None
+        self.secret_key = secret_key.strip() if secret_key else None
 
     def save_file(self, file_bytes: bytes, original_filename: str, content_type: str) -> Tuple[str, str]:
         ext = os.path.splitext(os.path.basename(original_filename))[1].lower()
@@ -106,21 +108,25 @@ def get_storage_adapter() -> StorageAdapter:
     settings = get_settings()
     provider = getattr(settings, "storage_provider", "local").lower()
     app_env = getattr(settings, "app_env", "development").lower()
+    allow_ephemeral = getattr(settings, "allow_ephemeral_storage", False)
 
-    if app_env == "production":
+    if provider == "s3":
         s3_bucket = getattr(settings, "s3_bucket", None)
-        if provider == "s3" and s3_bucket:
+        if s3_bucket and isinstance(s3_bucket, str) and s3_bucket.strip():
             return S3CompatibleStorageAdapter(
                 bucket=s3_bucket,
                 endpoint_url=getattr(settings, "s3_endpoint_url", None),
                 access_key=getattr(settings, "s3_access_key_id", None),
                 secret_key=getattr(settings, "s3_secret_access_key", None),
             )
-        raise RuntimeError(
-            "CRITICAL PRODUCTION CONFIGURATION ERROR: Ephemeral LocalStorageAdapter is prohibited when APP_ENV=production. "
-            "Must configure STORAGE_PROVIDER=s3 with valid S3_BUCKET."
-        )
+        raise ValueError("S3CompatibleStorageAdapter requires a valid non-empty S3_BUCKET name.")
+
+    if app_env == "production":
+        if not allow_ephemeral:
+            raise RuntimeError(
+                "CRITICAL PRODUCTION CONFIGURATION ERROR: Ephemeral LocalStorageAdapter is prohibited when APP_ENV=production "
+                "unless ALLOW_EPHEMERAL_STORAGE=true is explicitly set for MVP demo environments."
+            )
+        return LocalStorageAdapter()
+
     return LocalStorageAdapter()
-
-
-default_storage_adapter = LocalStorageAdapter()
