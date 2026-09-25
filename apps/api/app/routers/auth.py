@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.database import get_db
 from app.core.dependencies import get_current_actor, get_session_token_from_request
 from app.models.actor import Actor
@@ -103,13 +104,14 @@ def verify_mobile_otp(
         user_agent=user_agent,
     )
 
+    settings = get_settings()
     csrf_token = generate_secure_token()
     response.set_cookie(
         key="nirnay_session",
         value=raw_token,
         httponly=True,
-        samesite="lax",
-        secure=False,
+        samesite=settings.session_cookie_samesite,
+        secure=settings.is_cookie_secure,
         path="/",
         max_age=30 * 24 * 3600,
     )
@@ -117,8 +119,8 @@ def verify_mobile_otp(
         key="nirnay_csrf",
         value=csrf_token,
         httponly=False,
-        samesite="lax",
-        secure=False,
+        samesite=settings.csrf_cookie_samesite,
+        secure=settings.is_cookie_secure,
         path="/",
         max_age=30 * 24 * 3600,
     )
@@ -153,13 +155,14 @@ def register(
         user_agent=user_agent,
     )
 
+    settings = get_settings()
     csrf_token = generate_secure_token()
     response.set_cookie(
         key="nirnay_session",
         value=raw_token,
         httponly=True,
-        samesite="lax",
-        secure=False,
+        samesite=settings.session_cookie_samesite,
+        secure=settings.is_cookie_secure,
         path="/",
         max_age=30 * 24 * 3600,
     )
@@ -167,8 +170,8 @@ def register(
         key="nirnay_csrf",
         value=csrf_token,
         httponly=False,
-        samesite="lax",
-        secure=False,
+        samesite=settings.csrf_cookie_samesite,
+        secure=settings.is_cookie_secure,
         path="/",
         max_age=30 * 24 * 3600,
     )
@@ -201,13 +204,14 @@ def login(
         user_agent=user_agent,
     )
 
+    settings = get_settings()
     csrf_token = generate_secure_token()
     response.set_cookie(
         key="nirnay_session",
         value=raw_token,
         httponly=True,
-        samesite="lax",
-        secure=False,
+        samesite=settings.session_cookie_samesite,
+        secure=settings.is_cookie_secure,
         path="/",
         max_age=30 * 24 * 3600,
     )
@@ -215,8 +219,8 @@ def login(
         key="nirnay_csrf",
         value=csrf_token,
         httponly=False,
-        samesite="lax",
-        secure=False,
+        samesite=settings.csrf_cookie_samesite,
+        secure=settings.is_cookie_secure,
         path="/",
         max_age=30 * 24 * 3600,
     )

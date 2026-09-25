@@ -28,9 +28,23 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+from app.core.config import get_settings
+
+settings = get_settings()
+
+allowed_origins = list(settings.cors_origins) if settings.cors_origins else [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://nirnay-sih-26043-one.vercel.app",
+]
+if "http://localhost:3000" not in allowed_origins:
+    allowed_origins.append("http://localhost:3000")
+if "http://127.0.0.1:3000" not in allowed_origins:
+    allowed_origins.append("http://127.0.0.1:3000")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -119,19 +133,26 @@ app.include_router(notifications_router.router)
 
 @app.get("/health")
 def health() -> dict[str, str]:
-    return {"status": "ok", "service": "nirnay-api"}
+    st = get_settings()
+    return {
+        "status": "ok",
+        "service": "nirnay-api",
+        "version": app.version,
+        "release_sha": st.release_sha,
+    }
 
 @app.get("/health/ready")
 def health_ready() -> dict:
     from app.core.database import SessionLocal
     from sqlalchemy import text
-    from app.core.config import get_settings
     from app.services.ai.circuit_breaker import ai_circuit_breaker as circuit_breaker
 
-    settings = get_settings()
+    st = get_settings()
     health_status = {
         "status": "ready",
         "service": "nirnay-api",
+        "version": app.version,
+        "release_sha": st.release_sha,
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "checks": {},
     }
@@ -147,10 +168,42 @@ def health_ready() -> dict:
         health_status["checks"]["database"] = {"status": "error", "message": "Database connection failed"}
 
     # 2. Storage Check
-    health_status["checks"]["storage"] = {
-        "status": "ok",
-        "provider": os.getenv("STORAGE_PROVIDER", "local"),
-    }
+    st_provider = st.storage_provider.lower()
+    app_env_val = st.app_env.lower()
+    allow_ephemeral = st.allow_ephemeral_storage
+
+    if st_provider == "s3" and st.s3_bucket:
+        health_status["checks"]["storage"] = {
+            "status": "ok",
+            "provider": "s3",
+            "durable": True,
+            "mode": "PRODUCTION_DURABLE",
+        }
+    elif st_provider == "local":
+        if app_env_val == "production" and not allow_ephemeral:
+            health_status["status"] = "unhealthy"
+            health_status["checks"]["storage"] = {
+                "status": "error",
+                "provider": "local",
+                "durable": False,
+                "mode": "PROHIBITED_LOCAL",
+                "warning": "Ephemeral local storage is prohibited in production when ALLOW_EPHEMERAL_STORAGE=false.",
+            }
+        else:
+            health_status["checks"]["storage"] = {
+                "status": "ok",
+                "provider": "local",
+                "durable": False,
+                "mode": "MVP_EPHEMERAL" if app_env_val == "production" else "DEVELOPMENT",
+                "warning": "Evidence files may be lost after service restart or redeploy.",
+            }
+    else:
+        health_status["checks"]["storage"] = {
+            "status": "ok",
+            "provider": st_provider,
+            "durable": False,
+            "mode": "UNKNOWN",
+        }
 
     # 3. Email Check
     health_status["checks"]["email"] = {

@@ -141,6 +141,88 @@ class TestConfig(unittest.TestCase):
             updated = get_settings()
             self.assertEqual(updated.app_name, "updated-app")
 
+    def test_cookie_security_defaults(self) -> None:
+        # Development mode defaults to secure=False
+        with patch.dict(os.environ, {"APP_ENV": "development"}, clear=True):
+            settings = Settings()
+            self.assertFalse(settings.is_cookie_secure)
+
+        # Production mode defaults to secure=True
+        prod_env = {
+            "APP_ENV": "production",
+            "DEMO_MODE": "false",
+            "DATABASE_URL": "postgresql+psycopg://user:pass@prod-db:5432/nirnay",
+        }
+        with patch.dict(os.environ, prod_env, clear=True):
+            settings = Settings()
+            self.assertTrue(settings.is_cookie_secure)
+
+    def test_release_sha_defaults(self) -> None:
+        with patch.dict(os.environ, {}, clear=True):
+            settings = Settings(_env_file=None)
+            self.assertEqual(settings.release_sha, "unknown")
+
+        with patch.dict(os.environ, {"NIRNAY_RELEASE_SHA": "abc123def456"}, clear=True):
+            settings = Settings()
+            self.assertEqual(settings.release_sha, "abc123def456")
+
+    def test_storage_adapter_production_fail_closed(self) -> None:
+        from app.services.storage_service import get_storage_adapter, LocalStorageAdapter, S3CompatibleStorageAdapter
+
+        prod_local_prohibited = {
+            "APP_ENV": "production",
+            "DEMO_MODE": "false",
+            "DATABASE_URL": "postgresql+psycopg://user:pass@prod-db:5432/nirnay",
+            "STORAGE_PROVIDER": "local",
+            "ALLOW_EPHEMERAL_STORAGE": "false",
+        }
+        with patch.dict(os.environ, prod_local_prohibited, clear=True):
+            get_settings.cache_clear()
+            with self.assertRaises(RuntimeError) as cm:
+                get_storage_adapter()
+            self.assertIn("CRITICAL PRODUCTION CONFIGURATION ERROR", str(cm.exception))
+
+        prod_local_opt_in = {
+            "APP_ENV": "production",
+            "DEMO_MODE": "false",
+            "DATABASE_URL": "postgresql+psycopg://user:pass@prod-db:5432/nirnay",
+            "STORAGE_PROVIDER": "local",
+            "ALLOW_EPHEMERAL_STORAGE": "true",
+        }
+        with patch.dict(os.environ, prod_local_opt_in, clear=True):
+            get_settings.cache_clear()
+            adapter = get_storage_adapter()
+            self.assertIsInstance(adapter, LocalStorageAdapter)
+
+        prod_s3_storage = {
+            "APP_ENV": "production",
+            "DEMO_MODE": "false",
+            "DATABASE_URL": "postgresql+psycopg://user:pass@prod-db:5432/nirnay",
+            "STORAGE_PROVIDER": "s3",
+            "S3_BUCKET": "nirnay-evidence-prod",
+        }
+        with patch.dict(os.environ, prod_s3_storage, clear=True):
+            get_settings.cache_clear()
+            adapter = get_storage_adapter()
+            self.assertIsInstance(adapter, S3CompatibleStorageAdapter)
+            self.assertEqual(adapter.bucket, "nirnay-evidence-prod")
+
+    def test_database_url_whitespace_and_scheme_sanitization(self) -> None:
+        raw_urls = [
+            'postgresql://user:pass@host:5432/postgres\n',
+            ' postgresql://user:pass@host:5432/postgres \n',
+            '"postgresql://user:pass@host:5432/postgres"\n',
+            'postgres://user:pass@host:5432/postgres\r\n',
+        ]
+        for url in raw_urls:
+            with patch.dict(os.environ, {"DATABASE_URL": url}, clear=True):
+                get_settings.cache_clear()
+                settings = get_settings()
+                self.assertEqual(
+                    settings.database_url,
+                    "postgresql+psycopg://user:pass@host:5432/postgres",
+                )
+
 
 if __name__ == "__main__":
     unittest.main()

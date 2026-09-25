@@ -356,5 +356,70 @@ export interface OutcomeAssessmentHistoryResponse {
   total: number;
 }
 
+export interface DecisionAssuranceCreate {
+  decision_type: "QUALIFICATION" | "READINESS" | "OUTCOME";
+  authoritative_decision_id: string;
+  rubric_version?: string;
+  rubric_answers?: Record<string, any>;
+  evidence_ids?: string[];
+  rationale: string;
+  limitations_note?: string | null;
+  ai_advisory_snapshot?: Record<string, any> | null;
+  conflict_declared?: "NO_KNOWN_CONFLICT" | "POTENTIAL_CONFLICT";
+}
+
+export interface DecisionAssuranceResponse {
+  id: string;
+  challenge_id: string;
+  decision_type: string;
+  authoritative_decision_id: string;
+  reviewer_actor_id: string;
+  reviewer_organization_id?: string | null;
+  rubric_version: string;
+  rubric_answers: Record<string, any>;
+  evidence_ids: string[];
+  rationale: string;
+  limitations_note?: string | null;
+  ai_advisory_snapshot?: Record<string, any> | null;
+  ai_agreement_status: "AGREEMENT" | "DISAGREEMENT" | "NOT_APPLICABLE";
+  conflict_declared: "NO_KNOWN_CONFLICT" | "POTENTIAL_CONFLICT";
+  second_review_required: boolean;
+  second_review_reason?: string | null;
+  review_status: "SINGLE_REVIEWED" | "SECOND_REVIEW_PENDING" | "AGREED" | "DISAGREED" | "RESOLVED";
+  second_reviewer_actor_id?: string | null;
+  second_review_rationale?: string | null;
+  second_review_decision?: string | null;
+  disagreement_resolved_by_actor_id?: string | null;
+  resolution_rationale?: string | null;
+  created_at: string;
+  superseded_at?: string | null;
+}
+
+export interface SecondReviewCreate {
+  rationale: string;
+  decision: string;
+}
+
+export interface DisagreementResolutionCreate {
+  resolution_rationale: string;
+  final_decision: string;
+}
+
+export interface DecisionReviewRequestCreate {
+  reason: string;
+  evidence_id?: string | null;
+}
+
+export interface DecisionReviewRequestResponse {
+  id: string;
+  challenge_id: string;
+  assurance_record_id: string;
+  requested_by_actor_id: string;
+  reason: string;
+  evidence_id?: string | null;
+  status: string;
+  created_at: string;
+}
+
 export type Challenge = ChallengeResponse;
 export type HEIOrganizationResponse = HEIOrganization;

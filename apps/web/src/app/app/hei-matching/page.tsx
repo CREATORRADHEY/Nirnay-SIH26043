@@ -464,7 +464,9 @@ export default function HEIMatchingPage() {
                       <div className="space-y-3">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <span className="text-xs font-bold text-amber-700 uppercase tracking-wide">Candidate HEI</span>
+                            <span className="text-xs font-bold text-amber-700 uppercase tracking-wide">
+                              CANDIDATE MATCH (Not Yet Committed)
+                            </span>
                             <h3 className="font-bold text-stone-900 text-base mt-0.5">{orgName}</h3>
                             {org && (
                               <span className="text-xs text-stone-500 block font-mono mt-0.5">
@@ -472,13 +474,13 @@ export default function HEIMatchingPage() {
                               </span>
                             )}
                           </div>
-                          <span className="shrink-0 px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-mono font-bold rounded">
-                            Method: {cand.match_method}
+                          <span className="shrink-0 px-2.5 py-1 bg-amber-100 text-amber-950 border border-amber-300 text-[10px] font-mono font-bold rounded-md">
+                            CANDIDATE (Method: {cand.match_method})
                           </span>
                         </div>
 
                         <div className="bg-stone-50 p-3 rounded-lg border border-stone-200 text-xs text-stone-700">
-                          <span className="font-bold text-stone-900 block mb-1">Match Rationale:</span>
+                          <span className="font-bold text-stone-900 block mb-1">Candidate Matching Rationale:</span>
                           {cand.rationale}
                         </div>
                       </div>
@@ -487,15 +489,15 @@ export default function HEIMatchingPage() {
                         <button
                           type="button"
                           onClick={() => setSelectedCapOrg(org || DEFAULT_HEI_ORGS[0])}
-                          className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded text-xs font-bold transition-colors flex items-center space-x-1"
+                          className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-300 rounded text-xs font-bold transition-colors flex items-center space-x-1"
                         >
                           <span>🔍 View Capability</span>
                         </button>
                         <Link
-                          href="/app/commitments"
-                          className="text-xs font-bold text-amber-700 hover:text-amber-900 underline"
+                          href={`/app/commitments?challenge_id=${selectedChallengeId}&org_id=${cand.organization_id}`}
+                          className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded text-xs font-bold transition-colors shadow-xs"
                         >
-                          Record Commitment →
+                          Initiate Commitment Request →
                         </Link>
                       </div>
                     </div>

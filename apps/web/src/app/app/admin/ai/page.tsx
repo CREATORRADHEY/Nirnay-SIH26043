@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { fetchAdminAIOperations, AdminAIOperationsResponse } from "@/lib/api";
+import { HowNIRNAYUsesAI } from "@/components/HowNIRNAYUsesAI";
 import {
   Cpu,
   Zap,
+  Sparkles,
   CheckCircle,
   XCircle,
   Clock,
@@ -90,14 +92,23 @@ export default function AdminAIOperationsPage() {
             Monitor bounded AI assistance requests, circuit breaker status, latency, and schema execution metrics.
           </p>
         </div>
-        <button
-          onClick={loadTelemetry}
-          disabled={loading}
-          className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-[var(--surface)] text-[var(--text-primary)] border border-[var(--border)] hover:bg-[#F4F1EA]"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-          <span>Refresh Telemetry</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/app/evaluation/ai"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg bg-amber-600 text-white hover:bg-amber-700 shadow-sm"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>AI Evaluation Workspace</span>
+          </Link>
+          <button
+            onClick={loadTelemetry}
+            disabled={loading}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-[var(--surface)] text-[var(--text-primary)] border border-[var(--border)] hover:bg-[#F4F1EA]"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span>Refresh Telemetry</span>
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -106,16 +117,8 @@ export default function AdminAIOperationsPage() {
         </div>
       )}
 
-      {/* Safety Banner */}
-      <div className="p-4 bg-[#FFF4EE] border border-[#FCD8C5] rounded-xl text-xs text-[var(--text-primary)] space-y-1">
-        <div className="font-bold flex items-center gap-2 text-[var(--primary)]">
-          <ShieldAlert className="w-4 h-4" />
-          Advisory AI Safety Boundaries Enforced
-        </div>
-        <p className="text-[var(--text-secondary)]">
-          AI assistance is strictly advisory and schema-constrained. AI has zero authority over qualification, commitment, readiness, authorization, or outcome decisions. API keys and prompts are redacted.
-        </p>
-      </div>
+      {/* Canonical AI Capability Model & Safety Component */}
+      <HowNIRNAYUsesAI />
 
       {/* Operational Metrics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
