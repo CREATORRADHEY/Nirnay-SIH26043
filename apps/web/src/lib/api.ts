@@ -1419,3 +1419,132 @@ export async function fetchAdminAIOperations(): Promise<AdminAIOperationsRespons
   }
   return res.json();
 }
+
+// DECISION ASSURANCE API HELPERS
+
+const demoAssuranceStore: Record<string, any[]> = {};
+const demoReviewRequestsStore: Record<string, any[]> = {};
+
+export async function fetchDecisionAssurance(
+  challengeId: string
+): Promise<{ data: any[]; isDemo: boolean }> {
+  try {
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/decision-assurance`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    const data = await res.json();
+    return { data, isDemo: false };
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
+    const items = demoAssuranceStore[challengeId] || [];
+    return { data: items, isDemo: true };
+  }
+}
+
+export async function createDecisionAssurance(
+  challengeId: string,
+  payload: any
+): Promise<{ data: any; isDemo: boolean }> {
+  try {
+    const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/decision-assurance`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+      throw new Error(err.detail || `HTTP error ${res.status}`);
+    }
+    const data = await res.json();
+    return { data, isDemo: false };
+  } catch (err) {
+    if (process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK !== "true") throw err;
+    const items = demoAssuranceStore[challengeId] || [];
+    const newRec = {
+      id: `da-demo-${Date.now()}`,
+      challenge_id: challengeId,
+      decision_type: payload.decision_type,
+      authoritative_decision_id: payload.authoritative_decision_id,
+      reviewer_actor_id: DEMO_REVIEWER_ACTOR_ID,
+      rubric_version: payload.rubric_version || "v1",
+      rubric_answers: payload.rubric_answers || {},
+      evidence_ids: payload.evidence_ids || [],
+      rationale: payload.rationale,
+      limitations_note: payload.limitations_note || null,
+      ai_advisory_snapshot: payload.ai_advisory_snapshot || null,
+      ai_agreement_status: payload.ai_advisory_snapshot ? "DISAGREEMENT" : "NOT_APPLICABLE",
+      conflict_declared: payload.conflict_declared || "NO_KNOWN_CONFLICT",
+      second_review_required: payload.conflict_declared === "POTENTIAL_CONFLICT",
+      review_status: payload.conflict_declared === "POTENTIAL_CONFLICT" ? "SECOND_REVIEW_PENDING" : "SINGLE_REVIEWED",
+      created_at: new Date().toISOString(),
+    };
+    demoAssuranceStore[challengeId] = [newRec, ...items];
+    return { data: newRec, isDemo: true };
+  }
+}
+
+export async function submitSecondReview(
+  assuranceId: string,
+  payload: { rationale: string; decision: string }
+): Promise<{ data: any; isDemo: boolean }> {
+  const url = `${getApiBaseUrl()}/api/v1/decision-assurance/${assuranceId}/second-review`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+    throw new Error(err.detail || `HTTP error ${res.status}`);
+  }
+  const data = await res.json();
+  return { data, isDemo: false };
+}
+
+export async function resolveDisagreement(
+  assuranceId: string,
+  payload: { resolution_rationale: string; final_decision: string }
+): Promise<{ data: any; isDemo: boolean }> {
+  const url = `${getApiBaseUrl()}/api/v1/decision-assurance/${assuranceId}/resolve-disagreement`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+    throw new Error(err.detail || `HTTP error ${res.status}`);
+  }
+  const data = await res.json();
+  return { data, isDemo: false };
+}
+
+export async function createDecisionReviewRequest(
+  challengeId: string,
+  assuranceId: string,
+  payload: { reason: string; evidence_id?: string | null }
+): Promise<{ data: any; isDemo: boolean }> {
+  const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/decision-assurance/${assuranceId}/review-requests`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: `HTTP error ${res.status}` }));
+    throw new Error(err.detail || `HTTP error ${res.status}`);
+  }
+  const data = await res.json();
+  return { data, isDemo: false };
+}
+
+export async function fetchDecisionReviewRequests(
+  challengeId: string
+): Promise<{ data: any[]; isDemo: boolean }> {
+  const url = `${getApiBaseUrl()}/api/v1/challenges/${challengeId}/decision-assurance/review-requests`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+  const data = await res.json();
+  return { data, isDemo: false };
+}

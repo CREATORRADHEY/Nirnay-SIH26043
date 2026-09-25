@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 
 export interface WhyThisStateProps {
@@ -12,6 +12,12 @@ export interface WhyThisStateProps {
   nextActionHref?: string | null;
   onNextActionClick?: () => void;
   roleAllowed?: boolean;
+
+  // Decision Assurance Props (P5.2)
+  assuranceStatus?: "SINGLE_REVIEWED" | "SECOND_REVIEW_PENDING" | "AGREED" | "DISAGREED" | "RESOLVED" | string | null;
+  assuranceRationale?: string | null;
+  evidenceBasisCount?: number | null;
+  aiAgreementStatus?: "AGREEMENT" | "DISAGREEMENT" | "NOT_APPLICABLE" | string | null;
 }
 
 export const WhyThisState: React.FC<WhyThisStateProps> = ({
@@ -23,7 +29,13 @@ export const WhyThisState: React.FC<WhyThisStateProps> = ({
   nextActionHref,
   onNextActionClick,
   roleAllowed = true,
+  assuranceStatus,
+  assuranceRationale,
+  evidenceBasisCount,
+  aiAgreementStatus,
 }) => {
+  const [showDetails, setShowDetails] = useState(false);
+
   const getBadgeStyle = (state: string) => {
     switch (state.toUpperCase()) {
       case "PILOT_READY":
@@ -53,8 +65,9 @@ export const WhyThisState: React.FC<WhyThisStateProps> = ({
 
   return (
     <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden my-4">
+      {/* State Header Bar */}
       <div className="bg-stone-900 px-5 py-3 flex flex-wrap items-center justify-between gap-3 text-white">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 flex-wrap">
           <span className="text-[11px] font-mono uppercase tracking-widest text-amber-400 font-bold">
             Current State
           </span>
@@ -65,9 +78,16 @@ export const WhyThisState: React.FC<WhyThisStateProps> = ({
           >
             {currentState.replace(/_/g, " ")}
           </span>
+
           {previousState && (
             <span className="text-xs text-stone-400 font-mono hidden sm:inline">
               (Previous: <span className="text-stone-200 line-through">{previousState.replace(/_/g, " ")}</span>)
+            </span>
+          )}
+
+          {assuranceStatus && (
+            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-stone-800 border border-stone-700 text-amber-300">
+              Assurance: {assuranceStatus.replace(/_/g, " ")}
             </span>
           )}
         </div>
@@ -95,6 +115,7 @@ export const WhyThisState: React.FC<WhyThisStateProps> = ({
         )}
       </div>
 
+      {/* Narrative Section */}
       <div className="p-4 bg-amber-50/50 border-t border-amber-100/60 text-xs space-y-2">
         <div className="flex items-start space-x-2">
           <span className="font-bold text-stone-900 uppercase tracking-wider shrink-0 text-[11px]">
@@ -109,6 +130,42 @@ export const WhyThisState: React.FC<WhyThisStateProps> = ({
               State Trigger:
             </span>
             <p className="text-amber-950 font-mono text-[11px] font-semibold">{triggerEvent}</p>
+          </div>
+        )}
+
+        {/* Expandable Decision Assurance Basis */}
+        {(assuranceRationale || evidenceBasisCount !== undefined || aiAgreementStatus) && (
+          <div className="pt-2 border-t border-amber-200/60">
+            <button
+              type="button"
+              onClick={() => setShowDetails(!showDetails)}
+              className="text-[11px] font-bold text-amber-900 hover:underline flex items-center gap-1"
+            >
+              <span>{showDetails ? "▼ Hide Decision Basis & Governance Audit" : "▶ View Decision Basis & Governance Audit"}</span>
+            </button>
+
+            {showDetails && (
+              <div className="mt-2 p-3 bg-white rounded border border-amber-200 space-y-2 text-[11px] text-stone-700">
+                {assuranceRationale && (
+                  <div>
+                    <span className="font-bold text-stone-900 block">Authoritative Human Rationale:</span>
+                    <p className="italic text-stone-800 bg-stone-50 p-2 rounded border border-stone-200 mt-1">
+                      &quot;{assuranceRationale}&quot;
+                    </p>
+                  </div>
+                )}
+                {evidenceBasisCount !== null && evidenceBasisCount !== undefined && (
+                  <div className="font-mono text-[10px] text-stone-600">
+                    Evidence Records Considered: <span className="font-bold text-stone-900">{evidenceBasisCount}</span>
+                  </div>
+                )}
+                {aiAgreementStatus && (
+                  <div className="font-mono text-[10px] text-stone-600">
+                    AI Observational Status: <span className="font-bold text-amber-900">{aiAgreementStatus}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

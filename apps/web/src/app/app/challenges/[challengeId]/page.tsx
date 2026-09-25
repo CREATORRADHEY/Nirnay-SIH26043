@@ -13,6 +13,7 @@ import {
   fetchCommitments,
   fetchReadinessConditions,
   fetchReadinessHistory,
+  fetchDecisionAssurance,
   ChallengeResponse,
   EvidenceResponse,
   QualificationDecisionResponse,
@@ -23,7 +24,9 @@ import {
   PilotResponse,
   PilotOperationalStateResponse,
   OutcomeAssessmentResponse,
+  DecisionAssuranceResponse,
 } from "@/lib/api";
+import { DecisionAssurancePanel } from "@/components/DecisionAssurancePanel";
 
 interface ClarificationItem {
   id: string;
@@ -56,6 +59,7 @@ export default function ChallengePassportPage({ params }: { params: Promise<{ ch
   const [pilots, setPilots] = useState<PilotResponse[]>([]);
   const [opStates, setOpStates] = useState<PilotOperationalStateResponse[]>([]);
   const [outcomes, setOutcomes] = useState<OutcomeAssessmentResponse[]>([]);
+  const [assuranceRecords, setAssuranceRecords] = useState<DecisionAssuranceResponse[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Clarification reply form
@@ -64,7 +68,7 @@ export default function ChallengePassportPage({ params }: { params: Promise<{ ch
 
   const loadAllPassportData = async () => {
     try {
-      const [chRes, evRes, qualRes, heiRes, commRes, condRes, readRes] = await Promise.all([
+      const [chRes, evRes, qualRes, heiRes, commRes, condRes, readRes, assuranceRes] = await Promise.all([
         fetchChallengeDetail(challengeId).catch(() => null),
         fetchChallengeEvidence(challengeId).catch(() => null),
         fetchQualificationHistory(challengeId).catch(() => null),
@@ -72,6 +76,7 @@ export default function ChallengePassportPage({ params }: { params: Promise<{ ch
         fetchCommitments(challengeId).catch(() => null),
         fetchReadinessConditions(challengeId).catch(() => null),
         fetchReadinessHistory(challengeId).catch(() => null),
+        fetchDecisionAssurance(challengeId).catch(() => null),
       ]);
 
       if (chRes?.data) setChallenge(chRes.data);
@@ -80,6 +85,7 @@ export default function ChallengePassportPage({ params }: { params: Promise<{ ch
       if (heiRes?.data) setHeiCandidates(heiRes.data.items || []);
       if (commRes?.data) setCommitments(commRes.data.items || []);
       if (condRes?.data) setConditions(condRes.data.items || []);
+      if (assuranceRes?.data) setAssuranceRecords(assuranceRes.data || []);
       if (readRes?.data) setReadinessDecisions(readRes.data.items || []);
 
       // Clarification requests
@@ -277,6 +283,10 @@ export default function ChallengePassportPage({ params }: { params: Promise<{ ch
           triggerEvent={triggerEvent}
           nextActionLabel={nextActionLabel}
           nextActionHref={nextActionHref}
+          assuranceStatus={assuranceRecords.length > 0 ? assuranceRecords[0].review_status : undefined}
+          assuranceRationale={assuranceRecords.length > 0 ? assuranceRecords[0].rationale : latestQual?.rationale}
+          evidenceBasisCount={assuranceRecords.length > 0 ? assuranceRecords[0].evidence_ids.length : evidenceList.length}
+          aiAgreementStatus={assuranceRecords.length > 0 ? assuranceRecords[0].ai_agreement_status : undefined}
         />
 
         {/* Prominent Lifecycle Rail */}
@@ -742,6 +752,17 @@ export default function ChallengePassportPage({ params }: { params: Promise<{ ch
                       <p className="text-stone-600">{o.summary}</p>
                     </div>
                   ))}
+                </div>
+
+                <div className="pt-6 border-t border-stone-200 space-y-3">
+                  <h4 className="text-xs font-bold text-stone-500 uppercase tracking-widest">
+                    Governance Decision Assurance Receipts
+                  </h4>
+                  <DecisionAssurancePanel
+                    assuranceRecords={assuranceRecords}
+                    challengeId={challengeId}
+                    onRefresh={loadAllPassportData}
+                  />
                 </div>
               </div>
             )}
