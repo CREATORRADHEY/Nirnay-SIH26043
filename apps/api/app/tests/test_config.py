@@ -194,6 +194,22 @@ class TestConfig(unittest.TestCase):
             self.assertIsInstance(adapter, S3CompatibleStorageAdapter)
             self.assertEqual(adapter.bucket, "nirnay-evidence-prod")
 
+    def test_database_url_whitespace_and_scheme_sanitization(self) -> None:
+        raw_urls = [
+            'postgresql://user:pass@host:5432/postgres\n',
+            ' postgresql://user:pass@host:5432/postgres \n',
+            '"postgresql://user:pass@host:5432/postgres"\n',
+            'postgres://user:pass@host:5432/postgres\r\n',
+        ]
+        for url in raw_urls:
+            with patch.dict(os.environ, {"DATABASE_URL": url}, clear=True):
+                get_settings.cache_clear()
+                settings = get_settings()
+                self.assertEqual(
+                    settings.database_url,
+                    "postgresql+psycopg://user:pass@host:5432/postgres",
+                )
+
 
 if __name__ == "__main__":
     unittest.main()
