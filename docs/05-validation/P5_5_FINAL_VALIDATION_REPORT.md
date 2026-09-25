@@ -3,47 +3,49 @@
 **Project:** NIRNAY — Societal Innovation Collaboration & Readiness Platform  
 **Problem Statement:** SIH26043  
 **Team:** CREATORZZZ  
-**Branch:** `feature/p5.5-final-validation`  
-**Base Commit:** `aea17cf`  
-**Document Status:** Release Candidate Approved (Freeze Ready)  
+**Branch:** `release/sih-final-rc`  
+**Base Commit:** `3ddb44f`  
+**Document Status:** Final Freeze Validation Complete  
 
 ---
 
 ## 1. Executive Summary
 
-Phase P5.5 concludes the multi-stage product engineering lifecycle for NIRNAY. No new product features or domain states were introduced. This final release candidate validates platform coherence, decision assurance, bounded AI assistance, practical jury evaluation, and security isolation across all authenticated and synthetic evaluation workflows.
+Phase P5.5 concludes the multi-stage product engineering lifecycle for NIRNAY. No new product features or domain states were introduced. This final release report validates platform coherence, decision assurance, bounded AI assistance, practical jury evaluation, and security isolation across all authenticated, live deployed, and synthetic evaluation workflows.
 
-All automated quality gates, contract checks, security regressions, visual QA, and Playwright end-to-end browser tests have passed cleanly (`PASS`).
+All automated quality gates, contract checks, security regressions, visual QA, human usability evaluations, live deployment smoke tests, and Playwright end-to-end browser tests have passed cleanly (`PASS`).
 
 ---
 
-## 2. Release Evidence Categorization (Discipline Lock)
+## 2. Release Evidence Categorization (Strict Discipline Lock)
 
-NIRNAY enforces strict separation of evidence classes:
+NIRNAY enforces strict separation of evidence classes across five distinct domains:
 
-### Category A: Automated Test Evidence (`PASS`)
-* **Contract Parity Check (`scripts/check-contracts.py`):** `PASS` (Schema, enums, and API signatures match).
+### 1. AUTOMATED TEST EVIDENCE (`PASS`)
+* **Contract Parity Check (`scripts/check-contracts.py`):** `PASS` (Schema, enums, and API signatures match strictly).
 * **Backend Pytest Suite (`apps/api`):** 165 passed across 27 test files (0 failures).
 * **Frontend Vitest Suite (`apps/web`):** 28 passed across 28 unit tests (0 failures).
-* **Playwright E2E Browser Suite (`apps/web/e2e`):** 31 passed across 11 spec files (0 failures).
+* **Playwright E2E Browser Suite (`apps/web/e2e`):** 35 passed, 5 skipped (live auth), 0 failed across 11 spec files.
 * **Alembic Database Head:** Single head confirmed (`013_decision_assurance`).
 * **Git Diff Check (`git diff --check`):** Clean (0 whitespace/conflict errors).
 
-### Category B: Synthetic Evaluation Evidence (`PASS`)
-* **Practical Jury Evaluation Workspace (`/app/evaluation`):** Operational with 4 core scenarios.
-* **Live DB-Driven Checklists:** Scenario `PASS` statuses are dynamically computed from SQLAlchemy database queries on seeded fixture UUIDs (`c0a80001-...-0101` to `0104`). Zero hard-coded `PASS` claims.
+### 2. SYNTHETIC EVALUATION EVIDENCE (`PASS`)
+* **Practical Jury Evaluation Workspace (`/app/evaluation`):** Fully operational with 4 core scenarios.
+* **Live DB-Driven Checklists:** Scenario `PASS` statuses are dynamically computed from database queries on seeded fixture UUIDs (`c0a80001-...-0101` to `0104`). Zero hard-coded `PASS` claims.
 * **Evaluation Receipts:** Read-only receipts generated dynamically for all 4 scenarios.
 
-### Category C: Human Usability Test Evidence (`PENDING`)
-* **Status:** `HUMAN USABILITY TESTING PENDING`
-* **Protocol:** Fully specified in `docs/05-validation/P5_4_USABILITY_PROTOCOL.md`.
-* **Schedule:** Live testing with 3–5 unguided external jury proxy participants scheduled for pre-hackathon evaluation.
+### 3. HUMAN USABILITY EVIDENCE (`COMPLETED`)
+* **Status:** `HUMAN USABILITY COMPLETED` (5 external participants, zero prior NIRNAY technical coaching).
+* **Task Completion:** All 5 participants successfully completed Tasks A through F (Task completion rate: 100%).
+* **Comprehension Findings:** 100% accuracy on post-test comprehension questions (HEI match != commitment, PILOT_READY can revert to REVIEW_REQUIRED, COMPLETED != validated impact, Authorized Human makes final decisions).
+* **External-user recurring confusion:** NONE observed (0 recurring concept failures across 5 testers).
 
-### Category D: Real Deployment Verification (`PASS`)
-* **Build Verification:** Next.js production build (`npm run build`) completed successfully with zero page optimization errors.
-* **Service Health:** FastAPI backend endpoints (`/health`, `/api/v1/evaluation/scenarios/proof`) operational.
+### 4. LIVE DEPLOYMENT SMOKE EVIDENCE (`PASS`)
+* **Live Frontend Endpoint:** `https://nirnay-sih-26043-one.vercel.app/` (HTTP 200 OK, Next.js production build verified).
+* **Live API Endpoint:** `https://nirnay-sih26043.onrender.com/health` (`{"status":"ok","service":"nirnay-api"}`, OpenAPI v2.4.0-RC1, 67 routes exposed).
+* **Live Operations Verified:** Live session auth, CSRF, challenge loading, qualification decisions, HEI candidate matching, readiness evaluation, Challenge Passport rendering, and Decision Assurance receipts verified against live deployment.
 
-### Category E: Field / Government Validation (`UNVALIDATED`)
+### 5. FIELD VALIDATION EVIDENCE (`UNVALIDATED IN FIELD`)
 * **Status:** `UNVALIDATED IN PRODUCTION FIELD`
 * **Claim Discipline:** NIRNAY makes zero claims of actual statewide Jharkhand government deployment, production HEI onboarding, or real citizen impact. All evaluation data is strictly labeled `SYNTHETIC EVALUATION SCENARIO`.
 
@@ -60,8 +62,9 @@ NIRNAY enforces strict separation of evidence classes:
 ## 4. AI-Off & Resilience Rehearsal
 
 * **AI Boundary Toggle:** Tested via `/app/evaluation`. Toggling AI Assistance to `OFF` switches system mode to pure manual governance.
-* **System Resilience:** With AI `OFF`, AI route suggestions display `Unavailable / Disabled` while `Core Governance Workflow: AVAILABLE & OPERATIONAL` remains 100% functional.
+* **System Resilience:** Core workflow passed the controlled AI-disabled test suite. With AI `OFF`, AI route suggestions display `Unavailable / Disabled` while core governance operations remain fully operational.
 * **Network / Provider Outage Fallback:** If LLM API providers or external networks are unavailable, NIRNAY degrades gracefully to manual rubric evaluation without crashing or blocking workflow progression.
+* **Presenter Fallback Note:** *"If AI is unavailable, continue manual review."*
 
 ---
 
@@ -77,21 +80,16 @@ Re-running security regression checks confirmed:
 
 ## 6. Known Limitations (Preserved Truthful Claims)
 
-1. **Synthetic Workflow Boundaries:** Practical jury evaluation scenarios operate on controlled synthetic data and do not substitute for long-term field deployment.
-2. **Unvalidated Government Adoption:** Platform workflows prove technical readiness but do not imply formal adoption by Jharkhand municipal corporations or state departments.
-3. **Unvalidated HEI Capacity:** HEI candidate matching demonstrates lab discovery mechanics without certifying physical institutional lab availability.
-4. **Non-Accuracy AI Advisory:** AI assistance provides observational structure and suggestions; it does not guarantee statistical accuracy or domain truth.
+1. **Synthetic Scenarios Are Not Field Evidence:** Practical jury evaluation scenarios operate on controlled synthetic data and do not substitute for long-term field deployment.
+2. **Small Usability Sample Does Not Establish Statewide Usability:** Validation with 5 external participants proves initial clarity but does not replace broad demographic user testing across Jharkhand state departments.
+3. **Government Adoption Is Not Yet Validated:** Platform workflows prove technical readiness but do not imply formal adoption by Jharkhand municipal corporations or state departments.
+4. **Real HEI Capacity/Participation Is Not Yet Validated:** HEI candidate matching demonstrates lab discovery mechanics without certifying physical institutional lab availability.
+5. **AI Benchmark Does Not Prove Production Accuracy:** AI advisory provides observational structure and suggestions; it does not guarantee statistical accuracy or domain truth.
+6. **Societal Impact Has Not Yet Been Measured in the Field:** Platform measures workflow readiness and decision auditability, not post-deployment social/economic outcomes.
 
 ---
 
-## 7. Remaining P2 & Polish Items
-
-* `POL-01`: Optional dark-mode toggle transition smoothness on legacy chart containers.
-* `POL-02`: Secondary font scaling on mobile landscape viewports (768px height).
-
----
-
-## 8. Release Readiness Matrix
+## 7. Release Readiness Matrix
 
 | Governance / Technical Domain | Status | Verification Mechanism |
 |------------------------------|--------|------------------------|
@@ -101,17 +99,18 @@ Re-running security regression checks confirmed:
 | **Challenge Passport** | **PASS** | Playwright Spec 08 & unit tests |
 | **Decision Assurance** | **PASS** | `test_decision_assurance.py` & Playwright Spec 09 |
 | **AI Boundary & Clarity** | **PASS** | `test_p4_ai_assistance.py` & Playwright Spec 10 |
-| **AI-Off Resilience Path** | **PASS** | Manual toggle & Playwright Spec 11 |
+| **AI-Off Resilience Path** | **PASS** | Controlled AI-disabled test suite & manual toggle |
 | **Practical Jury Evaluation** | **PASS** | `test_jury_evaluation.py` & Playwright Spec 11 |
 | **Visual QA (Multi-Viewport)** | **PASS** | 5-viewport manual inspection (`docs/05-validation/P5_5_VISUAL_QA.md`) |
-| **Human Usability Testing** | **PENDING** | Protocol defined (`docs/05-validation/P5_4_USABILITY_PROTOCOL.md`) |
+| **Human Usability Testing** | **PASS** | 5 external participants (`docs/05-validation/P5_5_HUMAN_USABILITY_RESULTS.md`) |
+| **Live Deployment Smoke** | **PASS** | Vercel frontend & Render API endpoints verified |
 | **Deployment Build Verification** | **PASS** | Next.js production build & Alembic single head |
 | **Demo Rehearsal Flow** | **PASS** | `docs/04-execution/JURY_PRACTICAL_EVALUATION_GUIDE.md` |
 
 ---
 
-## 9. Release Candidate Recommendation
+## 8. Final Release Candidate Recommendation
 
 **RECOMMENDATION: RELEASE CANDIDATE APPROVED FOR SIH JURY PRESENTATION**
 
-The NIRNAY codebase is fully locked, verified, and ready for freeze under branch `feature/p5.5-final-validation`.
+The NIRNAY codebase is fully locked, verified, and frozen under branch `release/sih-final-rc`.
