@@ -199,7 +199,7 @@ export default function PracticalJuryEvaluationPage() {
             <span className="text-xs font-semibold text-stone-300 uppercase tracking-wider">
               Evaluation Actor:
             </span>
-            <span className="text-xs font-bold text-amber-400 bg-stone-800 px-2.5 py-1 rounded">
+            <span data-testid="active-evaluation-role" className="text-xs font-bold text-amber-400 bg-stone-800 px-2.5 py-1 rounded">
               {activeRole} {roleActorInfo ? `(${roleActorInfo.display_name})` : ""}
             </span>
           </div>
