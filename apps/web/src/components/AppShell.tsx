@@ -54,7 +54,6 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       // ignore
     } finally {
       router.push("/login");
-      window.location.href = "/login";
     }
   };
 
@@ -66,27 +65,33 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     { label: "Security", href: "/app/account/security" },
   ];
 
-  if (role.startsWith("GOVERNMENT_") || role === "PLATFORM_ADMIN") {
+  if (role.startsWith("GOVERNMENT_")) {
     navItems = [
       { label: "Dashboard", href: "/app" },
-      { label: "Review Queue", href: "/app/review" },
+      { label: "Review Challenges", href: "/app/review" },
       { label: "Qualification", href: "/app/qualification" },
-      { label: "HEI Matching", href: "/app/hei-matching" },
-      { label: "Readiness", href: "/app/readiness" },
+      { label: "Institution Matching", href: "/app/hei-matching" },
+      { label: "Pilot Readiness", href: "/app/readiness" },
       { label: "Pilots", href: "/app/pilots" },
       { label: "Outcomes", href: "/app/outcomes" },
-      { label: "Commitments", href: "/app/commitments" },
       { label: "Notifications", href: "/app/notifications", badge: unreadCount },
     ];
-    if (role === "GOVERNMENT_ADMIN" || role === "PLATFORM_ADMIN") {
-      navItems.push({ label: "Organizations", href: "/app/organizations" });
-    }
+  } else if (role === "PLATFORM_ADMIN") {
+    navItems = [
+      { label: "Dashboard", href: "/app" },
+      { label: "Organizations", href: "/app/organizations" },
+      { label: "Users", href: "/app/admin/users" },
+      { label: "Audit", href: "/app/admin/audit" },
+      { label: "AI Operations", href: "/app/admin/ai" },
+      { label: "Review Queue", href: "/app/review" },
+      { label: "Notifications", href: "/app/notifications", badge: unreadCount },
+    ];
   } else if (role.startsWith("HEI_")) {
     navItems = [
       { label: "Dashboard", href: "/app" },
-      { label: "HEI Matching", href: "/app/hei-matching" },
+      { label: "Matched Challenges", href: "/app/hei-matching" },
       { label: "Commitments", href: "/app/commitments" },
-      { label: "Pilots", href: "/app/pilots" },
+      { label: "Active Pilots", href: "/app/pilots" },
       { label: "Notifications", href: "/app/notifications", badge: unreadCount },
     ];
     if (role === "HEI_ADMIN") {
@@ -95,8 +100,9 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   } else if (role.startsWith("INDUSTRY_")) {
     navItems = [
       { label: "Dashboard", href: "/app" },
+      { label: "Opportunities", href: "/app/hei-matching" },
       { label: "Commitments", href: "/app/commitments" },
-      { label: "Pilots", href: "/app/pilots" },
+      { label: "Supported Pilots", href: "/app/pilots" },
       { label: "Notifications", href: "/app/notifications", badge: unreadCount },
     ];
     if (role === "INDUSTRY_ADMIN") {
@@ -109,8 +115,10 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       <header className="bg-stone-900 text-stone-100 border-b border-stone-800 px-6 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center space-x-6">
           <Link href="/app" className="font-bold text-lg tracking-tight flex items-center space-x-2 text-stone-100">
-            <img src="/logo-icon.png" alt="NIRNAY" className="w-6 h-6 object-contain rounded-md shrink-0" /><span className="font-serif font-bold text-base text-white">NIRNAY</span>
-            <span className="text-stone-300 font-medium text-sm hidden sm:inline">Platform</span>
+            <span className="font-serif font-bold text-lg text-white tracking-wide">NIRNAY</span>
+            <span className="text-amber-500 font-mono text-xs px-2 py-0.5 bg-stone-800 rounded border border-stone-700 hidden sm:inline">
+              Civic Platform
+            </span>
           </Link>
           <nav className="hidden md:flex items-center space-x-1">
             {navItems.map((item) => {

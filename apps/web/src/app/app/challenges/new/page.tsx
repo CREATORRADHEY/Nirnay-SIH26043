@@ -172,7 +172,11 @@ Frequency: ${occurrenceFrequency.trim()}`,
     }
 
     setSubmitting(false);
-    router.push("/app/challenges");
+    if (createdChallenge?.id) {
+      router.push(`/app/challenges/${createdChallenge.id}`);
+    } else {
+      router.push("/app/challenges");
+    }
   };
 
   return (
