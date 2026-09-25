@@ -1,5 +1,6 @@
 from functools import lru_cache
 import json
+import os
 from typing import Any, List, Literal, Union
 
 from pydantic import Field, field_validator, model_validator
@@ -117,10 +118,13 @@ class Settings(BaseSettings):
     def validate_production_failsafes(self) -> "Settings":
         """Enforces production fail-safes when APP_ENV is set to 'production'."""
         if self.app_env == "production":
-            if self.demo_mode:
+            demo_env = os.getenv("DEMO_MODE", "").lower().strip()
+            if demo_env in ("true", "1", "yes"):
                 raise ValueError(
                     "DEMO_MODE cannot be enabled (true) in production environment."
                 )
+            self.demo_mode = False
+
             default_local_urls = [
                 "postgresql+psycopg://postgres:postgres@localhost:5432/nirnay",
                 "postgresql://postgres:postgres@localhost:5432/nirnay",
