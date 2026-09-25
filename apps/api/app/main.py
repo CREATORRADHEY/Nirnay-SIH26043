@@ -28,9 +28,23 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+from app.core.config import get_settings
+
+settings = get_settings()
+
+allowed_origins = list(settings.cors_origins) if settings.cors_origins else [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://nirnay-sih-26043-one.vercel.app",
+]
+if "http://localhost:3000" not in allowed_origins:
+    allowed_origins.append("http://localhost:3000")
+if "http://127.0.0.1:3000" not in allowed_origins:
+    allowed_origins.append("http://127.0.0.1:3000")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -119,19 +133,26 @@ app.include_router(notifications_router.router)
 
 @app.get("/health")
 def health() -> dict[str, str]:
-    return {"status": "ok", "service": "nirnay-api"}
+    st = get_settings()
+    return {
+        "status": "ok",
+        "service": "nirnay-api",
+        "version": app.version,
+        "release_sha": st.release_sha,
+    }
 
 @app.get("/health/ready")
 def health_ready() -> dict:
     from app.core.database import SessionLocal
     from sqlalchemy import text
-    from app.core.config import get_settings
     from app.services.ai.circuit_breaker import ai_circuit_breaker as circuit_breaker
 
-    settings = get_settings()
+    st = get_settings()
     health_status = {
         "status": "ready",
         "service": "nirnay-api",
+        "version": app.version,
+        "release_sha": st.release_sha,
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "checks": {},
     }

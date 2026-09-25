@@ -10,4 +10,8 @@ def test_health() -> None:
     response = client.get("/health")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "service": "nirnay-api"}
+    data = response.json()
+    assert data["status"] == "ok"
+    assert data["service"] == "nirnay-api"
+    assert "version" in data
+    assert "release_sha" in data
