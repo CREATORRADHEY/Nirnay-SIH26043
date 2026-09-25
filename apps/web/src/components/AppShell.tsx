@@ -153,6 +153,12 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               {primaryOrg && <span className="text-stone-400">({primaryOrg.organization_name})</span>}
             </div>
           </div>
+          <Link
+            href="/app/evaluation"
+            className="text-xs px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded border border-amber-500/40 font-bold transition-colors flex items-center gap-1"
+          >
+            <span>Jury Evaluation</span>
+          </Link>
           <button
             onClick={handleLogout}
             className="text-xs px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white rounded border border-stone-700 transition-colors"

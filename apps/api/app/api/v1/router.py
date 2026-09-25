@@ -11,6 +11,7 @@ from app.api.v1.review_queue import router as review_queue_router
 from app.api.v1.ai_assistance import router as ai_assistance_router
 from app.api.v1.decision_assurance import router as decision_assurance_router
 from app.api.v1.ai_evaluation import router as ai_evaluation_router
+from app.api.v1.jury_evaluation import router as jury_evaluation_router
 
 api_v1_router = APIRouter(prefix="/api/v1")
 api_v1_router.include_router(challenges_router)
@@ -23,5 +24,6 @@ api_v1_router.include_router(pilots_router)
 api_v1_router.include_router(ai_assistance_router)
 api_v1_router.include_router(decision_assurance_router)
 api_v1_router.include_router(ai_evaluation_router)
+api_v1_router.include_router(jury_evaluation_router)
 
 api_v1_router.include_router(admin_router)

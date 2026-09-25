@@ -1645,3 +1645,49 @@ export async function submitSyntheticCaseReview(
   if (!res.ok) throw new Error(`HTTP error ${res.status}`);
   return res.json();
 }
+
+export async function fetchJuryScenarios(): Promise<any[]> {
+  const url = `${getApiBaseUrl()}/api/v1/evaluation/scenarios`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+  return res.json();
+}
+
+export async function fetchEngineeringProof(): Promise<any> {
+  const url = `${getApiBaseUrl()}/api/v1/evaluation/engineering-proof`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+  return res.json();
+}
+
+export async function fetchScenarioStatus(scenarioId: string): Promise<any> {
+  const url = `${getApiBaseUrl()}/api/v1/evaluation/scenarios/${scenarioId}/status`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+  return res.json();
+}
+
+export async function resetJuryScenario(scenarioId: string): Promise<any> {
+  const url = `${getApiBaseUrl()}/api/v1/evaluation/scenarios/${scenarioId}/reset`;
+  const res = await fetch(url, { method: "POST" });
+  if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+  return res.json();
+}
+
+export async function fetchScenarioReceipt(scenarioId: string): Promise<any> {
+  const url = `${getApiBaseUrl()}/api/v1/evaluation/scenarios/${scenarioId}/receipt`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+  return res.json();
+}
+
+export async function switchEvaluationRole(role: string): Promise<any> {
+  const url = `${getApiBaseUrl()}/api/v1/evaluation/role-switch`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ role }),
+  });
+  if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+  return res.json();
+}
