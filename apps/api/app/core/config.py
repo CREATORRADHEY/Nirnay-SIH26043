@@ -83,17 +83,6 @@ class Settings(BaseSettings):
 
     @field_validator("database_url", mode="before")
     @classmethod
-<<<<<<< HEAD
-    def parse_database_url(cls, v: Any) -> str:
-        if isinstance(v, str):
-            v_str = v.strip()
-            if v_str.startswith("postgresql://"):
-                return v_str.replace("postgresql://", "postgresql+psycopg://", 1)
-            if v_str.startswith("postgres://"):
-                return v_str.replace("postgres://", "postgresql+psycopg://", 1)
-            return v_str
-        return v
-=======
     def clean_database_url(cls, v: Any) -> str:
         if v is None:
             return "postgresql+psycopg://postgres:postgres@127.0.0.1:5432/nirnay"
@@ -103,7 +92,6 @@ class Settings(BaseSettings):
         elif v_str.startswith("postgres://"):
             v_str = "postgresql+psycopg://" + v_str[len("postgres://"):]
         return v_str
->>>>>>> origin/release/sih-final-rc
 
     @field_validator("cors_origins", mode="before")
     @classmethod
