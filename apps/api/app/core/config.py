@@ -37,6 +37,39 @@ class Settings(BaseSettings):
         default_factory=list, validation_alias="CORS_ORIGINS"
     )
 
+    # Session & Cookie Security Settings
+    session_cookie_secure: Union[bool, None] = Field(
+        default=None, validation_alias="SESSION_COOKIE_SECURE"
+    )
+    session_cookie_samesite: str = Field(
+        default="lax", validation_alias="SESSION_COOKIE_SAMESITE"
+    )
+    csrf_cookie_secure: Union[bool, None] = Field(
+        default=None, validation_alias="CSRF_COOKIE_SECURE"
+    )
+    csrf_cookie_samesite: str = Field(
+        default="lax", validation_alias="CSRF_COOKIE_SAMESITE"
+    )
+
+    # Storage Adapter Settings
+    storage_provider: str = Field(default="local", validation_alias="STORAGE_PROVIDER")
+    s3_bucket: Union[str, None] = Field(default=None, validation_alias="S3_BUCKET")
+    s3_endpoint_url: Union[str, None] = Field(default=None, validation_alias="S3_ENDPOINT_URL")
+    s3_access_key_id: Union[str, None] = Field(default=None, validation_alias="S3_ACCESS_KEY_ID")
+    s3_secret_access_key: Union[str, None] = Field(default=None, validation_alias="S3_SECRET_ACCESS_KEY")
+    s3_region: Union[str, None] = Field(default="us-east-1", validation_alias="S3_REGION")
+
+    # Release Metadata
+    release_sha: str = Field(
+        default="unknown", validation_alias="NIRNAY_RELEASE_SHA"
+    )
+
+    @property
+    def is_cookie_secure(self) -> bool:
+        if self.session_cookie_secure is not None:
+            return self.session_cookie_secure
+        return self.app_env in ("production", "staging")
+
     # AI Assistance Settings
     ai_enabled: bool = Field(default=False, validation_alias="AI_ENABLED")
     ai_provider: str = Field(default="disabled", validation_alias="AI_PROVIDER")

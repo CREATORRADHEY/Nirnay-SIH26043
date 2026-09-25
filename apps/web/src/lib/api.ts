@@ -37,9 +37,12 @@ import type {
 } from "./types/challenge";
 
 export function getApiBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+  if (process.env.NEXT_PUBLIC_API_BASE_URL !== undefined) {
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  }
+  return "http://localhost:8000";
 }
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL !== undefined ? process.env.NEXT_PUBLIC_API_BASE_URL : "http://localhost:8000";
 
 export const ENABLE_DEMO_FALLBACK =
   process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACK === "true";
