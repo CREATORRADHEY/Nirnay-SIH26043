@@ -92,7 +92,7 @@ export function ProductPreview() {
       <div className="w-full bg-white rounded-2xl border-2 border-stone-200/90 shadow-2xl shadow-stone-900/15 overflow-hidden text-[#1C1917] transform lg:-rotate-1 group-hover:rotate-0 transition-all duration-500 ease-out font-sans">
         <div className="flex min-h-[500px]">
           {/* Left Sidebar */}
-          <div className="w-40 sm:w-44 bg-[#FAF8F5] border-r border-stone-200 p-3 flex flex-col justify-between shrink-0">
+          <div className="hidden md:flex w-40 sm:w-44 bg-[#FAF8F5] border-r border-stone-200 p-3 flex-col justify-between shrink-0">
             <div>
               {/* Top Logo & Title */}
               <div className="flex items-center justify-between px-1 mb-4">
@@ -152,7 +152,7 @@ export function ProductPreview() {
             {/* Top Navigation & Search Header */}
             <div className="border-b border-stone-200 px-3.5 py-2.5 flex items-center justify-between gap-3 bg-[#FAF8F5]/80 backdrop-blur-xs">
               {/* Search Input */}
-              <div className="flex items-center gap-2 bg-white px-2.5 py-1.5 rounded-lg border border-stone-200 text-xs w-52 sm:w-60 focus-within:border-[#EA580C] shadow-2xs">
+              <div className="flex items-center gap-2 bg-white px-2.5 py-1.5 rounded-lg border border-stone-200 text-xs w-32 sm:w-60 focus-within:border-[#EA580C] shadow-2xs">
                 <Search className="w-3.5 h-3.5 text-stone-400 shrink-0" />
                 <input
                   type="text"

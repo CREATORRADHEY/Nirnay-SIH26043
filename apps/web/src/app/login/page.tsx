@@ -87,19 +87,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] flex flex-col justify-center py-12 sm:px-6 lg:px-8 text-stone-900 font-sans relative">
-      {/* Top Left Navigation Back Button */}
-      <div className="absolute top-6 left-6">
+    <div className="min-h-screen bg-[#FDFBF7] flex flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8 text-stone-900 font-sans relative">
+      {/* Top Header Bar for Back button and Language Switcher */}
+      <div className="w-full max-w-md mx-auto mb-6 flex items-center justify-between gap-3">
         <button
           onClick={() => router.push("/")}
-          className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg shadow-sm hover:bg-stone-50 hover:border-stone-400 transition-all cursor-pointer"
+          className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg shadow-sm hover:bg-stone-50 hover:border-stone-400 transition-all cursor-pointer min-h-[44px]"
         >
           <ArrowLeft className="w-4 h-4 text-stone-600" />
           <span>{t("back_to_site", "Back to Site")}</span>
         </button>
-      </div>
 
-      <div className="absolute top-6 right-6">
         <LanguageSwitcher variant="light" />
       </div>
 

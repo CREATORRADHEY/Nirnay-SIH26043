@@ -208,7 +208,7 @@ export const AppShellContent: React.FC<{ children: React.ReactNode }> = ({ child
           </nav>
         </div>
 
-        <div className="flex items-center gap-1.5 xl:gap-2.5 shrink-0 ml-2">
+        <div className="flex items-center gap-1 sm:gap-2 xl:gap-2.5 shrink-0 ml-1 sm:ml-2">
           <LanguageSwitcher variant="dark" />
           <GuidedModeButton />
 
@@ -224,13 +224,14 @@ export const AppShellContent: React.FC<{ children: React.ReactNode }> = ({ child
           <Link
             href="/app/evaluation"
             data-tour="jury-evaluation-btn"
-            className="text-xs px-2.5 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-lg border border-amber-500/40 font-bold transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
+            className="text-xs px-2 sm:px-2.5 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-lg border border-amber-500/40 font-bold transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0 min-h-[38px] sm:min-h-[44px]"
           >
-            <span>Jury Evaluation</span>
+            <span className="hidden xs:inline">Jury Evaluation</span>
+            <span className="xs:hidden">Jury</span>
           </Link>
           <button
             onClick={handleLogout}
-            className="text-xs px-2.5 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white rounded-lg border border-stone-700 transition-colors cursor-pointer whitespace-nowrap shrink-0"
+            className="text-xs px-2 sm:px-2.5 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white rounded-lg border border-stone-700 transition-colors cursor-pointer whitespace-nowrap shrink-0 min-h-[38px] sm:min-h-[44px]"
           >
             {t("sign_out", "Sign Out")}
           </button>
@@ -265,7 +266,7 @@ export const AppShellContent: React.FC<{ children: React.ReactNode }> = ({ child
         })}
       </div>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 min-w-0 overflow-x-hidden">
         <PageContext />
         <MissionNavigator />
         {children}
