@@ -1,165 +1,193 @@
-# NIRNAY: Societal Innovation Collaboration & Readiness Platform
+# NIRNAY
 
-> **Smart India Hackathon 2026** | **Problem Statement**: SIH26043  
-> **Team**: CREATORZZZ  
-> **Tagline**: *Right Problem. Ready Pilot. Proven Outcome.*
+**Right Problem. Ready Pilot. Proven Outcome.**
 
----
+*A societal innovation collaboration, problem qualification, and pilot readiness platform.*
 
-## 1. What NIRNAY Is & Core Principles
-
-NIRNAY is a production-oriented public-sector governance and readiness platform built for SIH26043. It transforms unstructured municipal and field problem statements into standardized **Challenge Passports**, matches academic research capabilities (HEIs) and MSME solutions, and manages pilot readiness and outcome evaluation through deterministic state transitions.
-
-### Core Architectural Principles:
-
-1. **Facts ≠ Decisions ≠ Readiness ≠ Outcomes**:
-   Operational pilot completion is kept strictly separate from evidence outcome evaluation. A completed pilot does not automatically equal proven impact.
-2. **AI is Strictly Advisory**:
-   Artificial Intelligence operates exclusively as a non-authoritative advisory assistant (`is_ai_advisory: true`). All domain decisions are executed by authenticated human actors.
-3. **Deterministic State Transitions**:
-   State transitions are governed by formal domain contracts and optimistic concurrency control (`expected_version`).
-4. **Dependency-Aware Readiness**:
-   If an underlying institutional commitment is withdrawn, NIRNAY preserves historical audit logs but automatically invalidates pilot readiness (`PILOT_READY` ➔ `REVIEW_REQUIRED`).
-5. **5-Phase Progression Protocol**:
-   - **Problem Statement Structuring & Refinement**: AI-assisted challenge drafting and clarification.
-   - **Pilot Readiness Evaluation**: Multi-dimensional scoring across technical, regulatory, financial, and operational criteria.
-   - **HEI & Innovator Capability Matching**: Automated algorithmic matching of academic research units and startups to challenges.
-   - **Pilot Deployment & Operational Monitoring**: Milestone-based execution tracking with evidence submission.
-   - **Outcome Auditing & Impact Verification**: Third-party verification, metrics evaluation, and scaling decisions.
+| Metric / Setting | Value |
+| :--- | :--- |
+| **Problem Statement** | SIH26043 |
+| **Team** | CREATORZZZ |
+| **Canonical Repository** | `https://github.com/CREATORRADHEY/Nirnay-SIH26043` |
+| **Live Frontend** | [https://nirnay-sih-26043-one.vercel.app/](https://nirnay-sih-26043-one.vercel.app/) |
+| **Live API Backend** | [https://nirnay-sih26043.onrender.com/](https://nirnay-sih26043.onrender.com/) |
+| **API Healthcheck** | [https://nirnay-sih26043.onrender.com/health](https://nirnay-sih26043.onrender.com/health) |
 
 ---
 
-## 2. System Architecture & Stack
+## 1. The Problem
+
+Societal challenges across Indian civic sectors (such as municipal waste management, rural water supply, and cold chain logistics) often fail to achieve lasting impact due to critical structural disconnects:
+
+1. **Scattered Submissions & Noise**: Public complaints and citizen issues are submitted in unstructured formats, making evidence verification difficult.
+2. **Missing Problem Qualification Gate**: Municipal and state agencies frequently attempt to deploy costly technology innovations for routine service complaints or administrative clarity issues that require standard municipal service execution rather than innovation funding.
+3. **Institutional Misalignment**: Universities (HEIs) and industry partners are often assigned to challenges without explicit, verifiable resource commitments or agreed readiness conditions.
+4. **Assignment Confused with Readiness**: Assigning an institution to a problem is often mistaken for making the project ready for field pilot deployment.
+5. **Pilot Completion Confused with Proven Impact**: Operational completion of a pilot phase is frequently conflated with proving validated societal impact.
+
+---
+
+## 2. Our Product Thesis
+
+NIRNAY introduces a structured governance framework built on four cardinal principles:
+
+> **Not every genuine problem is an innovation problem.**
+> **Not every innovation problem is pilot-ready.**
+> **Not every completed pilot proves impact.**
+> **Assignment ≠ Readiness | Completion ≠ Impact**
+
+```
+FACTS (Evidence)  ──>  DECISIONS (Qualification)  ──>  READINESS (Commitments & Conditions)  ──>  OUTCOMES (Validated Impact)
+```
+
+---
+
+## 3. End-to-End Governance Lifecycle
+
+NIRNAY enforces a sequential 9-stage lifecycle:
+
+```mermaid
+flowchart LR
+    A[1. Challenge Report] --> B[2. Evidence Attach]
+    B --> C[3. Qualification Gate]
+    C --> D[4. Verification]
+    D --> E[5. HEI / Industry Match]
+    E --> F[6. Commitment Accept]
+    F --> G[7. Pilot Readiness]
+    G --> H[8. Pilot Execution]
+    H --> I[9. Outcome Integrity]
+```
+
+1. **Report**: Citizens and innovators submit structured civic challenges with location & domain context.
+2. **Evidence**: Ground-truth photos, sensor logs, or official documents are linked to the challenge.
+3. **Qualification**: Government Nodal Reviewers route the challenge to one of four authoritative routes:
+   - `SERVICE`: Standard municipal execution.
+   - `CLARIFY`: Additional ground facts required.
+   - `RESEARCH_REVIEW`: Literature / policy review.
+   - `INNOVATION_CHALLENGE`: Complex challenge requiring R&D / Pilot intervention.
+4. **Validation**: Verification of evidence integrity and duplicate detection.
+5. **Matching**: Higher Education Institutions (HEIs) and Industry partners are matched based on active research capabilities.
+6. **Commitment**: Institutions formally issue `ACCEPTED` commitments with clear deliverables.
+7. **Pilot Readiness**: Automatic dependency evaluation ensures all conditions are `SATISFIED` before declaring `PILOT_READY`. If a commitment is `WITHDRAWN`, readiness automatically invalidates to `REVIEW_REQUIRED`.
+8. **Pilot Execution**: Operational deployment is tracked (`PLANNED` → `ACTIVE` → `COMPLETED`).
+9. **Outcome Integrity**: Final impact assessment cleanly separates `OperationalStatus` (e.g., `COMPLETED`) from `EvidenceConclusion` (e.g., `INCONCLUSIVE` vs `VALIDATED`).
+
+---
+
+## 4. Key Verified Capabilities
+
+- **Challenge Passport**: Single source of truth compiling problem details, evidence history, qualification decisions, institutional commitments, readiness conditions, and outcome assessments.
+- **Problem Qualification Gate**: Prevents wasteful innovation resource allocation by requiring explicit human qualification into authoritative routes.
+- **HEI / Institutional Matching**: Capability-based matching engine pairing challenges with accredited institutions.
+- **Commitment & Dependency Management**: Concurrency-safe version tracking for institutional resource commitments.
+- **Automated Readiness Invalidation**: Automatic transition to `REVIEW_REQUIRED` when underlying commitments or conditions change.
+- **Decision Assurance Engine**: Immutable audit records capturing human rationale, evidence basis, second-reviewer sign-offs, and disagreement resolutions.
+- **Guided Mission Mode**: Interactive, role-aware onboardings, Mission Navigator badges, page context headers, and a 90-second Jury Tour.
+- **Bounded AI Advisory**: Non-authoritative AI suggestions for challenge extraction, duplicate detection, and qualification assistance. Strictly constrained: *AI proposes → Human authorizes*.
+- **Evaluation & Jury Workspace**: Interactive simulation workspace with seed scenarios for testing dependency invalidations and outcome integrity.
+
+---
+
+## 5. Technology Stack
+
+| Layer | Technology | Version |
+| :--- | :--- | :--- |
+| **Frontend Framework** | Next.js (App Router, Turbopack) | `16.3.5` |
+| **UI Library** | React / React-DOM | `19.2.8` |
+| **Styling** | TailwindCSS | `^4.0` |
+| **Icons** | Lucide React | `^1.45.0` |
+| **Backend Framework** | FastAPI (Python 3.11 / 3.13) | `0.116.1` |
+| **ASGI Server** | Uvicorn | `0.35.0` |
+| **ORM & Migrations** | SQLAlchemy & Alembic | `2.0.43` / `1.16.5` |
+| **Database Driver** | psycopg3 | `3.2.10` |
+| **Password Hashing** | Argon2id (`argon2-cffi`) | `23.1.0` |
+| **Database** | PostgreSQL | `15+` |
+| **Testing** | Pytest (Backend) / Node Test Runner & Playwright (Frontend) | Pytest `8.x` / Playwright `1.63` |
+
+---
+
+## 6. System Architecture Summary
 
 ```mermaid
 graph TD
-    subgraph Client Layer ["Client Layer (Next.js 16 + React 19)"]
-        UI["Tailwind CSS + Glassmorphic UI"]
-        Forms["Zod Form Validation & Client State"]
-        API_Client["Typed API Client (lib/api.ts)"]
-    end
-
-    subgraph API Gateway ["API & Business Logic (FastAPI 0.115)"]
-        Router["V1 API Router"]
-        Auth["Auth & Mobile OTP / Email / JWT Middleware"]
-        Services["Domain Services Layer"]
-        AI_Engine["Gemini AI Assistance & Audit Logger"]
-    end
-
-    subgraph Data Layer ["Data & Storage (PostgreSQL 16 + Alembic)"]
-        DB[(PostgreSQL Database)]
-        ORM["SQLAlchemy 2.0 ORM"]
-        Migrations["Alembic Version Control"]
-    end
-
-    UI --> API_Client
-    API_Client --> Router
-    Router --> Auth
-    Auth --> Services
-    Services --> AI_Engine
-    Services --> ORM
-    ORM --> DB
-```
-
-- **Frontend**: Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4.
-- **Backend API**: FastAPI (Python 3.11/3.13), Pydantic v2, SQLAlchemy 2.0 ORM, Uvicorn.
-- **Database**: PostgreSQL with Alembic migration version control.
-- **Authentication & Security**: Account-based authentication, mobile OTP fallback, email auth fallback, salted PBKDF2 password hashing, opaque session token hashes (`token_hash`), CSRF headers, and server-side RBAC middleware (`PolicyService`).
-- **Storage**: Storage adapter supporting S3 and MVP Ephemeral storage mode (`ALLOW_EPHEMERAL_STORAGE`).
-
----
-
-## 3. Monorepo Layout
-
-```text
-Nirnay-SIH26043/
-├── apps/
-│   ├── web/                          # Next.js Frontend App
-│   │   ├── src/app/                  # App Router pages (public, auth, & authenticated /app)
-│   │   ├── src/components/           # UI Components (Shell, Passports, Readiness, Pilots)
-│   │   ├── src/lib/                  # Auth Context & Typed API client
-│   │   └── test/                     # Frontend ESM Test Suite (28 tests)
-│   └── api/                          # FastAPI Backend App
-│       ├── alembic/                  # Schema migration history
-│       ├── app/                      # Models, routers, services, & policy matrix
-│       └── scripts/                  # Seed scripts for demonstration data
-├── packages/
-│   └── contracts/                    # Canonical domain state contracts (JSON)
-├── docs/                             # Engineering, architecture, & audit documentation
-└── scripts/                          # Parity & setup scripts
+    Client[Next.js Frontend / Vercel] -->|/api/v1 Proxy| Backend[FastAPI Backend / Render]
+    Backend -->|SQLAlchemy 2.0 / psycopg3| DB[(PostgreSQL Database)]
+    Backend -->|Non-authoritative Prompt| AI[Gemini API / Configured Provider]
+    Backend -->|Local Ephemeral / S3| Storage[Evidence Storage Adapter]
 ```
 
 ---
 
-## 4. Demo Accounts & Role-Based Testing
+## 7. Local Quickstart
 
-For evaluation and testing, the platform includes pre-seeded accounts representing key stakeholders:
+### Prerequisites
+- Python `3.11` or `3.13`
+- Node.js `20+` & `npm`
+- PostgreSQL `15+` (or Docker)
 
-- **Government / Nodal Officer**: `nodal1@gov.in` (Password: `password123`)
-- **HEI Lead**: `hei1@institute.edu` (Password: `password123`)
-- **Innovator / Startup**: `innovator1@startup.io` (Password: `password123`)
-- **Platform Admin**: `admin1@nirnay.gov.in` (Password: `password123`)
-
----
-
-## 5. Prerequisites & Local Setup Guide
-
-### 5.1. Prerequisites
-- **Node.js**: `20.x` or higher
-- **Python**: `3.11` or `3.13`
-- **PostgreSQL**: `15+` (or Docker Container)
-
-### 5.2. Environment Configuration
-Copy default environment variables:
-```bash
-cp .env.example .env
-```
-
-### 5.3. Running Backend API
+### Backend Setup
 ```bash
 cd apps/api
-python3 -m venv .venv
+python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 alembic upgrade head
 uvicorn app.main:app --reload --port 8000
 ```
-*API Swagger Documentation will be accessible at: `http://localhost:8000/docs`*
 
-### 5.4. Running Frontend Application
+### Frontend Setup
 ```bash
 cd apps/web
 npm install
 npm run dev
 ```
-*Frontend Web Application will be accessible at: `http://localhost:3000`*
+
+Visit `http://localhost:3000` for the web app and `http://localhost:8000/docs` for the interactive OpenAPI documentation.
 
 ---
 
-## 6. Verification & Quality Assurance
+## 8. Test Suite Execution & Verification
 
-### Frontend Verification
-```bash
-cd apps/web
-npm test          # Runs unit and governance tests
-npm run typecheck # TypeScript compilation check
-npm run lint      # ESLint static analysis
-npm run build     # Production Next.js build check
-```
+All test counts verified against current repository test suites:
 
-### Backend Verification
-```bash
-cd apps/api
-pytest            # Full Pytest test suite
-```
+- **Backend Pytest Suite**: `170 / 170 passed`
+- **Frontend Unit Test Suite**: `31 / 31 passed`
+- **TypeScript Typecheck**: `0 errors` (`tsc --noEmit`)
+- **Next.js Production Build**: `32 / 32 routes compiled` (`npm run build`)
 
-### Contract Parity Check
+To run tests locally:
 ```bash
-python3 scripts/check-contracts.py
+# Backend unit tests
+cd apps/api && source .venv/bin/activate && pytest app/tests
+
+# Frontend unit tests
+cd apps/web && npm test -- --run
+
+# Full typecheck & build
+cd apps/web && npm run typecheck && npm run build
 ```
 
 ---
 
-## 7. Important Prototype & Evaluation Disclaimer
+## 9. Release & MVP Limitations
 
-NIRNAY is a production-oriented MVP developed for Smart India Hackathon 2026 evaluation (Problem Statement: SIH26043 by Team CREATORZZZ). Demonstration dataset records (e.g. Ranchi Urban Waste, Hazaribagh Vendor Pilot) represent synthetic evaluation scenarios and must not be interpreted as real Government of Jharkhand data, official endorsement, or measured real-world public deployment.
+- **Current Release Tag**: `sih26043-final-v1.1` (Validated MVP Release)
+- **Current Main SHA**: `0d4dd7179040c06497f5a9e33bfdf9b0cbe8ec4e`
+- **MVP Storage Limitation**: In the default MVP deployment configuration (`STORAGE_PROVIDER=local`, `ALLOW_EPHEMERAL_STORAGE=true`), structured workflow records (challenges, qualifications, commitments, audit trails) persist permanently in PostgreSQL, but uploaded binary evidence files remain in local ephemeral storage and may be reset upon backend instance container restarts. Production deployment requires an S3-compatible object store adapter.
+
+---
+
+## 10. Complete Documentation System
+
+Detailed documentation is available in the [`docs/`](./docs/README.md) directory:
+
+- [📚 Documentation Index (`docs/README.md`)](./docs/README.md)
+- [00-Overview](./docs/00-overview/PROJECT_OVERVIEW.md)
+- [01-Product](./docs/01-product/END_TO_END_WORKFLOW.md)
+- [02-System Architecture](./docs/02-system/SYSTEM_ARCHITECTURE.md)
+- [03-AI Architecture & Boundaries](./docs/03-ai/AI_ARCHITECTURE.md)
+- [04-Security & Governance](./docs/04-security/SECURITY_MODEL.md)
+- [05-Deployment & Operations](./docs/05-deployment/LOCAL_DEVELOPMENT.md)
+- [06-Validation & Test Results](./docs/06-validation/VALIDATION_RESULTS.md)
+- [07-Demo & Jury Walkthrough](./docs/07-demo/JURY_WALKTHROUGH.md)
+- [08-Release History & Roadmap](./docs/08-release/RELEASE_HISTORY.md)
