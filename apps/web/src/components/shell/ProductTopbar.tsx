@@ -4,7 +4,10 @@ import { useState } from "react";
 import { Search, Menu, ShieldAlert, ArrowLeft, LogOut, User } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
+import { useLanguage } from "@/lib/language-context";
 import { useRouter } from "next/navigation";
+import { NirnayLogo } from "@/components/NirnayLogo";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 interface ProductTopbarProps {
   onToggleMobileMenu?: () => void;
@@ -14,6 +17,7 @@ interface ProductTopbarProps {
 export function ProductTopbar({ onToggleMobileMenu, isDemo = true }: ProductTopbarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
 
   const handleLogout = async (e?: React.MouseEvent) => {
@@ -33,20 +37,26 @@ export function ProductTopbar({ onToggleMobileMenu, isDemo = true }: ProductTopb
 
   return (
     <header className="h-16 border-b border-[var(--border)] bg-[var(--background)] px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3.5">
         <button
           onClick={onToggleMobileMenu}
-          className="p-1.5 rounded text-[var(--text-primary)] hover:bg-[#F2EFE9] lg:hidden focus:outline-none cursor-pointer"
+          className="p-1.5 rounded-lg text-[var(--text-primary)] hover:bg-[#F2EFE9] lg:hidden focus:outline-none cursor-pointer"
           aria-label="Open sidebar"
         >
           <Menu className="w-5 h-5" />
         </button>
 
+        <Link href="/" className="inline-flex items-center gap-2 group shrink-0">
+          <NirnayLogo size="sm" variant="light" showSubtitle={false} />
+        </Link>
+
+        <div className="h-4 w-px bg-stone-300 hidden sm:block" />
+
         <Link
           href="/"
-          className="hidden sm:inline-flex items-center gap-1 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors mr-2 font-medium"
+          className="hidden md:inline-flex items-center gap-1.5 text-xs text-stone-600 hover:text-stone-900 transition-colors font-medium px-2 py-1 rounded-md hover:bg-stone-100"
         >
-          <ArrowLeft className="w-3.5 h-3.5" /> Back to Site
+          <ArrowLeft className="w-3.5 h-3.5" /> <span>Back to Site</span>
         </Link>
 
         {/* Global Search Bar */}
@@ -56,18 +66,20 @@ export function ProductTopbar({ onToggleMobileMenu, isDemo = true }: ProductTopb
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search challenges, IDs..."
-            className="w-full pl-8 pr-3 py-1.5 text-xs rounded bg-[var(--surface)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--primary)] transition-colors"
+            placeholder={t("search_placeholder", "Search challenges, IDs...")}
+            className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg bg-[var(--surface)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--primary)] transition-colors"
           />
         </div>
       </div>
 
       <div className="flex items-center gap-3">
+        <LanguageSwitcher variant="light" />
+
         {/* Discreet DEMO MODE Indicator */}
         {isDemo && (
           <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#F2EFE9] border border-[var(--border)] text-[11px] font-mono text-[var(--text-secondary)]">
             <ShieldAlert className="w-3.5 h-3.5 text-[var(--primary)]" />
-            <span>DEMO MODE</span>
+            <span>{t("demo_mode", "DEMO MODE")}</span>
           </div>
         )}
 
@@ -83,7 +95,7 @@ export function ProductTopbar({ onToggleMobileMenu, isDemo = true }: ProductTopb
               title="Sign Out of NIRNAY"
             >
               <LogOut className="w-3.5 h-3.5 text-stone-600" />
-              <span>Sign Out</span>
+              <span>{t("sign_out", "Sign Out")}</span>
             </button>
           </div>
         ) : (
@@ -92,7 +104,7 @@ export function ProductTopbar({ onToggleMobileMenu, isDemo = true }: ProductTopb
             className="inline-flex items-center gap-1 px-3.5 py-1.5 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors cursor-pointer"
           >
             <User className="w-3.5 h-3.5" />
-            <span>Sign In</span>
+            <span>{t("sign_in", "Sign In")}</span>
           </Link>
         )}
       </div>

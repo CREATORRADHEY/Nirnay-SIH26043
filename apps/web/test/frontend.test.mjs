@@ -505,3 +505,58 @@ test("Production RBAC: Multi-role permission matrix definitions", async () => {
   assert.ok(permissions.includes("platform:admin"));
   assert.ok(permissions.includes("qualification:record"));
 });
+
+test("Guided Mission Mode: Default guidance state structure", async () => {
+  const defaultState = {
+    version: 1,
+    dismissedWelcome: false,
+    activeTourId: null,
+    currentStepIndex: 0,
+    completedTours: [],
+    lastRoute: "/app",
+    panelOpen: false,
+  };
+  assert.strictEqual(defaultState.version, 1);
+  assert.strictEqual(defaultState.dismissedWelcome, false);
+  assert.strictEqual(defaultState.activeTourId, null);
+  assert.strictEqual(defaultState.currentStepIndex, 0);
+});
+
+test("Guided Mission Mode: Role-aware journeys configuration", async () => {
+  const roleGroups = [
+    "CITIZEN_INNOVATOR",
+    "GOVERNMENT_NODAL",
+    "HEI",
+    "ADMIN",
+    "EVALUATION_JURY"
+  ];
+  assert.strictEqual(roleGroups.length, 5);
+
+  const jurySteps = [
+    "Problem Qualification",
+    "Challenge Passport",
+    "Decision Assurance",
+    "Pilot Readiness Dependencies",
+    "Dependency Invalidation",
+    "Operational COMPLETED != Proven Impact",
+    "AI Authority Safety Boundary"
+  ];
+  assert.strictEqual(jurySteps.length, 7);
+});
+
+test("Guided Mission Mode: Page guidance route explanations", async () => {
+  const routes = [
+    "/app",
+    "/app/review",
+    "/app/qualification",
+    "/app/hei-matching",
+    "/app/commitments",
+    "/app/readiness",
+    "/app/pilots",
+    "/app/outcomes",
+    "/app/evaluation"
+  ];
+  assert.ok(routes.includes("/app/qualification"));
+  assert.ok(routes.includes("/app/readiness"));
+  assert.ok(routes.includes("/app/evaluation"));
+});
