@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { AuthProvider } from "@/lib/auth-context";
+import { LanguageProvider } from "@/lib/language-context";
+import { FloatingLanguageWidget } from "@/components/FloatingLanguageWidget";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,7 +27,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col bg-[var(--background)] text-[var(--text-primary)]">
-        <AuthProvider>{children}</AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            {children}
+            <FloatingLanguageWidget />
+          </AuthProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

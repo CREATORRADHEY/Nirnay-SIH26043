@@ -194,20 +194,22 @@ export default function PilotReadinessPage() {
 
         {/* Hero Dependency Invalidation Banner */}
         {latestDecision && (
-          <WhyThisState
-            currentState={latestDecision.status}
-            previousState={prevDecision ? `${prevDecision.status} v${prevDecision.version}` : null}
-            whatHappened={latestDecision.rationale}
-            triggerEvent={
-              latestDecision.triggered_by_commitment_id
-                ? `Dependency invalidation triggered by Commitment update ID ${latestDecision.triggered_by_commitment_id}`
-                : null
-            }
-            nextActionLabel={isInvalidated ? "Re-evaluate Pilot Readiness" : "Grant PILOT_READY"}
-            onNextActionClick={() => {
-              window.scrollTo({ top: 400, behavior: "smooth" });
-            }}
-          />
+          <div data-tour="decision-assurance">
+            <WhyThisState
+              currentState={latestDecision.status}
+              previousState={prevDecision ? `${prevDecision.status} v${prevDecision.version}` : null}
+              whatHappened={latestDecision.rationale}
+              triggerEvent={
+                latestDecision.triggered_by_commitment_id
+                  ? `Dependency invalidation triggered by Commitment update ID ${latestDecision.triggered_by_commitment_id}`
+                  : null
+              }
+              nextActionLabel={isInvalidated ? "Re-evaluate Pilot Readiness" : "Grant PILOT_READY"}
+              onNextActionClick={() => {
+                window.scrollTo({ top: 400, behavior: "smooth" });
+              }}
+            />
+          </div>
         )}
 
         {loading ? (
@@ -216,7 +218,7 @@ export default function PilotReadinessPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column: Readiness Conditions Matrix & Commitments Status */}
             <div className="space-y-6">
-              <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm space-y-4">
+              <div data-tour="readiness-conditions" className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm space-y-4">
                 <div className="border-b border-stone-100 pb-3 flex items-center justify-between">
                   <div>
                     <h3 className="text-sm font-bold text-stone-900">Readiness Conditions Matrix</h3>
@@ -257,7 +259,7 @@ export default function PilotReadinessPage() {
               </div>
 
               {/* Related Commitments */}
-              <div className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm space-y-3">
+              <div data-tour="readiness-dependencies" className="bg-white p-5 rounded-xl border border-stone-200 shadow-sm space-y-3">
                 <div className="flex items-center justify-between border-b border-stone-100 pb-2">
                   <h3 className="text-xs font-bold text-stone-900 uppercase tracking-wider">
                     Institutional Commitments Basis ({commitments.length})

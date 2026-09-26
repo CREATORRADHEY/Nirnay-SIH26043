@@ -1,5 +1,7 @@
 "use client";
 
+import { NirnayLogo } from "@/components/NirnayLogo";
+
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -43,18 +45,7 @@ export default function ForgotPasswordPage() {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link href="/" className="inline-flex flex-col items-center justify-center space-y-2 group">
-          <div className="p-3 bg-stone-900 rounded-2xl shadow-md border border-stone-800 group-hover:scale-105 transition-transform flex items-center justify-center">
-            <img 
-              src="/logo-icon.png" 
-              onError={(e) => { e.currentTarget.src = "/logo.png"; }} 
-              alt="NIRNAY Logo" 
-              className="w-14 h-14 object-contain rounded-lg" 
-            />
-          </div>
-          <div className="text-3xl font-black tracking-tight text-stone-900 font-serif mt-1">NIRNAY</div>
-          <div className="text-[11px] font-bold text-amber-800 font-mono tracking-widest uppercase bg-amber-100/80 border border-amber-200/80 px-3 py-0.5 rounded-full">
-            PEOPLE • IDEAS • IMPACT
-          </div>
+          <NirnayLogo size="lg" variant="light" showSubtitle={true} />
         </Link>
         <h2 className="mt-6 text-center text-2xl font-bold tracking-tight text-stone-900">
           Reset your password

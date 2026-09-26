@@ -1,5 +1,9 @@
 "use client";
 
+import { NirnayLogo } from "@/components/NirnayLogo";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/lib/language-context";
+
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,6 +12,7 @@ import { ArrowLeft, Phone, Mail, ShieldCheck, RefreshCw, Eye, EyeOff, AlertCircl
 
 export default function LoginPage() {
   const { login, sendMobileOtp, verifyMobileOtp } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
 
   const [authMethod, setAuthMethod] = useState<"email" | "mobile">("email");
@@ -90,24 +95,17 @@ export default function LoginPage() {
           className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg shadow-sm hover:bg-stone-50 hover:border-stone-400 transition-all cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4 text-stone-600" />
-          <span>Back to Home</span>
+          <span>{t("back_to_site", "Back to Site")}</span>
         </button>
+      </div>
+
+      <div className="absolute top-6 right-6">
+        <LanguageSwitcher variant="light" />
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link href="/" className="inline-flex flex-col items-center justify-center space-y-2 group">
-          <div className="p-3 bg-stone-900 rounded-2xl shadow-md border border-stone-800 group-hover:scale-105 transition-transform flex items-center justify-center">
-            <img 
-              src="/logo-icon.png" 
-              onError={(e) => { e.currentTarget.src = "/logo.png"; }} 
-              alt="NIRNAY Logo" 
-              className="w-14 h-14 object-contain rounded-lg" 
-            />
-          </div>
-          <div className="text-3xl font-black tracking-tight text-stone-900 font-serif mt-1">NIRNAY</div>
-          <div className="text-[11px] font-bold text-amber-800 font-mono tracking-widest uppercase bg-amber-100/80 border border-amber-200/80 px-3 py-0.5 rounded-full">
-            PEOPLE • IDEAS • IMPACT
-          </div>
+          <NirnayLogo size="lg" variant="light" showSubtitle={true} />
         </Link>
         <h2 className="mt-6 text-center text-2xl font-bold tracking-tight text-stone-900">
           Sign in to your NIRNAY account

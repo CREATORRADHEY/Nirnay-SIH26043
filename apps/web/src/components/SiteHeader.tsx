@@ -4,18 +4,22 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Menu, X, Search } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { useLanguage } from "@/lib/language-context";
+import { NirnayLogo } from "@/components/NirnayLogo";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export function SiteHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const navLinks = [
-    { label: "Product", href: user ? "/app" : "/login" },
+    { label: t("dashboard", "Product"), href: user ? "/app" : "/login" },
     { label: "Workflow", href: "#workflow" },
     { label: "Stakeholders", href: "#ecosystem" },
-    { label: "Evidence", href: user ? "/app/challenges" : "/login" },
-    { label: "Pilot Readiness", href: user ? "/app/readiness" : "/login" },
-    { label: "Public Directory", href: "/challenges" },
+    { label: t("my_challenges", "Evidence"), href: user ? "/app/challenges" : "/login" },
+    { label: t("readiness", "Pilot Readiness"), href: user ? "/app/readiness" : "/login" },
+    { label: t("explore_challenges", "Public Directory"), href: "/challenges" },
     { label: "About", href: "#about" },
   ];
 
@@ -24,54 +28,44 @@ export function SiteHeader() {
       <div className="max-w-[1440px] mx-auto px-6 lg:px-12">
         <div className="flex h-20 items-center justify-between">
           {/* Brand Logo & Subtitle */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <img
-              src="/logo-icon.png"
-              alt="NIRNAY Logo"
-              className="w-10 h-10 object-contain transition-transform group-hover:scale-105 shrink-0 rounded-xl"
-            />
-            <div className="flex flex-col">
-              <span className="text-xl font-extrabold tracking-tight text-[#1C1917] font-serif leading-none">
-                NIRNAY
-              </span>
-              <span className="text-[10px] font-bold text-stone-500 tracking-wider uppercase mt-1 leading-none font-mono">
-                PEOPLE • IDEAS • IMPACT
-              </span>
-            </div>
+          <Link href="/" className="flex items-center gap-2.5 group shrink-0">
+            <NirnayLogo size="md" variant="light" showSubtitle={true} />
           </Link>
 
           {/* Navigation Links */}
-          <nav className="hidden xl:flex items-center gap-7">
+          <nav className="hidden lg:flex items-center gap-5 xl:gap-6">
             {navLinks.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
-                className="text-xs font-semibold text-stone-700 hover:text-[#EA580C] transition-colors relative py-1"
+                className="text-xs font-bold text-stone-700 hover:text-[#EA580C] transition-colors whitespace-nowrap shrink-0 py-1.5"
               >
                 {link.label}
               </Link>
             ))}
           </nav>
 
-          {/* Actions: Search Button + View Demo + Start Review */}
-          <div className="hidden sm:flex items-center gap-3">
+          {/* Actions: Language Switcher + Public Directory + Start Review */}
+          <div className="hidden sm:flex items-center gap-2.5 shrink-0">
+            <LanguageSwitcher variant="light" />
             <button
-              className="w-9 h-9 rounded-full border border-stone-300 bg-white flex items-center justify-center text-stone-600 hover:border-stone-400 hover:text-[#EA580C] transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-full border border-stone-300 bg-white flex items-center justify-center text-stone-600 hover:border-stone-400 hover:text-[#EA580C] transition-colors cursor-pointer shrink-0"
               title="Search NIRNAY Platform"
             >
-              <Search className="w-4 h-4" />
+              <Search className="w-3.5 h-3.5" />
             </button>
             <Link
               href="/challenges"
-              className="px-4 py-2.5 rounded-full text-xs font-semibold text-[#EA580C] border border-[#EA580C] hover:bg-[#EA580C]/5 transition-colors inline-flex items-center justify-center cursor-pointer"
+              className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#EA580C] border border-[#EA580C] hover:bg-[#EA580C]/5 transition-colors inline-flex items-center justify-center cursor-pointer whitespace-nowrap shrink-0"
             >
               Public Challenges
             </Link>
             <Link
               href={user ? "/app" : "/login"}
-              className="px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-[#EA580C] hover:bg-[#C2410C] transition-all duration-150 shadow-sm inline-flex items-center gap-1.5 cursor-pointer active:scale-98"
+              className="px-4 py-1.5 rounded-full text-xs font-bold text-white bg-[#EA580C] hover:bg-[#C2410C] transition-all duration-150 shadow-xs inline-flex items-center gap-1 cursor-pointer active:scale-98 whitespace-nowrap shrink-0"
             >
-              Start Review <ArrowRight className="w-3.5 h-3.5" />
+              <span>Start Review</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 

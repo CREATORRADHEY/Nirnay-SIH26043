@@ -179,7 +179,7 @@ export default function OutcomeEvaluationPage() {
         </div>
 
         {/* Execution vs Evidence Separation Banner */}
-        <div className="bg-amber-950 text-amber-100 p-5 rounded-xl border border-amber-800 shadow-md space-y-2">
+        <div data-tour="outcomes-section" className="bg-amber-950 text-amber-100 p-5 rounded-xl border border-amber-800 shadow-md space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>

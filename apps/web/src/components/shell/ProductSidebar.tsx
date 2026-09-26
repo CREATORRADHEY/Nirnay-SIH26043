@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { NirnayLogo } from "@/components/NirnayLogo";
 import {
   Layers,
   FileText,
@@ -130,24 +131,9 @@ export function ProductSidebar({ mobileOpen = false, onCloseMobile }: ProductSid
       }`}
     >
       {/* Brand Header */}
-      <div className="h-16 px-5 border-b border-[var(--border)] flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex items-center justify-center w-7 h-7 rounded bg-[var(--primary)] text-white font-bold text-xs">
-            <Layers className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-sm tracking-tight text-[var(--text-primary)]">
-                NIRNAY
-              </span>
-              <span className="text-[9px] font-mono px-1 py-0.2 bg-[#F2EFE9] text-[var(--text-secondary)] rounded border border-[var(--border)]">
-                SIH26043
-              </span>
-            </div>
-            <p className="text-[10px] text-[var(--text-secondary)] tracking-tight">
-              Ready Platform Shell
-            </p>
-          </div>
+      <div className="h-16 px-4 border-b border-[var(--border)] flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2">
+          <NirnayLogo size="sm" variant="light" subtitle="SIH26043" />
         </Link>
       </div>
 

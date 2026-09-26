@@ -53,6 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (res.ok) {
         const data = await res.json();
         setUser(data);
+        setLoading(false);
         return;
       }
     } catch {
@@ -80,6 +81,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string) => {
+    setUser(null);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("nirnay_demo_user");
+    }
+
     try {
       const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
         method: "POST",
@@ -88,6 +94,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify({ email, password }),
       });
       if (res.ok) {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("nirnay_demo_user");
+        }
         await refreshUser();
         return;
       }
@@ -101,36 +110,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let orgName = "Ranchi Action Forum";
     let orgType = "CITIZEN";
 
-    if (lowerEmail.includes("gov@") || lowerEmail.includes("official") || lowerEmail.includes("jharkhand")) {
-      role = "GOVERNMENT_OFFICIAL";
-      name = "State Nodal Reviewer (Gov Admin)";
-      orgName = "Urban Development & Housing Department (Govt of Jharkhand)";
-      orgType = "GOVERNMENT";
-    } else if (lowerEmail.includes("reviewer@")) {
-      role = "GOVERNMENT_OFFICIAL";
-      name = "Nodal Reviewer (Jury Demo)";
-      orgName = "State Governance Review Panel";
-      orgType = "GOVERNMENT";
-    } else if (lowerEmail.includes("hei@") || lowerEmail.includes("director") || lowerEmail.includes("bitmesra")) {
-      role = "HEI_DIRECTOR";
-      name = "HEI Admin (BIT Mesra)";
-      orgName = "BIT Mesra Innovation & Research Center";
-      orgType = "HEI";
-    } else if (lowerEmail.includes("industry@") || lowerEmail.includes("partner") || lowerEmail.includes("msme") || lowerEmail.includes("cleanwater")) {
-      role = "MSME_PARTNER";
-      name = "Industry Partner (CleanWater Co)";
-      orgName = "CleanWater Tech Innovations India";
-      orgType = "MSME";
-    } else if (lowerEmail.includes("citizen@") || lowerEmail.includes("reporter") || lowerEmail.includes("ranchi")) {
-      role = "COMMUNITY_REPORTER";
-      name = "Citizen Reporter";
-      orgName = "Ranchi Citizens Action Forum";
-      orgType = "CITIZEN";
-    } else if (lowerEmail.includes("admin@")) {
+    if (lowerEmail.includes("admin")) {
       role = "PLATFORM_ADMIN";
       name = "Platform Administrator";
       orgName = "NIRNAY Central Governance Platform Unit";
       orgType = "GOVERNMENT";
+    } else if (lowerEmail.includes("hei") || lowerEmail.includes("director") || lowerEmail.includes("bitmesra") || lowerEmail.includes("institute")) {
+      role = "HEI_DIRECTOR";
+      name = "HEI Admin (BIT Mesra)";
+      orgName = "BIT Mesra Innovation & Research Center";
+      orgType = "HEI";
+    } else if (lowerEmail.includes("industry") || lowerEmail.includes("partner") || lowerEmail.includes("msme") || lowerEmail.includes("cleanwater") || lowerEmail.includes("innovator") || lowerEmail.includes("startup")) {
+      role = "MSME_PARTNER";
+      name = "Industry Partner / Innovator";
+      orgName = "CleanWater Tech Innovations India";
+      orgType = "MSME";
+    } else if (lowerEmail.includes("gov") || lowerEmail.includes("nodal") || lowerEmail.includes("official") || lowerEmail.includes("jharkhand") || lowerEmail.includes("reviewer")) {
+      role = "GOVERNMENT_OFFICIAL";
+      name = "State Nodal Reviewer (Gov Admin)";
+      orgName = "Urban Development & Housing Department (Govt of Jharkhand)";
+      orgType = "GOVERNMENT";
+    } else if (lowerEmail.includes("citizen") || lowerEmail.includes("reporter") || lowerEmail.includes("ranchi")) {
+      role = "COMMUNITY_REPORTER";
+      name = "Citizen Reporter";
+      orgName = "Ranchi Citizens Action Forum";
+      orgType = "CITIZEN";
     }
 
     const mockUser: UserProfile = {

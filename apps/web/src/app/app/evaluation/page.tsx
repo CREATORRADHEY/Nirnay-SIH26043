@@ -230,7 +230,7 @@ export default function PracticalJuryEvaluationPage() {
       </div>
 
       {/* 2. JURY GUIDE BANNER */}
-      <div className="bg-emerald-950/40 border border-emerald-800/60 rounded-xl p-5 text-emerald-100 shadow">
+      <div data-tour="ai-boundary-section" className="bg-emerald-950/40 border border-emerald-800/60 rounded-xl p-5 text-emerald-100 shadow">
         <div className="flex items-center gap-2 font-bold text-emerald-400 uppercase tracking-wider text-xs mb-3">
           <Zap className="w-4 h-4" />
           <span>TRY THESE FOUR THINGS — SELF-EXPLANATORY JURY GUIDE</span>
